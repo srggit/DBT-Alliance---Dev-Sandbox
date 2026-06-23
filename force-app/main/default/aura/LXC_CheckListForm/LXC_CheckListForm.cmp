@@ -1,0 +1,779 @@
+<aura:component implements="force:lightningQuickAction,force:hasRecordId" access="global" controller="CNT_CheckListForm">
+	<aura:attribute name="recordId" type="String" />
+    <aura:attribute name="currentChecklist" type="Checklist__c" />
+    <aura:attribute name="subTotals" type="Integer" default="0" />
+    <aura:attribute name="Overheads" type="Integer" default="0" />
+    <aura:attribute name="Total" type="Integer" default="0" />
+    <aura:attribute name="isEditable" type="Boolean" default="true"/>
+    <aura:attribute name="isTSG" type="Boolean" default="true"/>
+    <aura:attribute name="isCRC" type="Boolean" default="true"/>
+    <aura:handler name="init" action="{!c.doInit}" value="{!this}"/>
+    <aura:attribute name="isReviewAccess" type="Boolean" default="false"/>
+    <aura:attribute name="coInvList" type="list"/>
+    <aura:attribute name="coInvListSize" type="Integer" default="0" />
+    <aura:html tag="style">
+        .slds-modal__container{ 
+        width: 90%; max-width: 1200vh;
+        height: 100%;
+        } 
+    </aura:html>
+    <aura:if isTrue="{!v.isReviewAccess}">
+    <div class="slds-modal__container">
+        <center><h4 style="font-size:12px">Checklist to be filled for review of <aura:if isTrue="{!v.isTSG}">TSG </aura:if> <aura:if isTrue="{!v.isCRC}">CRC </aura:if> applications by Grants Team</h4></center>
+        <lightning:recordEditForm aura:id="{!v.currentChecklist.Id}" objectApiName="Checklist__c">
+        <table style="border:1px solid black;">
+        	<tr>
+            	<td style="border:1px solid black;width:20%;text-align:center;height:50px"><b>Sections</b></td>
+                <td style="border:1px solid black;width:40%;text-align:center;height:50px"></td>
+                <td style="border:1px solid black;width:40%;text-align:center;height:50px"><b>GA</b></td>
+            </tr>
+            <!-- 1 AND 2 Starts -->
+            <tr>
+                <td style="border:1px solid black;width:20%;text-align:center;transform:rotate(270deg);height:400px" rowspan="{!v.coInvListSize + 6}"><b>
+                    <aura:if isTrue="{!v.isTSG}">1-	Team </aura:if> <aura:if isTrue="{!v.isCRC}">1 AND 2 </aura:if>
+                    </b></td>
+                <td style="border:1px solid black;width:40%;text-align:center">Reference No.</td>
+                <td style="border:1px solid black;width:40%;text-align:center">{!v.currentChecklist.Reference_Number__c}</td>
+            </tr>
+            <tr>
+                <td style="border:1px solid black;width:40%;text-align:center">Lead Institution- Name of PI and organization</td>
+                <td style="border:1px solid black;width:40%;text-align:center"><aura:unescapedHtml value="{!v.currentChecklist.LI_Name_and_Organisation__c}"/></td> 
+            </tr>
+            <aura:iteration items="{!v.coInvList}" var="scm" indexVar="indx">
+            <tr>
+                <td style="border:1px solid black;width:40%;text-align:center">Co-Institution {!indx+1} - Name of Co-PI {!indx+1} and organization</td>
+                <td style="border:1px solid black;width:40%;text-align:center"><aura:unescapedHtml value="{!scm}"/></td>
+            </tr>
+            </aura:iteration>
+            <!--<tr>
+                <td style="border:1px solid black;width:40%;text-align:center">Co-Institution 1 - Name of Co-PI 1 and organization</td>
+                <td style="border:1px solid black;width:40%;text-align:center">{!v.currentChecklist.CO_1_Name_and_Organisation__c}</td>
+            </tr>
+            <tr>
+                <td style="border:1px solid black;width:40%;text-align:center">Co-Institution 2 - Name of Co-PI 2 and organization</td>
+                <td style="border:1px solid black;width:40%;text-align:center">{!v.currentChecklist.CO_2_Name_and_Organisation__c}</td>
+            </tr>-->
+            <!--<tr>
+                <td style="border:1px solid black;width:40%;text-align:center">Co-Institution 3 - Name of Co-PI 3 and organization</td>
+                <td style="border:1px solid black;width:40%;text-align:center">{!v.currentChecklist.Co_Institution_3__c}</td>
+            </tr>-->
+            <tr>
+                <td style="border:1px solid black;width:40%;text-align:center">All investigators eligible</td>
+                <aura:if isTrue="{!v.isEditable}">
+                    <td style="border:1px solid black;width:40%;text-align:center;padding-left:10px;padding-right:10px">
+                        <lightning:select variant="label-hidden" class="slt" label="" value="{!v.currentChecklist.All_Investigators_Eligible__c}">
+                            <option value="">None</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </lightning:select>
+                        
+                    </td>
+                    <aura:set attribute="else">
+                        <td style="border:1px solid black;width:40%;text-align:center">{!v.currentChecklist.All_Investigators_Eligible__c}</td>
+                    </aura:set>
+                </aura:if> 
+            </tr>
+            <tr>
+                <td style="border:1px solid black;width:40%;text-align:center">All organizations eligible</td>
+                <aura:if isTrue="{!v.isEditable}">
+                    <td style="border:1px solid black;width:40%;text-align:center;padding-left:10px;padding-right:10px">
+                        <lightning:select variant="label-hidden" class="slt" label="" value="{!v.currentChecklist.All_Organizations_Eligible__c}">
+                            <option value="">None</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </lightning:select>
+                        
+                    </td>
+                    <aura:set attribute="else">
+                        <td style="border:1px solid black;width:40%;text-align:center">{!v.currentChecklist.All_Organizations_Eligible__c}</td>
+                    </aura:set>
+                </aura:if>
+            </tr>
+            <tr>
+                <td style="border:1px solid black;width:40%;text-align:center">
+                    <aura:if isTrue="{!v.isTSG}">Satisfactory reason towards team approach </aura:if> <aura:if isTrue="{!v.isCRC}">Explanation about role of all investigators found satisfactory </aura:if>
+                    </td>
+                <aura:if isTrue="{!v.isEditable}">
+                    <td style="border:1px solid black;width:40%;text-align:center;padding-left:10px;padding-right:10px">
+                        <lightning:select variant="label-hidden" class="slt" label="" value="{!v.currentChecklist.Role_of_all_Investigators__c}">
+                            <option value="">None</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </lightning:select>
+                        
+                    </td>
+                    <aura:set attribute="else">
+                        <td style="border:1px solid black;width:40%;text-align:center">{!v.currentChecklist.Role_of_all_Investigators__c}</td>
+                    </aura:set>
+                </aura:if>
+            </tr>
+            <tr>
+                <td style="border:1px solid black;width:40%;text-align:center">Time Commitment satisfactory</td>
+                <aura:if isTrue="{!v.isEditable}">
+                    <td style="border:1px solid black;width:40%;text-align:center;padding-left:10px;padding-right:10px">
+                        <lightning:select variant="label-hidden" class="slt" label="" value="{!v.currentChecklist.Time_Commitment_Satisfactory__c}">
+                            <option value="">None</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </lightning:select>
+                        
+                    </td>
+                    <aura:set attribute="else">
+                        <td style="border:1px solid black;width:40%;text-align:center">{!v.currentChecklist.Time_Commitment_Satisfactory__c}</td>
+                    </aura:set>
+                </aura:if>
+            </tr>
+            <!-- 1 AND 2 Ends -->
+            
+            <!-- 3 - Proposal Starts -->
+            <tr>
+                <td style="border:1px solid black;width:20%;text-align:center;transform:rotate(270deg);height:600px" rowspan="{!v.isCRC ? '12':'10'}"><b>
+                    <aura:if isTrue="{!v.isTSG}">2 - Proposal </aura:if> <aura:if isTrue="{!v.isCRC}">3 - Proposal </aura:if>
+                    </b></td>
+                <td style="border:1px solid black;width:40%;text-align:center">Proposal within remit </td>
+                <aura:if isTrue="{!v.isEditable}">
+                    <td style="border:1px solid black;width:40%;text-align:center;padding-left:10px;padding-right:10px">
+                        <lightning:select variant="label-hidden" class="slt" label="" value="{!v.currentChecklist.Proposal_Within_Remit__c}">
+                            <option value="">None</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </lightning:select>
+                        
+                    </td>
+                    <aura:set attribute="else">
+                        <td style="border:1px solid black;width:40%;text-align:center">{!v.currentChecklist.Proposal_Within_Remit__c}</td>
+                    </aura:set>
+                </aura:if>
+            </tr>
+            <tr>
+                <td style="border:1px solid black;width:40%;text-align:center">Abstract appropriate</td>
+                <aura:if isTrue="{!v.isEditable}">
+                    <td style="border:1px solid black;width:40%;text-align:center;padding-left:10px;padding-right:10px">
+                        <lightning:select variant="label-hidden" class="slt" label="" value="{!v.currentChecklist.Abstract_Appropriate__c}">
+                            <option value="">None</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </lightning:select>
+                        
+                    </td>
+                    <aura:set attribute="else">
+                        <td style="border:1px solid black;width:40%;text-align:center">{!v.currentChecklist.Abstract_Appropriate__c}</td>
+                    </aura:set>
+                </aura:if>
+            </tr>
+            <tr>
+                <td style="border:1px solid black;width:40%;text-align:center">Proposal within word limit</td>
+                <aura:if isTrue="{!v.isEditable}">
+                    <td style="border:1px solid black;width:40%;text-align:center;padding-left:10px;padding-right:10px">
+                        <lightning:select variant="label-hidden" class="slt" label="" value="{!v.currentChecklist.Proposal_within_word_limit__c}">
+                            <option value="">None</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </lightning:select>
+                        
+                    </td>
+                    <aura:set attribute="else">
+                        <td style="border:1px solid black;width:40%;text-align:center">{!v.currentChecklist.Proposal_within_word_limit__c}</td>
+                    </aura:set>
+                </aura:if>
+            </tr>
+            <tr>
+                <td style="border:1px solid black;width:40%;text-align:center">Clinical Trial proposed</td>
+                <aura:if isTrue="{!v.isEditable}">
+                    <td style="border:1px solid black;width:40%;text-align:center;padding-left:10px;padding-right:10px">
+                        <lightning:select variant="label-hidden" class="slt" label="" value="{!v.currentChecklist.Clinical_Trial_Proposed__c}">
+                            <option value="">None</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </lightning:select>
+                        
+                    </td>
+                    <aura:set attribute="else">
+                        <td style="border:1px solid black;width:40%;text-align:center">{!v.currentChecklist.Clinical_Trial_Proposed__c}</td>
+                    </aura:set>
+                </aura:if>
+            </tr>
+            <aura:if isTrue="{!v.isCRC}">
+            <tr>
+                <td style="border:1px solid black;width:40%;text-align:center">CRTP proposed</td>
+                <aura:if isTrue="{!v.isEditable}">
+                    <td style="border:1px solid black;width:40%;text-align:center;padding-left:10px;padding-right:10px">
+                        <lightning:select variant="label-hidden" class="slt" label="" value="{!v.currentChecklist.CRTP_Proposed__c}">
+                            <option value="">None</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </lightning:select>
+                        
+                    </td>
+                    <aura:set attribute="else">
+                        <td style="border:1px solid black;width:40%;text-align:center">{!v.currentChecklist.CRTP_Proposed__c}</td>
+                    </aura:set>
+                </aura:if>
+            </tr>
+            <tr>
+                <td style="border:1px solid black;width:40%;text-align:center">Access of CSDU available</td>
+                <aura:if isTrue="{!v.isEditable}">
+                    <td style="border:1px solid black;width:40%;text-align:center;padding-left:10px;padding-right:10px">
+                        <lightning:select variant="label-hidden" class="slt" label="" value="{!v.currentChecklist.Access_of_CSDU_Available__c}">
+                            <option value="">None</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </lightning:select>
+                        
+                    </td>
+                    <aura:set attribute="else">
+                        <td style="border:1px solid black;width:40%;text-align:center">{!v.currentChecklist.Access_of_CSDU_Available__c}</td>
+                    </aura:set>
+                </aura:if>
+            </tr>
+            </aura:if>
+            <tr>
+                <td style="border:1px solid black;width:40%;text-align:center">Research management plan presented</td>
+                <aura:if isTrue="{!v.isEditable}">
+                    <td style="border:1px solid black;width:40%;text-align:center;padding-left:10px;padding-right:10px">
+                        <lightning:select variant="label-hidden" class="slt" label="" value="{!v.currentChecklist.Research_Management_plan_Presented__c}">
+                            <option value="">None</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </lightning:select>
+                        
+                    </td>
+                    <aura:set attribute="else">
+                        <td style="border:1px solid black;width:40%;text-align:center">{!v.currentChecklist.Research_Management_plan_Presented__c}</td>
+                    </aura:set>
+                </aura:if>
+            </tr>
+            <tr>
+                <td style="border:1px solid black;width:40%;text-align:center">Sustainability plan presented</td>
+                <aura:if isTrue="{!v.isEditable}">
+                    <td style="border:1px solid black;width:40%;text-align:center;padding-left:10px;padding-right:10px">
+                        <lightning:select variant="label-hidden" class="slt" label="" value="{!v.currentChecklist.Sustainability_plan_Presented__c}">
+                            <option value="">None</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </lightning:select>
+                        
+                    </td>
+                    <aura:set attribute="else">
+                        <td style="border:1px solid black;width:40%;text-align:center">{!v.currentChecklist.Sustainability_plan_Presented__c}</td>
+                    </aura:set>
+                </aura:if>
+            </tr>
+            <tr>
+                <td style="border:1px solid black;width:40%;text-align:center">Satisfactory representation of milestones</td>
+                <aura:if isTrue="{!v.isEditable}">
+                    <td style="border:1px solid black;width:40%;text-align:center;padding-left:10px;padding-right:10px">
+                        <lightning:select variant="label-hidden" class="slt" label="" value="{!v.currentChecklist.Satisfactory_Representation_of_Milestone__c}">
+                            <option value="">None</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </lightning:select>
+                        
+                    </td>
+                    <aura:set attribute="else">
+                        <td style="border:1px solid black;width:40%;text-align:center">{!v.currentChecklist.Satisfactory_Representation_of_Milestone__c}</td>
+                    </aura:set>
+                </aura:if>
+            </tr>
+            <tr>
+                <td style="border:1px solid black;width:40%;text-align:center">Satisfactory representation of timelines</td>
+                <aura:if isTrue="{!v.isEditable}">
+                    <td style="border:1px solid black;width:40%;text-align:center;padding-left:10px;padding-right:10px">
+                        <lightning:select variant="label-hidden" class="slt" label="" value="{!v.currentChecklist.Satisfactory_Representation_of_Timelines__c}">
+                            <option value="">None</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </lightning:select>
+                    </td>
+                    <aura:set attribute="else">
+                        <td style="border:1px solid black;width:40%;text-align:center">{!v.currentChecklist.Satisfactory_Representation_of_Timelines__c}</td>
+                    </aura:set>
+                </aura:if>
+            </tr>
+            <tr>
+                <td style="border:1px solid black;width:40%;text-align:center">Guidelines followed for Figures and tables</td>
+                <aura:if isTrue="{!v.isEditable}">
+                    <td style="border:1px solid black;width:40%;text-align:center;padding-left:10px;padding-right:10px">
+                        <lightning:select variant="label-hidden" class="slt" label="" value="{!v.currentChecklist.Guidelines_for_Figures_and_table__c}">
+                           <option value="">None</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </lightning:select>
+                    </td>
+                    <aura:set attribute="else">
+                        <td style="border:1px solid black;width:40%;text-align:center">{!v.currentChecklist.Guidelines_for_Figures_and_table__c}</td>
+                    </aura:set>
+                </aura:if>
+            </tr>
+            <tr>
+                <td style="border:1px solid black;width:40%;text-align:center">Guidelines followed for References</td>
+                <aura:if isTrue="{!v.isEditable}">
+                    <td style="border:1px solid black;width:40%;text-align:center;padding-left:10px;padding-right:10px">
+                        <lightning:select variant="label-hidden" class="slt" label="" value="{!v.currentChecklist.Guidelines_followed_for_References__c}">
+                            <option value="">None</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </lightning:select>
+                    </td>
+                    <aura:set attribute="else">
+                        <td style="border:1px solid black;width:40%;text-align:center">{!v.currentChecklist.Guidelines_followed_for_References__c}</td>
+                    </aura:set>
+                </aura:if>
+            </tr>
+            <!-- 3 - Proposal Ends -->
+            
+            <!-- 4 - CVs Starts -->
+            <tr>
+                <td style="border:1px solid black;width:20%;text-align:center;transform:rotate(270deg);height:200px" rowspan="4"><b>
+                    <aura:if isTrue="{!v.isTSG}">3 - CVs </aura:if> <aura:if isTrue="{!v.isCRC}">4 - CVs </aura:if>
+                    </b></td>
+                <td style="border:1px solid black;width:40%;text-align:center">Publications in CVs as per guidelines</td>
+                <aura:if isTrue="{!v.isEditable}">    
+                    <td style="border:1px solid black;width:40%;text-align:center;padding-left:10px;padding-right:10px">
+                        <lightning:select variant="label-hidden" class="slt" label="" value="{!v.currentChecklist.Publications_in_CVs_as_per_Guidelines__c}">
+                            <option value="">None</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </lightning:select>
+                    </td>
+                    <aura:set attribute="else">
+                        <td style="border:1px solid black;width:40%;text-align:center">{!v.currentChecklist.Publications_in_CVs_as_per_Guidelines__c}</td>
+                    </aura:set>
+                </aura:if>
+            </tr>
+            <tr>
+                <td style="border:1px solid black;width:40%;text-align:center">Format for grants in CVs as per guidelines</td>
+                <aura:if isTrue="{!v.isEditable}">
+                    <td style="border:1px solid black;width:40%;text-align:center;padding-left:10px;padding-right:10px">
+                        <lightning:select variant="label-hidden" class="slt" label="" value="{!v.currentChecklist.Format_for_grants_in_CVs_per_guidelines__c}">
+                            <option value="">None</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </lightning:select>
+                    </td>
+                    <aura:set attribute="else">
+                        <td style="border:1px solid black;width:40%;text-align:center">{!v.currentChecklist.Format_for_grants_in_CVs_per_guidelines__c}</td>
+                    </aura:set>
+                </aura:if>
+            </tr>
+            <tr>
+                <td style="border:1px solid black;width:40%;text-align:center">No other affiliations of any investigator</td>
+                <aura:if isTrue="{!v.isEditable}">
+                    <td style="border:1px solid black;width:40%;text-align:center;padding-left:10px;padding-right:10px">
+                        <lightning:select variant="label-hidden" class="slt" label="" value="{!v.currentChecklist.No_Other_Affiliations_any_Investigator__c}">
+                            <option value="">None</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </lightning:select>
+                    </td>
+                    <aura:set attribute="else">
+                        <td style="border:1px solid black;width:40%;text-align:center">{!v.currentChecklist.No_Other_Affiliations_any_Investigator__c}</td>
+                    </aura:set>
+                </aura:if>
+            </tr>
+            <tr>
+                <td style="border:1px solid black;width:40%;text-align:center">No pending similar application to other funding agencies</td>
+                <aura:if isTrue="{!v.isEditable}">
+                    <td style="border:1px solid black;width:40%;text-align:center;padding-left:10px;padding-right:10px">
+                        <lightning:select variant="label-hidden" class="slt" label="" value="{!v.currentChecklist.Pending_Applications_other_Agencies__c}">
+                            <option value="">None</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </lightning:select>
+                    </td>
+                    <aura:set attribute="else">
+                        <td style="border:1px solid black;width:40%;text-align:center">{!v.currentChecklist.Pending_Applications_other_Agencies__c}</td>
+                    </aura:set>
+                </aura:if>
+            </tr>
+            <!-- 4 - CVs Ends -->
+            
+            <!-- 8,9 - Animal/Human Starts -->
+            <tr>
+                <td style="border:1px solid black;width:20%;text-align:center;transform:rotate(270deg);height:150px" rowspan="3"><b>
+                    <aura:if isTrue="{!v.isTSG}">7,8 - Animal/Human</aura:if> <aura:if isTrue="{!v.isCRC}">8,9 - Animal/Human </aura:if>
+                    </b></td>
+                <td style="border:1px solid black;width:40%;text-align:center">Animal number calculation provided</td>
+                <aura:if isTrue="{!v.isEditable}">    
+                    <td style="border:1px solid black;width:40%;text-align:center;padding-left:10px;padding-right:10px">
+                        <lightning:select variant="label-hidden" class="slt" label="" value="{!v.currentChecklist.Animal_Number_Calculation_Provided__c}">
+                            <option value="">None</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </lightning:select>
+                    </td>
+                    <aura:set attribute="else">
+                        <td style="border:1px solid black;width:40%;text-align:center">{!v.currentChecklist.Animal_Number_Calculation_Provided__c}</td>
+                    </aura:set>
+                </aura:if>
+            </tr>
+            <tr>
+                <td style="border:1px solid black;width:40%;text-align:center">Any experiment on big animals</td>
+                <aura:if isTrue="{!v.isEditable}">
+                    <td style="border:1px solid black;width:40%;text-align:center;padding-left:10px;padding-right:10px">
+                        <lightning:select variant="label-hidden" class="slt" label="" value="{!v.currentChecklist.Any_Experiment_on_big_Animals__c}">
+                            <option value="">None</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </lightning:select>
+                    </td>
+                    <aura:set attribute="else">
+                        <td style="border:1px solid black;width:40%;text-align:center">{!v.currentChecklist.Any_Experiment_on_big_Animals__c}</td>
+                    </aura:set>
+                </aura:if>
+            </tr>
+            <tr>
+                <td style="border:1px solid black;width:40%;text-align:center">Source of human samples/data/recruitment of patients mentioned</td>
+                <aura:if isTrue="{!v.isEditable}">
+                    <td style="border:1px solid black;width:40%;text-align:center;padding-left:10px;padding-right:10px">
+                        <lightning:select variant="label-hidden" class="slt" label="" value="{!v.currentChecklist.Source_of_Human_Samples__c}">
+                            <option value="">None</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </lightning:select>
+                    </td>
+                    <aura:set attribute="else">
+                        <td style="border:1px solid black;width:40%;text-align:center">{!v.currentChecklist.Source_of_Human_Samples__c}</td>
+                    </aura:set>
+                </aura:if>
+            </tr>
+            <!-- 8,9 - Animal/Human Ends -->
+            
+            <!-- 11, 12, 13 and 14 Starts -->
+            <tr>
+                <td style="border:1px solid black;width:20%;text-align:center;transform:rotate(270deg);height:50px"><b>
+                    <aura:if isTrue="{!v.isTSG}">10</aura:if> <aura:if isTrue="{!v.isCRC}">11 </aura:if>
+                    </b></td>
+                <td style="border:1px solid black;width:40%;text-align:center">No link with commercial organizations</td>
+                <aura:if isTrue="{!v.isEditable}">    
+                    <td style="border:1px solid black;width:40%;text-align:center;padding-left:10px;padding-right:10px">
+                        <lightning:select variant="label-hidden" class="slt" label="" value="{!v.currentChecklist.No_link_with_Commercial_Organizations__c}">
+                            <option value="">None</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </lightning:select>
+                    </td>
+                    <aura:set attribute="else">
+                        <td style="border:1px solid black;width:40%;text-align:center">{!v.currentChecklist.No_link_with_Commercial_Organizations__c}</td>
+                    </aura:set>
+                </aura:if>
+            </tr>
+            
+            <tr>
+                <td style="border:1px solid black;width:20%;text-align:center;transform:rotate(270deg);height:50px"><b>
+                    <aura:if isTrue="{!v.isTSG}">11</aura:if> <aura:if isTrue="{!v.isCRC}">12 </aura:if>
+                    </b></td>
+                <td style="border:1px solid black;width:40%;text-align:center">Restricted reviewers not included</td>
+                <aura:if isTrue="{!v.isEditable}">    
+                    <td style="border:1px solid black;width:40%;text-align:center;padding-left:10px;padding-right:10px">
+                        <lightning:select variant="label-hidden" class="slt" label="" value="{!v.currentChecklist.Restricted_reviewers_not_Included__c}">
+                            <option value="">None</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </lightning:select>
+                    </td>
+                    <aura:set attribute="else">
+                        <td style="border:1px solid black;width:40%;text-align:center">{!v.currentChecklist.Restricted_reviewers_not_Included__c}</td>
+                    </aura:set>
+                </aura:if>
+            </tr>
+            
+            <tr>
+                <td style="border:1px solid black;width:20%;text-align:center;transform:rotate(270deg);height:50px"><b>
+                    <aura:if isTrue="{!v.isTSG}">12</aura:if> <aura:if isTrue="{!v.isCRC}">13 </aura:if></b></td>
+                <td style="border:1px solid black;width:40%;text-align:center">Appropriate Undertaking from investigators</td>
+                <aura:if isTrue="{!v.isEditable}">    
+                <td style="border:1px solid black;width:40%;text-align:center;padding-left:10px;padding-right:10px">
+                    <lightning:select variant="label-hidden" class="slt" label="" value="{!v.currentChecklist.Appropriate_Undertaking_investigators__c}">
+                        <option value="">None</option>    
+                        <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </lightning:select>    
+                    </td>
+                    <aura:set attribute="else">
+                        <td style="border:1px solid black;width:40%;text-align:center">{!v.currentChecklist.Appropriate_Undertaking_investigators__c}</td>
+                    </aura:set>
+                </aura:if>
+            </tr>
+            
+            <tr>
+                <td style="border:1px solid black;width:20%;text-align:center;transform:rotate(270deg);height:50px"><b>
+                    <aura:if isTrue="{!v.isTSG}">13</aura:if> <aura:if isTrue="{!v.isCRC}">14 </aura:if></b></td>
+                <td style="border:1px solid black;width:40%;text-align:center">Appropriate Undertaking from institutions</td>
+                <aura:if isTrue="{!v.isEditable}">    
+                <td style="border:1px solid black;width:40%;text-align:center;padding-left:10px;padding-right:10px">
+                    <lightning:select variant="label-hidden" class="slt" label="" value="{!v.currentChecklist.Appropriate_Undertaking_from_Institution__c}">
+                        <option value="">None</option>    
+                        <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </lightning:select>    
+                    </td>
+                    <aura:set attribute="else">
+                        <td style="border:1px solid black;width:40%;text-align:center">{!v.currentChecklist.Appropriate_Undertaking_from_Institution__c}</td>
+                    </aura:set>
+                </aura:if>
+            </tr>
+            <!-- 11, 12, 13 and 14 Ends -->
+            
+            <!-- 5 - Budget Starts -->
+            <tr>
+                <td style="border:1px solid black;width:20%;text-align:center;transform:rotate(270deg);height:850px" rowspan="17"><b>
+                    <aura:if isTrue="{!v.isTSG}">4 - Budget</aura:if> <aura:if isTrue="{!v.isCRC}">5 - Budget </aura:if></b></td>
+                <td style="border:1px solid black;width:40%;text-align:center">Budget within cap</td>
+                <aura:if isTrue="{!v.isEditable}">     
+                <td style="border:1px solid black;width:40%;text-align:center;padding-left:10px;padding-right:10px">
+                    <lightning:select variant="label-hidden" class="slt" label="" value="{!v.currentChecklist.Budget_within_cap__c}">
+                        <option value="">None</option>    
+                        <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </lightning:select>    
+                    </td>
+                    <aura:set attribute="else">
+                        <td style="border:1px solid black;width:40%;text-align:center">{!v.currentChecklist.Budget_within_cap__c}</td>
+                    </aura:set>
+                </aura:if>
+            </tr>
+            <tr>
+                <td style="border:1px solid black;width:40%;text-align:center">No disallowed costs</td>
+                <aura:if isTrue="{!v.isEditable}">
+                    <td style="border:1px solid black;width:40%;text-align:center;padding-left:10px;padding-right:10px">
+                        <lightning:select variant="label-hidden" class="slt" label="" value="{!v.currentChecklist.No_Disallowed_costs__c}">
+                            <option value="">None</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </lightning:select>
+                    </td>
+                    <aura:set attribute="else">
+                        <td style="border:1px solid black;width:40%;text-align:center">{!v.currentChecklist.No_Disallowed_costs__c}</td>
+                    </aura:set>
+                </aura:if>
+            </tr>
+            <tr>
+                <td style="border:1px solid black;width:40%;text-align:center">No mismatch in calculation</td>
+                <aura:if isTrue="{!v.isEditable}">
+                    <td style="border:1px solid black;width:40%;text-align:center;padding-left:10px;padding-right:10px">
+                        <lightning:select variant="label-hidden" class="slt" label="" value="{!v.currentChecklist.No_Mismatch_in_Calculation__c}">
+                            <option value="">None</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </lightning:select>
+                    </td>
+                    <aura:set attribute="else">
+                        <td style="border:1px solid black;width:40%;text-align:center">{!v.currentChecklist.No_Mismatch_in_Calculation__c}</td>
+                    </aura:set>
+                </aura:if>
+            </tr>
+            <tr>
+                <td style="border:1px solid black;width:40%;text-align:center">Salary for PIs not requested </td>
+                <aura:if isTrue="{!v.isEditable}">
+                    <td style="border:1px solid black;width:40%;text-align:center;padding-left:10px;padding-right:10px">
+                        <lightning:select variant="label-hidden" class="slt" label="" value="{!v.currentChecklist.Salary_for_PIs_not_Requested__c}">
+                            <option value="">None</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </lightning:select>
+                    </td>
+                    <aura:set attribute="else">
+                        <td style="border:1px solid black;width:40%;text-align:center">{!v.currentChecklist.Salary_for_PIs_not_Requested__c}</td>
+                    </aura:set>
+                </aura:if>
+            </tr>
+            <tr>
+                <td style="border:1px solid black;width:40%;text-align:center">Distribution of funds between institutions satisfactory</td>
+                <aura:if isTrue="{!v.isEditable}">
+                    <td style="border:1px solid black;width:40%;text-align:center;padding-left:10px;padding-right:10px">
+                        <lightning:select variant="label-hidden" class="slt" label="" value="{!v.currentChecklist.Distribution_of_funds__c}">
+                            <option value="">None</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </lightning:select>
+                    </td>
+                    <aura:set attribute="else">
+                        <td style="border:1px solid black;width:40%;text-align:center">{!v.currentChecklist.Distribution_of_funds__c}</td>
+                    </aura:set>
+                </aura:if>
+            </tr>
+            <tr>
+                <td style="border:1px solid black;width:40%;text-align:center">Salaries for PIs</td>
+                <aura:if isTrue="{!v.isEditable}">
+                    <td style="border:1px solid black;width:40%;text-align:center;padding-left:10px;padding-right:10px">
+                        <lightning:inputField fieldName="Salaries_for_PIs__c" variant="label-hidden" value="{!v.currentChecklist.Salaries_for_PIs__c}" onchange="{!c.calculateTotalFields}"/>
+                    </td>
+                    <aura:set attribute="else">
+                        <td style="border:1px solid black;width:40%;text-align:center">{!v.currentChecklist.Salaries_for_PIs__c}</td>
+                    </aura:set>
+                </aura:if>
+            </tr>
+            <tr>
+                <td style="border:1px solid black;width:40%;text-align:center">Support Staff salaries</td>
+                <aura:if isTrue="{!v.isEditable}">
+                    <td style="border:1px solid black;width:40%;text-align:center;padding-left:10px;padding-right:10px">
+                        <lightning:inputField fieldName="Support_Staff_salaries__c" variant="label-hidden" value="{!v.currentChecklist.Support_Staff_salaries__c}" onchange="{!c.calculateTotalFields}"/>
+                    </td>
+                    <aura:set attribute="else">
+                        <td style="border:1px solid black;width:40%;text-align:center">{!v.currentChecklist.Support_Staff_salaries__c}</td>
+                    </aura:set>
+                </aura:if>
+            </tr>
+            <tr>
+                <td style="border:1px solid black;width:40%;text-align:center">Materials and consumables</td>
+                <aura:if isTrue="{!v.isEditable}">
+                    <td style="border:1px solid black;width:40%;text-align:center;padding-left:10px;padding-right:10px">
+                        <lightning:inputField fieldName="Materials_and_consumables__c" variant="label-hidden" value="{!v.currentChecklist.Materials_and_consumables__c}" onchange="{!c.calculateTotalFields}"/>
+                    </td>
+                    <aura:set attribute="else">
+                        <td style="border:1px solid black;width:40%;text-align:center">{!v.currentChecklist.Materials_and_consumables__c}</td>
+                    </aura:set>
+                </aura:if>
+            </tr>
+            <tr>
+                <td style="border:1px solid black;width:40%;text-align:center">Animals</td>
+                <aura:if isTrue="{!v.isEditable}">
+                    <td style="border:1px solid black;width:40%;text-align:center;padding-left:10px;padding-right:10px">
+                        <lightning:inputField fieldName="Animals__c" variant="label-hidden" value="{!v.currentChecklist.Animals__c}" onchange="{!c.calculateTotalFields}"/>
+                    </td>
+                    <aura:set attribute="else">
+                        <td style="border:1px solid black;width:40%;text-align:center">{!v.currentChecklist.Animals__c}</td>
+                    </aura:set>
+                </aura:if>
+            </tr>
+            <tr>
+                <td style="border:1px solid black;width:40%;text-align:center">Equipment</td>
+                <aura:if isTrue="{!v.isEditable}">
+                    <td style="border:1px solid black;width:40%;text-align:center;padding-left:10px;padding-right:10px">
+                        <lightning:inputField fieldName="Equipment__c" variant="label-hidden" value="{!v.currentChecklist.Equipment__c}" onchange="{!c.calculateTotalFields}"/>
+                    </td>
+                    <aura:set attribute="else">
+                        <td style="border:1px solid black;width:40%;text-align:center">{!v.currentChecklist.Equipment__c}</td>
+                    </aura:set>
+                </aura:if>
+            </tr>
+            <tr>
+                <td style="border:1px solid black;width:40%;text-align:center">Access charges</td>
+                <aura:if isTrue="{!v.isEditable}">
+                    <td style="border:1px solid black;width:40%;text-align:center;padding-left:10px;padding-right:10px">
+                        <lightning:inputField fieldName="Access_charges__c" variant="label-hidden" value="{!v.currentChecklist.Access_charges__c}" onchange="{!c.calculateTotalFields}"/>
+                    </td>
+                    <aura:set attribute="else">
+                        <td style="border:1px solid black;width:40%;text-align:center">{!v.currentChecklist.Access_charges__c}</td>
+                    </aura:set>
+                </aura:if>
+            </tr>
+            <tr>
+                <td style="border:1px solid black;width:40%;text-align:center">Miscellaneous</td>
+                <aura:if isTrue="{!v.isEditable}">
+                    <td style="border:1px solid black;width:40%;text-align:center;padding-left:10px;padding-right:10px">
+                        <lightning:inputField fieldName="Miscellaneous__c" variant="label-hidden" value="{!v.currentChecklist.Miscellaneous__c}" onchange="{!c.calculateTotalFields}"/>
+                    </td>
+                    <aura:set attribute="else">
+                        <td style="border:1px solid black;width:40%;text-align:center">{!v.currentChecklist.Miscellaneous__c}</td>
+                    </aura:set>
+                </aura:if>
+            </tr>
+            <tr>
+                <td style="border:1px solid black;width:40%;text-align:center">Travel costs</td>
+                <aura:if isTrue="{!v.isEditable}">
+                    <td style="border:1px solid black;width:40%;text-align:center;padding-left:10px;padding-right:10px">
+                        <lightning:inputField fieldName="Travel_costs__c" variant="label-hidden" value="{!v.currentChecklist.Travel_costs__c}" onchange="{!c.calculateTotalFields}"/>
+                    </td>
+                    <aura:set attribute="else">
+                        <td style="border:1px solid black;width:40%;text-align:center">{!v.currentChecklist.Travel_costs__c}</td>
+                    </aura:set>
+                </aura:if>
+            </tr>
+            <tr>
+                <td style="border:1px solid black;width:40%;text-align:center">Flexible Funding Allowance</td>
+                <aura:if isTrue="{!v.isEditable}">
+                    <td style="border:1px solid black;width:40%;text-align:center;padding-left:10px;padding-right:10px">
+                        <lightning:inputField fieldName="Flexible_Funding_Allowance__c" variant="label-hidden" value="{!v.currentChecklist.Flexible_Funding_Allowance__c}" onchange="{!c.calculateTotalFields}"/>
+                    </td>
+                    <aura:set attribute="else">
+                        <td style="border:1px solid black;width:40%;text-align:center">{!v.currentChecklist.Flexible_Funding_Allowance__c}</td>
+                    </aura:set>
+                </aura:if>
+            </tr>
+            <tr>
+                <td style="border:1px solid black;width:40%;text-align:center">Sub-total</td>
+                <td style="border:1px solid black;width:40%;text-align:center">{!v.subTotals}</td>
+            </tr>
+            <tr>
+                <td style="border:1px solid black;width:40%;text-align:center">Overheads (10% of Sub-Total)</td>
+                <td style="border:1px solid black;width:40%;text-align:center">{!v.Overheads}</td>
+            </tr>
+            <tr>
+                <td style="border:1px solid black;width:40%;text-align:center">Total (Sum of Sub-total and Overheads)</td>
+                <td style="border:1px solid black;width:40%;text-align:center">{!v.Total}</td>
+            </tr>
+            <!-- 5 - Budget Ends -->
+        </table>
+        <br/><br/>
+        <table style="border:1px solid black;">
+            <tr>
+                <td style="border:1px solid black;width:30%;text-align:center;height:50px">Comments from GA</td>
+                <aura:if isTrue="{!v.isEditable}">
+                    <td style="border:1px solid black;width:40%;text-align:center;padding-left:10px;padding-right:10px;padding-top:5px">
+                        <lightning:inputField fieldName="Comments__c" variant="label-hidden" value="{!v.currentChecklist.Comments__c}"/>
+                    </td>
+                    <aura:set attribute="else">
+                        <td style="border:1px solid black;width:40%;text-align:center">{!v.currentChecklist.Comments__c}</td>
+                    </aura:set>
+                </aura:if>
+            </tr>
+            <tr>
+                <td style="border:1px solid black;width:30%;text-align:center;height:50px">Additional comments from Secretary</td>
+                <aura:if isTrue="{!v.isEditable}">
+                    <td style="border:1px solid black;width:40%;text-align:center;padding-left:10px;padding-right:10px;padding-top:5px">
+                        <lightning:inputField fieldName="Comments_from_Secretary__c" variant="label-hidden" value="{!v.currentChecklist.Comments_from_Secretary__c}"/>
+                    </td>
+                    <aura:set attribute="else">
+                        <td style="border:1px solid black;width:40%;text-align:center">{!v.currentChecklist.Comments_from_Secretary__c}</td>
+                    </aura:set>
+                </aura:if>
+            </tr>
+            <tr>
+                <td style="border:1px solid black;width:30%;text-align:center;height:50px">Queries sent to applicants</td>
+                <aura:if isTrue="{!v.isEditable}">
+                    <td style="border:1px solid black;width:40%;text-align:center;padding-left:10px;padding-right:10px">
+                        <lightning:inputField fieldName="Queries_sent_to_Applicants__c" variant="label-hidden" value="{!v.currentChecklist.Queries_sent_to_Applicants__c}"/>
+                    </td>
+                    <aura:set attribute="else">
+                        <td style="border:1px solid black;width:40%;text-align:center">{!v.currentChecklist.Queries_sent_to_Applicants__c}</td>
+                    </aura:set>
+                </aura:if>
+            </tr>
+            <!--<tr>
+                <td style="border:1px solid black;width:30%;text-align:center;height:50px">Based on response received, points to clarify in later stages</td>
+                <aura:if isTrue="{!v.isEditable}">
+                    <td style="border:1px solid black;width:40%;text-align:center;padding-left:10px;padding-right:10px">
+                        <lightning:inputField fieldName="Response_from_Later_Stages__c" variant="label-hidden" value="{!v.currentChecklist.Response_from_Later_Stages__c}"/>
+                    </td>
+                    <aura:set attribute="else">
+                        <td style="border:1px solid black;width:40%;text-align:center">{!v.currentChecklist.Response_from_Later_Stages__c}</td>
+                    </aura:set>
+                </aura:if>
+            </tr>
+            <tr>
+                <td style="border:1px solid black;width:30%;text-align:center;height:50px">Any additional concern</td>
+                <aura:if isTrue="{!v.isEditable}">
+                    <td style="border:1px solid black;width:40%;text-align:center;padding-left:10px;padding-right:10px;padding-top:5px">
+                        <lightning:inputField fieldName="Any_Additional_Concern__c" variant="label-hidden" value="{!v.currentChecklist.Any_Additional_Concern__c}"/>
+                    </td>
+                    <aura:set attribute="else">
+                        <td style="border:1px solid black;width:40%;text-align:center">{!v.currentChecklist.Any_Additional_Concern__c}</td>
+                    </aura:set>
+                </aura:if>
+            </tr>-->
+        </table>
+        </lightning:recordEditForm>
+        <br/><br/><br/>
+        <!-- Button Section Starts -->
+        <div style="padding-left:45%">
+            <aura:if isTrue="{!v.isEditable}">
+                <lightning:button variant="neutral" label="Save" onclick="{!c.saveChecklist}"/>
+                <lightning:button variant="neutral" label="Submit" onclick="{!c.submitChecklist}"/>
+            </aura:if>
+        </div>
+        <!-- Button Section Ends -->
+    </div>
+    </aura:if>
+</aura:component>

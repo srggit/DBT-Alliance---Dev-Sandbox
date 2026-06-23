@@ -1,0 +1,9 @@
+.THIS .slds-form-element__label {
+    font-size:15px;
+    font-weight:bold;
+}
+.THIS.slds-m-around_large{
+    width:48%;
+    font-size:0.90rem !important;
+    margin:auto;
+}

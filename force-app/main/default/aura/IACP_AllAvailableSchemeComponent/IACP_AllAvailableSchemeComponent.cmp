@@ -1,0 +1,241 @@
+<aura:component controller="ICAP_AllASchemeController" implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickAction" access="global" >
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <aura:attribute name="allSchemes" type="list"/>
+    <aura:attribute name="applicationRecordTypeList" type="list"/>
+    <aura:attribute name="isOpen" type="boolean" default="false"/>
+    <aura:attribute name="isOpenGrantTSG" type="boolean" default="false"/>
+    <aura:attribute name="isOpenTravelGrant" type="boolean" default="false"/>
+    <aura:attribute name="user" type="User" default="{ 'sobjectType': 'User' }"/>
+    <aura:attribute name="recordTypeId" type="String"/>
+    <aura:attribute name="schemeId" type="String"/>
+    <aura:attribute name="recordTypeName" type="String"/>
+    <aura:attribute name="sObjectName" type="String"/>
+     <aura:attribute name="IrmiGrant" type="boolean" default="false"/>
+    <aura:attribute name="FellowshipForm" type="boolean" default="false"/>
+    <div class="{! v.isOpenGrantTSG ? 'slds-section':'slds-hide'}">
+        <aura:if isTrue="{!v.isOpenGrantTSG}"><c:GrantApplicationFormComponent aura:id="TSGFORM" schemeId="{!v.schemeId}" defaultMode="edit" recordTypeId="{!v.recordTypeId}"/></aura:if>
+    </div>
+    
+    <div class="{! !v.isOpenGrantTSG ? 'slds-section':'slds-hide'}">
+        <div class="{! !v.isOpen ? 'slds-section':'slds-hide'}">
+            <div class="demo-only">
+                <ul class="slds-has-dividers_around-space">
+                    <aura:iteration items="{!v.allSchemes}" var="scm" indexVar="indx">
+                        <li class="slds-item">
+                            <article class="slds-tile slds-tile_board">
+                                <div class="slds-section slds-is-open" id="{! indx +'mainSection'}" >
+                                    <h3 class="slds-section__title slds-m-left_large">
+                                        <!--<button aria-controls="{!scm.Id}" class="slds-button">
+                            <span onclick="{!c.toggleSection}" data-auraId="{! indx +'mainSection'}">
+                                <lightning:icon iconName="utility:switch" size="x-small" class="slds-section__title-action-icon slds-button__icon_left" alternativeText="button icon" />
+                            </span>-->
+                                        <span class="slds-truncate" title="{!scm.Name}" style="font-size:16px; color: #2574A9;"><b>{!scm.Name}<!--</b><br/>Portal opens 20 January 2020 (Application deadline: 18 February 2020) - <span onclick="{!c.createRecord}" data-auraId="{!scm.Type__c}"><forceCommunity:routeLink title="Apply Now" label="Apply Now" routeInput="{!v.routeInput}"/></span>--></b> </span>
+                                        <!--</button>-->
+                                    </h3>
+                                    <div class="slds-section__content slds-m-left_large" id="{!scm.Id}">
+                                        <b>Start Date - <lightning:formattedDateTime value="{!scm.Start_Date__c}"/> - 
+                                            Close Date - <lightning:formattedDateTime value="{!scm.Close_Date__c}"/></b><br/>
+                                        {!scm.Comments__c}<br/><br/>
+                                        
+                                        <span onclick="{!c.openRegistration}" data-auraId="{!scm.Type__c}" data-scheme="{!scm.Id}"><lightning:button variant="brand" label="Apply Now" title="Apply Now"/></span>
+                                        &nbsp;<span onclick="{!c.viewRecord}" data-auraId="{!scm.Id}"><lightning:button variant="neutral" label="View" title="View"/></span>
+                                        <br/>
+                                    </div>
+                                </div>
+                            </article>
+                        </li>
+                    </aura:iteration>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="{!v.isOpen ? 'slds-p-around_medium':'slds-hide'}" id="modal_boday">
+            <div class="">
+                <div class="slds-m-around_large">
+                    <img src="{!$Resource.IRMIGRANTLIGHTNINGCOMPOENT}" style="width:100%;height:200px;"/>
+                </div>
+                
+                <div class="slds-page-header">
+                    <div class="slds-grid">
+                        <div class="slds-col">
+                            <p class="slds-text-heading--label" style="font-size:25px;text-align:center;color:brown;"><b>{!v.recordTypeName}</b></p>
+                        </div>
+                    </div>
+                </div><br/>
+                <div class="slds-p-left_none" style=" font-size:18px;color:brown;">
+                    <h1><b> Q1: Applicant Details</b></h1>         
+                </div><br/>
+               <div class="container">
+                    <div class="slds-grid slds-wrap">
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_6-of-12 slds-p-right_xxx-small">
+                            <div class="slds-form-element slds-form-element_readonly">
+                                <label class="slds-form-element__label" for="text-input-id-1">Title</label>
+                                <div class="slds-form-element__control">
+                                    {!v.user.Title__c}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_6-of-12">
+                            <div class="slds-form-element slds-form-element_readonly">
+                                <label class="slds-form-element__label" for="text-input-id-1">Scheme</label>
+                                <div class="slds-form-element__control">
+                                    {!v.recordTypeName}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slds-grid slds-wrap">
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_6-of-12 slds-p-right_xxx-small">
+                            <div class="slds-form-element slds-form-element_readonly">
+                                <label class="slds-form-element__label" for="text-input-id-1">Applicant First Name</label>
+                                <div class="slds-form-element__control">
+                                    {!v.user.FirstName}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_6-of-12">
+                            <div class="slds-form-element slds-form-element_readonly">
+                                <label class="slds-form-element__label" for="text-input-id-1">Applicant Last Name</label>
+                                <div class="slds-form-element__control">
+                                    {!v.user.LastName}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slds-grid slds-wrap">
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_6-of-12 slds-p-right_xxx-small">
+                            <div class="slds-form-element slds-form-element_readonly">
+                                <label class="slds-form-element__label" for="text-input-id-1">Email</label>
+                                <div class="slds-form-element__control">
+                                    {!v.user.Email__c}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_6-of-12">
+                            <div class="slds-form-element slds-form-element_readonly">
+                                <label class="slds-form-element__label" for="text-input-id-1">Phone</label>
+                                <div class="slds-form-element__control">
+                                    {!v.user.Phone__c}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slds-grid slds-wrap">
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_6-of-12 slds-p-right_xxx-small">
+                            <div class="slds-form-element slds-form-element_readonly">
+                                <label class="slds-form-element__label" for="text-input-id-1">Date of Birth</label>
+                                <div class="slds-form-element__control">
+                                    {!v.user.Date_of_Birth__c}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_6-of-12">
+                            <div class="slds-form-element slds-form-element_readonly">
+                                <label class="slds-form-element__label" for="text-input-id-1">Gender</label>
+                                <div class="slds-form-element__control">
+                                    {!v.user.Gender__c}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slds-grid slds-wrap">
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_6-of-12 slds-p-right_xxx-small">
+                            <div class="slds-form-element slds-form-element_readonly">
+                                <label class="slds-form-element__label" for="text-input-id-1">Nationality</label>
+                                <div class="slds-form-element__control">
+                                    {!v.user.Nationality__c}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_6-of-12">
+                            <div class="slds-form-element slds-form-element_readonly">
+                                <label class="slds-form-element__label" for="text-input-id-1">Position</label>
+                                <div class="slds-form-element__control">
+                                    {!v.user.Position__c}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slds-grid slds-wrap">
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_6-of-12 slds-p-right_xxx-small">
+                            <div class="slds-form-element slds-form-element_readonly">
+                                <label class="slds-form-element__label" for="text-input-id-1">Expertise</label>
+                                <div class="slds-form-element__control">
+                                    {!v.user.Expertise__c}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_6-of-12">
+                            <div class="slds-form-element slds-form-element_readonly">
+                                <label class="slds-form-element__label" for="text-input-id-1">Organisation</label>
+                                <div class="slds-form-element__control">
+                                    {!v.user.Organisation__c}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slds-grid slds-wrap">
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_6-of-12 slds-p-right_xxx-small">
+                            <div class="slds-form-element slds-form-element_readonly">
+                                <label class="slds-form-element__label" for="text-input-id-1">Department</label>
+                                <div class="slds-form-element__control">
+                                    {!v.user.Department__c}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_6-of-12">
+                            <div class="slds-form-element slds-form-element_readonly">
+                                <label class="slds-form-element__label" for="text-input-id-1">Address</label>
+                                <div class="slds-form-element__control">
+                                    {!v.user.Address__c}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slds-grid slds-wrap">
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_6-of-12 slds-p-right_xxx-small">
+                            <div class="slds-form-element slds-form-element_readonly">
+                                <label class="slds-form-element__label" for="text-input-id-1">City</label>
+                                <div class="slds-form-element__control">
+                                    {!v.user.City__c}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_6-of-12">
+                            <div class="slds-form-element slds-form-element_readonly">
+                                <label class="slds-form-element__label" for="text-input-id-1">Postal Code</label>
+                                <div class="slds-form-element__control">
+                                    {!v.user.Postal_Code__c}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slds-grid slds-wrap slds-form-element_readonly">
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_6-of-12 slds-p-right_xxx-small">
+                            <div class="slds-form-element">
+                                <label class="slds-form-element__label" for="text-input-id-1">Country</label>
+                                <div class="slds-form-element__control">
+                                    {!v.user.Countries__c}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_6-of-12">
+                        </div>
+                    </div>
+                    <!--<div class="{! v.isOpenTravelGrant ? 'slds-section':'slds-hide'}">
+                        <aura:if isTrue="{!v.isOpenTravelGrant}"><c:NEWTRAVELGRANT /></aura:if>
+                    </div>
+                     <div class="{! v.FellowshipForm ? 'slds-section':'slds-hide'}">
+                        <aura:if isTrue="{!v.FellowshipForm}"><c:NewFellowShipForm /></aura:if>
+                    </div>
+                     <div class="{! v.IrmiGrant ? 'slds-section':'slds-hide'}">
+                        <aura:if isTrue="{!v.IrmiGrant}"><c:IRMIRMGRANT /></aura:if>
+                    </div>-->
+                 <br/><button class="slds-button slds-button_brand" onclick="{!c.closeRegistration}">Cancel</button>
+                    &nbsp;<span onclick="{!c.createRecord}"><lightning:button variant="brand" label="Launch Application" title="Launch Application"/></span>
+                  
+                </div>
+            </div>
+        </div>
+    </div>
+</aura:component>

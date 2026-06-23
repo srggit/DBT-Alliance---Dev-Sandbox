@@ -1,0 +1,2727 @@
+<apex:page controller="GrantApplicationPDFController" renderAs="pdf" showHeader="false" sidebar="false" standardStylesheets="false" applyBodyTag="false" applyHtmlTag="false">
+    <html>
+    <head>
+        <style>
+            @page {
+                size: letter;
+                margin: 15mm;
+                @top-right {
+                    content: "{!form.grantRecord.Reference_Number__c}";
+                }
+                @bottom-right {
+                    content: "Page " counter(page) " of " counter(pages);
+                }
+                @top-center {
+                    content: element(header);
+                }
+                @bottom-center {
+                    content: element(footer);
+                }
+            }
+            .page-break {
+                display:block;
+                page-break-after:always;
+            }
+            body {
+                font-family: Arial Unicode MS;
+                font-size:12px;
+            }
+            .tableBorder{            
+                border-style: solid;
+                border-color: #333333;
+                border-collapse: collapse;
+            }
+            
+            .tableBorder th {
+                padding: 8px;
+                border-style: solid;
+                border-color: #333333;
+            }
+            
+            .tableBorder td {
+                padding: 8px;
+                border-style: solid;
+                border-color: #000000;
+                background-color: #ffffff;
+            }
+        </style>
+    </head>
+    <body>
+        <apex:form >
+        <div class="">
+            <table class="" width="100%">
+                <tr >
+                    <td width="100%" ><!--style="text-align:right;"-->
+                        <img src="{!URLFOR($Resource.IA_Login_Logo)}" width="150px"/>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <apex:variable var="sn" value="{!1}"/>
+        <table style="width:100%; font-size:16px;">
+            <tr>
+                <td style="background-color:rgb(0,255,255);text-align:center"><b>{!form.grantRecord.RecordType.Name} Application Form</b></td>
+            </tr>
+        </table>
+        <br/>
+        <table style="border-collapse:collapse;width:100%" border="1" class="tableBorder">
+            <tr >
+                <td style="width:40%;padding-left:5px"><b>RESTRICTED:</b></td>
+                <td style="padding-left:5px;width:60%"><b>COMMITTEE MEMBERS LEADING DISCUSSIONS:</b></td>
+            </tr>
+            <tr>
+                <td style="padding-left:5px">
+                    <apex:repeat value="{!form.restrictedReviewerList}" var="r">
+                        {!r}<br/>
+                    </apex:repeat>
+                </td>
+                <td style="padding-left:5px">
+                    <apex:repeat value="{!form.cmldList}" var="r">
+                        {!r}<br/>
+                    </apex:repeat>
+                </td>
+            </tr>
+        </table>
+        <apex:outputPanel rendered="{!IF(form.isAdmin , true, false)}" layout="none">
+        <br/>
+        <table style="border-style:solid;border-color:black;border-width:1px 1px 1px 1px;width:100%">
+            <tr >
+                <td style="width:30%;padding-left:5px">{!form.grantRecord.Reference_Number__c}</td>
+                <td style="width:40%">Grants Screening Committee Review</td> <!--{!form.grantsFundingName }-->
+                <td style="width:30%">Meeting Date: 
+                    <!--<apex:outputText value="{0, date, dd/MM/yyyy}">
+                        <apex:param value="{!form.meetingDate}" /> 
+                    </apex:outputText>-->
+                </td>
+            </tr>
+            <apex:repeat value="{!form.investigatorRecordList}" var="inv">
+                <apex:outputPanel rendered="{!IF(inv.code == 'PI', true, false)}" layout="none">
+                <tr>
+                    <td style="width:40%;padding-left:5px;text-align:start">Lead Principal Investigator</td>
+                    <td colspan="2" style="width:60%;padding-left:5px"><b>{!inv.investigatorRecord.Full_Name__c}<br/>{!inv.investigatorRecord.Institution__r.Name}</b></td>
+                </tr>
+                </apex:outputPanel>
+            </apex:repeat>
+            <tr>
+                <td style="width:40%;padding-left:5px;text-align:start">Amount Requested</td>
+                <td colspan="2" style="width:60%;padding-left:5px">INR {!form.x10subTotal }</td>
+            </tr>
+            <tr>
+                <td style="width:40%;padding-left:5px;text-align:start">Programme</td>
+                <td colspan="2" style="width:60%;padding-left:5px"></td>
+            </tr>
+            <apex:repeat value="{!form.investigatorRecordList}" var="inv">
+            <apex:outputPanel rendered="{!IF(inv.code != 'PI', true, false)}" layout="none">
+            <tr>
+                <td style="width:40%;padding-left:5px;text-align:start">Co-Principal Investigator</td>
+                <td colspan="2" style="width:60%;padding-left:5px"><b>{!inv.investigatorRecord.Full_Name__c}<br/>{!inv.investigatorRecord.Institution__r.Name}</b></td>
+            </tr>
+            </apex:outputPanel>
+            </apex:repeat>
+            <tr>
+                <td style="width:40%;padding-left:5px;text-align:start">Staff Member</td>
+                <td colspan="2" style="width:60%;padding-left:5px"></td>
+            </tr>
+            <tr>
+                <td style="width:40%;padding-left:5px;text-align:start">Comments</td>
+                <td colspan="2" style="width:60%;padding-left:5px">{!form.comments }</td>
+            </tr>
+        </table>
+        <br/>
+        <table style="border-collapse:collapse;width:100%" border="1" class="tableBorder">
+            <tr >
+                <td style="width:33%;padding-left:5px"><b>Referee comments received</b></td>
+                <td style="padding-left:5px;width:33%"><b>Referee willing- report not received</b></td>
+                <td style="padding-left:5px;width:34%"><b>Referee unwilling/Not responded </b></td>
+            </tr>
+            <tr>
+                <td style="padding-left:5px">
+                    <!--<apex:repeat value="{!form.refereeCommentsReceivedList }" var="r">
+                        {!r}<br/>
+                    </apex:repeat>-->
+                </td>
+                <td style="padding-left:5px">
+                    <apex:repeat value="{!form.reportnotReceivedList}" var="r">
+                        {!r}<br/>
+                    </apex:repeat>
+                </td>
+                <td style="padding-left:5px">
+                    <apex:repeat value="{!form.notRespondedList }" var="r">
+                        {!r}<br/>
+                    </apex:repeat>
+                </td>
+            </tr>
+        </table>
+        <div style="page-break-after:always;"></div>
+        </apex:outputPanel>
+        <apex:outputPanel layout="none" rendered="{!form.isCRC}">
+        <apex:variable var="sn" value="{!sn+1}"/>
+        <center>
+            <hr style="background-color:rgb(91, 155, 213);width:100%"/>
+            <h4>
+                <b><i style="font-size:14px;">1. Participating Institutions</i></b>
+            </h4>
+            <hr style="background-color:rgb(91, 155, 213);width:100%"/>
+        </center>
+        <br/><br/>
+        <div class="QuestionClass">Q1. (a) If you are proposing a CRC with multiple institutions, please list them below: <br/><div></div></div><br/>
+        <apex:repeat var="ins" value="{!form.institutionRecordList}">
+            <table class="tableBorder" width="100%">
+                <tbody>
+                    <tr class="slds-line-height_reset">
+                        <th class="" scope="col" colspan="2">
+                            <div class=" " title="{! ins.Type__c}">{! ins.Type__c}
+                            </div>
+                        </th>
+                    </tr>
+                    <tr class="slds-line-height_reset">
+                        <th class="" scope="col" width="30%">
+                            <div class=" " title="">Full Name</div>
+                        </th>
+                        <th class="" scope="col" width="70%">
+                            <div class=" " title="{! ins.Institution__r.Name }">{! ins.Institution__r.Name }<br/></div>
+                        </th>
+                    </tr>
+                </tbody>
+            </table>
+            <br/>
+        </apex:repeat>
+        <br/><br/>
+        <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">If a single institution is proposing this CRC, please provide a justification. In this case, please also list the departments that will participate in the programme.</div><br/>Justification (Limit 300 words)
+        <br/>{!form.grantRecord.Institution_Justification__c}
+        <div style="page-break-after:always;"></div>
+        </apex:outputPanel>
+        
+        <center>
+            <hr style="background-color:rgb(91, 155, 213);width:100%"/>
+            <h4>
+                <b><i style="font-size:14px;">{!sn}. Team composition and management</i></b>
+                <apex:variable var="sn" value="{!sn+1}"/>
+            </h4>
+            <hr style="background-color:rgb(91, 155, 213);width:100%"/>
+        </center>
+        <br/>
+        <i>Note: This section should include information on Lead PI and other PIs. If you want to add more investigators on the project, please add their information in the given format.</i>
+        
+        <br/><br/>
+        <b>Q1.</b> Please provide composition of the team that is applying for this grant.
+        <apex:variable var="index" value="{!1}"/>
+        <apex:repeat value="{!form.investigatorRecordList}" var="inv">
+            <br/>
+            <table style="border: 1px solid black;border-collapse:collapse;width:100%">
+                    <tr>
+                        <td style="border: 1px solid black;padding-left:5px" colspan="2"><b>
+                        <apex:outputPanel rendered="{!IF(inv.code == 'PI', true, false)}" layout="none">
+                            {!index}. Lead Principal Investigator PI
+                        </apex:outputPanel>
+                        <apex:outputPanel rendered="{!IF(inv.code != 'PI', true, false)}" layout="none">
+                            {!index}. Co - Principal Investigator {!inv.code}
+                        </apex:outputPanel>
+                        <apex:variable var="index" value="{!index+1}"/>
+                        </b></td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid black;padding-left:5px;width:50%">Full Name:</td>
+                        <td style="border: 1px solid black;padding-left:5px">{!inv.investigatorRecord.Title__c} {!inv.investigatorRecord.Full_Name__c}</td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid black;padding-left:5px">Discipline/expertise:</td>
+                        <td style="border: 1px solid black;padding-left:5px">{!inv.investigatorRecord.Discipline_expertise__c}</td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid black;padding-left:5px">Institution:<br/></td>
+                        <td style="border: 1px solid black;padding-left:5px">{!inv.investigatorRecord.Institution__r.Name} <br/>{!inv.investigatorRecord.Institution__r.Department__c} <br/>{!inv.investigatorRecord.Institution__r.Address__c} {!inv.investigatorRecord.Institution__r.City__c} {!inv.investigatorRecord.Institution__r.Country__r.Name} {!inv.investigatorRecord.Institution__r.Pincode__c}</td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid black;padding-left:5px">Role:</td>
+                        <td style="border: 1px solid black;padding-left:5px">{!inv.investigatorRecord.Role__c}</td>
+                    </tr>
+                </table>
+        </apex:repeat>
+        <br/>
+        <b>Q2.</b> Please describe why a team approach is necessary to execute this project. Define roles of all investigators and how the project will be managed and led. (Limit 500 words).
+        <br/><br/>
+        <div style="border: 1px solid black;padding-left:5px">
+            <apex:outputText value="{!form.grantRecord.Describe_Why_Team_Approach_Is_necessary__c}" escape="false"/>
+            <br/><br/><br/>
+        </div>
+        <br/><br/>
+        <b>Q3. Time commitment</b>
+            <br/>
+                <i>Each PI should state time commitment towards following activities. If there are more PIs on the project, please add additional columns.</i>
+            <table style="border: 1px solid black;border-collapse:collapse;width:100%" class="tableBorder">
+               <tr class="slds-line-height_reset">
+                    <th class="nowrap" scope="col" width="40%">
+                        <div class=" " title="">Description</div>
+                    </th>
+                    <apex:repeat var="investigator" value="{!form.investigatorRecordList}">
+                        <th class="" scope="col">
+                            <div class=" " title="">{! investigator.investigatorRecord.Full_Name__c }<br/> {! investigator.code} </div>
+                        </th>
+                    </apex:repeat>
+                </tr>
+                <tr class="slds-line-height_reset">
+                    <th class="nowrap" scope="col" width="40%">
+                        <div class=" " title="">(A) Number of total working hours per week (B+C)</div>
+                    </th>
+                    <apex:repeat var="investigator" value="{!form.investigatorRecordList}">
+                        <th class="" scope="col">
+                            <div class=" " title="">{! investigator.investigatorRecord.Number_of_total_working_hours_per_week__c }</div>
+                        </th>
+                    </apex:repeat>
+                </tr>
+                <tr class="slds-line-height_reset">
+                    <th class="nowrap" scope="col" width="40%">
+                        <div class=" " title="">(B) Number of hours per week to be spent on non- <br/>research activities (E.g. teaching, administration, other institutional responsibilities)</div>
+                    </th>
+                    <apex:repeat var="investigator" value="{!form.investigatorRecordList}">
+                        <th class="" scope="col">
+                            <div class=" " title="">{! investigator.investigatorRecord.Hours_per_week_on_Non_Research_Activitiy__c }</div>
+                        </th>
+                    </apex:repeat>
+                </tr>
+                <tr class="slds-line-height_reset">
+                    <th class="nowrap" scope="col" width="40%">
+                        <div class=" " title="">(B) Number of hours per week to be spent on non- <br/>research activities (E.g. teaching, administration, other institutional responsibilities)</div>
+                    </th>
+                    <apex:repeat var="investigator" value="{!form.investigatorRecordList}">
+                        <th class="" scope="col">
+                            <div class=" " title="">{! investigator.investigatorRecord.Hours_per_week_on_Non_Research_Activitiy__c }</div>
+                        </th>
+                    </apex:repeat>
+                </tr>
+                <tr class="slds-line-height_reset">
+                    <th class="nowrap" scope="col" width="40%">
+                        <div class=" " title="">(C) Number of hours per week to be spent on research (D+E+F)</div>
+                    </th>
+                    <apex:repeat var="investigator" value="{!form.investigatorRecordList}">
+                        <th class="" scope="col">
+                            <div class=" " title="">{! investigator.investigatorRecord.Hours_per_week_to_be_spent_on_Research__c}</div>
+                        </th>
+                    </apex:repeat>
+                </tr>
+                <tr class="slds-line-height_reset">
+                    <th class="nowrap" scope="col" width="40%">
+                        <div class=" " title="">(D) Number of hours per week to be spent on <br/>active grants/fellowships/projects other than this proposed project</div>
+                    </th>
+                    <apex:repeat var="investigator" value="{!form.investigatorRecordList}">
+                        <th class="" scope="col">
+                            <div class=" " title="">{! investigator.investigatorRecord.Hours_per_week_on_Active_Grants_Projects__c}</div>
+                        </th>
+                    </apex:repeat>
+                </tr>
+                <tr class="slds-line-height_reset">
+                    <th class="nowrap" scope="col" width="40%">
+                        <div class=" " title="">(E) Number of hours per week to be spent on this project proposed to India Alliance.</div>
+                    </th>
+                    <apex:repeat var="investigator" value="{!form.investigatorRecordList}">
+                        <th class="" scope="col">
+                            <div class=" " title="">{! investigator.investigatorRecord.Hours_per_week_on_Project_Proposed_to_IA__c}</div>
+                        </th>
+                    </apex:repeat>
+                </tr>
+                <tr class="slds-line-height_reset">
+                    <th class="nowrap" scope="col" width="40%">
+                        <div class=" " title="">(F) If you are a practicing clinician, please indicate the number of hours <br/>per week to be spent in the clinic on the proposed project (do not include the clinic time in E)</div>
+                    </th>
+                    <apex:repeat var="investigator" value="{!form.investigatorRecordList}">
+                        <th class="" scope="col">
+                            <div class=" " title="">{! investigator.investigatorRecord.If_you_are_a_Practicing_Clinician__c}</div>
+                        </th>
+                    </apex:repeat>
+                </tr>
+            </table>
+            <i>Note: For each PI, (a)=(b)+(c)+(d)+(e)+(f)</i>
+            
+            <apex:outputPanel layout="none" rendered="{!form.isCRC}">
+            <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12 ">
+                <br/><br/>
+                <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">Q3.Clinical Research Training Programme (CRTP)</div>
+                <div class="slds-progress__item_content slds-grid slds-grid_align-spread"><i>Note: CRTP is optional for the CRC. Please complete this section only if you also wish to apply for the CRTP. <br/>Note that CRTP would be embedded within CRC and is not open to individual applicants. This component will be over and above the budget requested for CRC.</i></div><br/>
+                <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">(a)Please provide brief details of the participating institutions </div>
+            </div>
+            
+            <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+                <br/><br/>
+                <div class="slds-progress__item_content slds-grid slds-grid_align-spread">(*The lead institution is considered to be the administering organisation and in case of award, funds would only be transferred to it. This will be same as the PI’s Host Institution).</div>
+                <div class="slds-progress__item_content slds-grid slds-grid_align-spread">Please provide details of designated programme head and coordinators.</div><br/>
+            </div>
+            <apex:variable var="index" value="{!1}"/>
+        <apex:repeat value="{!form.investigatorRecordListPH}" var="inv">
+            <br/>
+            <table style="border: 1px solid black;border-collapse:collapse;width:100%">
+                    <tr>
+                        <td style="border: 1px solid black;padding-left:5px" colspan="2"><b>
+                        {!index}. {! inv.investigatorRecord.Type__c}  &nbsp; {! inv.code}
+                        <apex:variable var="index" value="{!index+1}"/>
+                        </b></td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid black;padding-left:5px;width:50%">Full Name:</td>
+                        <td style="border: 1px solid black;padding-left:5px">{!inv.investigatorRecord.Title__c} {!inv.investigatorRecord.Full_Name__c}</td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid black;padding-left:5px">Discipline/expertise:</td>
+                        <td style="border: 1px solid black;padding-left:5px">{!inv.investigatorRecord.Discipline_expertise__c}</td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid black;padding-left:5px">Institution:<br/></td>
+                        <td style="border: 1px solid black;padding-left:5px">{!inv.investigatorRecord.Institution__r.Name} <br/>{!inv.investigatorRecord.Institution__r.Department__c} <br/>{!inv.investigatorRecord.Institution__r.Address__c} {!inv.investigatorRecord.Institution__r.City__c} {!inv.investigatorRecord.Institution__r.Country__r.Name} {!inv.investigatorRecord.Institution__r.Pincode__c}</td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid black;padding-left:5px">Role:</td>
+                        <td style="border: 1px solid black;padding-left:5px">{!inv.investigatorRecord.Role__c}</td>
+                    </tr>
+                </table>
+        </apex:repeat>
+        <br/>
+        <b>Q2.</b> Please describe why a team approach is necessary to execute this project. Define roles of all investigators and how the project will be managed and led. (Limit 500 words).
+        <br/><br/>
+        <div style="border: 1px solid black;padding-left:5px">
+            <apex:outputText value="{!form.grantRecord.Describe_Why_Team_Approach_Is_necessary__c}" escape="false"/>
+            <br/><br/><br/>
+        </div>
+        <br/><br/>
+        <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">(b) Time commitment</div>
+        <div class="slds-progress__item_content slds-grid slds-grid_align-spread"><i>Programme head and coordinator should state their time commitment towards following activities. (If a PI/co-PI is also a programme head or coordinator then they should include their time commitment to this project in the previous section and need not duplicate it here). </i></div>
+            <br/>
+                <i>Each PI should state time commitment towards following activities. If there are more PIs on the project, please add additional columns.</i>
+            <table style="border: 1px solid black;border-collapse:collapse;width:100%" class="tableBorder">
+               <tr class="slds-line-height_reset">
+                    <th class="nowrap" scope="col" width="40%">
+                        <div class=" " title="">Description</div>
+                    </th>
+                    <apex:repeat var="investigator" value="{!form.investigatorRecordList}">
+                        <th class="" scope="col">
+                            <div class=" " title="">{! investigator.investigatorRecord.Full_Name__c }<br/> {! investigator.code} </div>
+                        </th>
+                    </apex:repeat>
+                </tr>
+                <tr class="slds-line-height_reset">
+                    <th class="nowrap" scope="col" width="40%">
+                        <div class=" " title="">(A) Number of total working hours per week (B+C)</div>
+                    </th>
+                    <apex:repeat var="investigator" value="{!form.investigatorRecordList}">
+                        <th class="" scope="col">
+                            <div class=" " title="">{! investigator.investigatorRecord.Number_of_total_working_hours_per_week__c }</div>
+                        </th>
+                    </apex:repeat>
+                </tr>
+                <tr class="slds-line-height_reset">
+                    <th class="nowrap" scope="col" width="40%">
+                        <div class=" " title="">(B) Number of hours per week to be spent on non- <br/>research activities (E.g. teaching, administration, other institutional responsibilities)</div>
+                    </th>
+                    <apex:repeat var="investigator" value="{!form.investigatorRecordList}">
+                        <th class="" scope="col">
+                            <div class=" " title="">{! investigator.investigatorRecord.Hours_per_week_on_Non_Research_Activitiy__c }</div>
+                        </th>
+                    </apex:repeat>
+                </tr>
+                <tr class="slds-line-height_reset">
+                    <th class="nowrap" scope="col" width="40%">
+                        <div class=" " title="">(B) Number of hours per week to be spent on non- <br/>research activities (E.g. teaching, administration, other institutional responsibilities)</div>
+                    </th>
+                    <apex:repeat var="investigator" value="{!form.investigatorRecordList}">
+                        <th class="" scope="col">
+                            <div class=" " title="">{! investigator.investigatorRecord.Hours_per_week_on_Non_Research_Activitiy__c }</div>
+                        </th>
+                    </apex:repeat>
+                </tr>
+                <tr class="slds-line-height_reset">
+                    <th class="nowrap" scope="col" width="40%">
+                        <div class=" " title="">(C) Number of hours per week to be spent on research (D+E+F)</div>
+                    </th>
+                    <apex:repeat var="investigator" value="{!form.investigatorRecordList}">
+                        <th class="" scope="col">
+                            <div class=" " title="">{! investigator.investigatorRecord.Hours_per_week_to_be_spent_on_Research__c}</div>
+                        </th>
+                    </apex:repeat>
+                </tr>
+                <tr class="slds-line-height_reset">
+                    <th class="nowrap" scope="col" width="40%">
+                        <div class=" " title="">(D) Number of hours per week to be spent on <br/>active grants/fellowships/projects other than this proposed project</div>
+                    </th>
+                    <apex:repeat var="investigator" value="{!form.investigatorRecordList}">
+                        <th class="" scope="col">
+                            <div class=" " title="">{! investigator.investigatorRecord.Hours_per_week_on_Active_Grants_Projects__c}</div>
+                        </th>
+                    </apex:repeat>
+                </tr>
+                <tr class="slds-line-height_reset">
+                    <th class="nowrap" scope="col" width="40%">
+                        <div class=" " title="">(E) Number of hours per week to be spent on this project proposed to India Alliance.</div>
+                    </th>
+                    <apex:repeat var="investigator" value="{!form.investigatorRecordList}">
+                        <th class="" scope="col">
+                            <div class=" " title="">{! investigator.investigatorRecord.Hours_per_week_on_Project_Proposed_to_IA__c}</div>
+                        </th>
+                    </apex:repeat>
+                </tr>
+                <tr class="slds-line-height_reset">
+                    <th class="nowrap" scope="col" width="40%">
+                        <div class=" " title="">(F) If you are a practicing clinician, please indicate the number of hours <br/>per week to be spent in the clinic on the proposed project (do not include the clinic time in E)</div>
+                    </th>
+                    <apex:repeat var="investigator" value="{!form.investigatorRecordList}">
+                        <th class="" scope="col">
+                            <div class=" " title="">{! investigator.investigatorRecord.If_you_are_a_Practicing_Clinician__c}</div>
+                        </th>
+                    </apex:repeat>
+                </tr>
+            </table>
+            <i>Note: For each PI, (a)=(b)+(c)+(d)+(e)+(f)</i>
+            </apex:outputPanel>
+            <div style="page-break-before:always;"></div>
+            
+            <center>
+                <hr style="background-color:rgb(91, 155, 213);width:100%"/>
+                <h4>
+                    <b><i>{!sn}. Team Science Grant Proposal</i></b>
+                    <apex:variable var="sn" value="{!sn+1}"/>
+                </h4>
+                <hr style="background-color:rgb(91, 155, 213);width:100%"/>
+            </center>
+            <br/>
+            <b>Q1. Project Title</b>(220 characters max.)
+            <div style="border: 1px solid black;padding-left:5px">
+                <apex:outputText value="{!form.grantRecord.Project_Title__c}" escape="false"/>
+                <br/>
+            </div>
+            <br/>
+            <b>Q2. Duration of the grant (in months):</b> 60 (FIXED)
+            <div style="border: 1px solid black;padding-left:5px">
+                <apex:outputText value="{!form.grantRecord.Duration_of_the_grant_in_months__c}" escape="false"/>
+                <br/>
+            </div>
+            <br/>
+            <b>Q3. Start date (DD/MM/YYYY)</b>
+            <div style="border: 1px solid black;padding-left:5px">
+                <apex:outputText value="{0, date, dd/MM/yyyy}">
+                    <apex:param value="{!form.grantRecord.Start_date__c}" /> 
+                </apex:outputText>
+                <br/>
+            </div>
+            <br/><br/>
+                <i>In case of an award, the Lead PI would have to negotiate a start date with India Alliance. The details would be shared once the award is confirmed.</i>
+           
+            <br/><br/>
+            <b>Q4. Project summary</b>
+            <br/>
+            Please provide a summary of the proposed research, including key goals, for an expert audience (Limit 200
+            words). Kindly be aware that India Alliance publishes the synopsis of the awarded grant on its own and on
+            third party websites.
+            <div style="border: 1px solid black;padding-left:5px">
+                <apex:outputText value="{!form.grantRecord.Research_summary__c}" escape="false"/>
+                <br/><br/><br/>
+            </div>
+            <br/><br/>
+            <b>Q5. Lay summary</b>
+            <br/>
+            Please provide a summary of the proposed research for a lay audience (Limit 100 words).
+            <div style="border: 1px solid black;padding-left:5px">
+                <apex:outputText value="{!form.grantRecord.Lay_summary__c}" escape="false"/>
+                <br/><br/><br/>
+            </div>
+            <br/><br/>
+            <b>Q6. Details of research project</b>
+            <br/>
+            Please provide full details of the proposal. These should include:
+            <br/>
+            a) Background<br/>
+            b) Aims and key questions;<br/>
+            c) Strategy and Work Plan;<br/>
+            d) Expected outcomes;<br/>
+            e) Research management plan;<br/>
+            f) Milestones (refer to the scheme guidelines) and sustainability plan;<br/>
+            g) Timelines: A Gantt chart showing key stages of the research plans, indicating the location and timelines.
+            Since more than one organisation will be involved in the project, please specify the work that will be
+            undertaken at each organisation. This chart should be placed just before the references.
+            h) Full details of the study design for experiments (humans and animals) must be provided. This should
+            include power calculations, sample size justification and, where appropriate, case definition and
+            inclusion/exclusion criteria. The power calculation must be provided in a tabular format indicating the
+            numbers under each group/sub-group that would be used for the project.<br/>
+            i) Funding for clinical trials is not permissible under this scheme.
+            <br/><br/>
+            <b>Guidelines</b>
+            <ul>
+                <li>No more than <b>5,000</b> words should be used to describe the proposal, excluding graphs, figures, references etc.</li>
+                <li>Your proposal should be written in 11-point Arial font, single space, and portrait format.</li>
+                <li>Graphs, figures and supporting unpublished information provided in support of the research proposal, should be placed [immediately after the proposal write-up—this must not exceed the equivalent of <b>three A4 pages</b> in length.</li>
+                <li><b>References:</b> Kindly provide full citation, including title of paper and all authors. “et al” should not be used unless there are more than 06 authors. Please use <b>Vancouver referencing style</b>.</li>
+            </ul>
+            Please start the proposal below this statement.
+            <br/>
+            <table class="tableBorder" width="100%">
+                <thead>
+                    <tr >
+                        <th >
+                            <div >File Name</div>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <apex:repeat var="cd" value="{!form.contentDocumentLinkList}">
+                        <tr >
+                            <th >
+                                {!cd.ContentDocument.Title}
+                            </th>
+                        </tr>
+                    </apex:repeat>
+                </tbody>
+            </table>
+            <div style="page-break-before:always;"></div>
+            
+            <center>
+                <hr style="background-color:rgb(91, 155, 213);width:100%"/>
+                <h4>
+                    <b><i>{!sn}. CVs of Investigators</i></b>
+                    <apex:variable var="sn" value="{!sn+1}"/>
+                </h4>
+                <hr style="background-color:rgb(91, 155, 213);width:100%"/>
+            </center>
+            <apex:repeat value="{!form.investigatorRecordList}" var="investigator">
+                <i>Note: The details and CV of all Principal Investigators including Lead PI must be provided in the format given below:</i>
+                <br/>
+                <b style="font-size:14px;">{!investigator.investigatorRecord.Full_Name__c}</b><br/>
+                <table width="100%" class="tableBorder">
+                <tbody>
+                    
+                    <tr >
+                        <th width="30%">
+                            <div>Role (Choose appropriately)</div>
+                        </th>
+                        <th width="70%">
+                            <div class=" " title="{!investigator.investigatorRecord.Role__c}">{!investigator.investigatorRecord.Role__c}</div>
+                        </th>
+                    </tr>
+                    <tr>
+                        <th width="30%">
+                            <div>Full Name</div>
+                        </th>
+                        <th>
+                            <div>{!investigator.investigatorRecord.Full_Name__c}</div>
+                        </th>
+                    </tr>
+                    <tr>
+                        <th width="30%">
+                            <div>Date of Birth (DD/MM/YYYY)</div>
+                        </th>
+                        <th>
+                            <div >
+                            <apex:outputText value="{0, date, dd/MM/yyyy}">
+                                <apex:param value="{!investigator.investigatorRecord.Date_of_Birth__c}" /> 
+                            </apex:outputText></div>
+                        </th>
+                    </tr>
+                    <tr >
+                        <th width="30%">
+                            <div >Nationality</div>
+                        </th>
+                        <th >
+                            <div >{!investigator.investigatorRecord.Nationality__c}</div>
+                        </th>
+                    </tr>
+                    <tr >
+                        <th width="30%">
+                            <div class=" " title="Gender">Gender</div>
+                        </th>
+                        <th >
+                            <div >{!investigator.investigatorRecord.Gender__c}</div>
+                        </th>
+                    </tr>
+                    <tr >
+                        <th width="30%">
+                            <div >Direct contact number:<br/>(The office may contact you on this number). </div>
+                        </th>
+                        <th class="" scope="col">
+                            <div class=" " title="{!investigator.investigatorRecord.Contact_Number__c}">{!investigator.investigatorRecord.Contact_Number__c}</div>
+                        </th>
+                    </tr>
+                    <tr class="slds-line-height_reset">
+                        <th class="" scope="col" width="30">
+                            <div class=" " title="Email ID">Email ID</div>
+                        </th>
+                        <th class="" scope="col">
+                            <div class=" " title="{!investigator.investigatorRecord.Email__c}">{!investigator.investigatorRecord.Email__c}</div>
+                        </th>
+                    </tr>
+                    <tr class="slds-line-height_reset">
+                        <th class="" scope="col" width="30">
+                            <div class=" " title="Expertise">Expertise</div>
+                        </th>
+                        <th class="" scope="col">
+                            <div class=" " title="{!investigator.investigatorRecord.Discipline_expertise__c}">{!investigator.investigatorRecord.Discipline_expertise__c}</div>
+                        </th>
+                    </tr>
+                    <tr class="slds-line-height_reset">
+                        <th class="" scope="col" width="30">
+                            <div class=" " title="ORCID ID (optional)">ORCID ID (optional)</div>
+                        </th>
+                        <th class="" scope="col">
+                            <div class=" " title="{!investigator.investigatorRecord.ORCID_ID__c}">{!investigator.investigatorRecord.ORCID_ID__c}</div>
+                        </th>
+                    </tr>
+                </tbody>
+            </table>
+            <br/>
+            <i>Q2. Current position</i>
+            <table class="tableBorder" width="100%">
+            <tbody>
+                <tr class="slds-line-height_reset">
+                    <th class="nowrap" scope="col" width="30%">
+                        <div class=" " title="Name of the institution">Name of the institution</div>
+                    </th>
+                    <th class="" scope="col">
+                        <div class=" " title="{!investigator.investigatorRecord.Institution__r.Name}">{!investigator.investigatorRecord.Institution__r.Name}</div>
+                    </th>
+                </tr>
+                <tr class="slds-line-height_reset">
+                    <th class="nowrap" scope="col" width="30%">
+                        <div class=" " title="Name of the Sponsor ">Name of the Sponsor <br/><i>Check Sponsor and Sponsoring Institutes <a href="https://www.indiaalliance.org/Team-Science-Grants" target="_blank">here</a></i></div>
+                    </th>
+                    <th class="" scope="col">
+                            {!investigator.investigatorRecord.Name_of_the_Sponsor__c}
+                    </th>
+                </tr>
+                <tr class="slds-line-height_reset">
+                    <th class="nowrap" scope="col" width="30%">
+                        <div class=" " title="Email of the Sponsor">Email of the Sponsor</div>
+                    </th>
+                    <th class="" scope="col">
+                            {!investigator.investigatorRecord.Email_of_the_Sponsor__c}
+                    </th>
+                </tr>
+                <tr class="slds-line-height_reset">
+                    <th class="" scope="col" width="30%">
+                        <div class="nowrap" title="(a) Title of current post ">(a) Title of current post</div>
+                    </th>
+                    <th class="" scope="col">
+                            {!investigator.investigatorRecord.Title_of_current_Post__c}
+                    </th>
+                </tr> 
+                <tr>
+                    <th class="" scope="col" colspan="2">
+                    <div class="nowrap" title="(a) Title of current post ">(a) Title of current post</div>
+                            <br/><br/>{!investigator.investigatorRecord.Your_Contract_of_Employment__c}
+                    </th>
+                </tr>
+                <tr>
+                    <th class="" scope="col" colspan="2">
+                    <div class="nowrap" title="(b) With whom do you have your contract of employment? ">(b) With whom do you have your contract of employment? </div>
+                            <br/><br/>{!investigator.investigatorRecord.Source_of_personal_salary_support__c}
+                    </th>
+                </tr> 
+                <tr>
+                    <th class="" scope="col" colspan="2">
+                    <div class="nowrap" title="(c) Source of personal salary support">(c) Source of personal salary support<br/><i><br/>Also be specific if your current salary is funded from more than one source. Indicate with an asterisk (*) those sources of salary support that have contributed to the background of this proposal. </i></div>
+                            <br/><br/>{!investigator.investigatorRecord.Other_affiliations__c}
+                    </th>
+                </tr> 
+            </tbody>
+        </table> 
+        <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+                <br/>
+                <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">Q3. Highest Degree (PhD/MD/MBBS-MS/MD-PhD/MPH/equivalent)</div>
+            </div>
+            <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+                    <br/>{!investigator.investigatorRecord.Highest_Degree__c}
+                
+            </div>
+            <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+                                    <br/>
+                <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">Q4. For how many years have you been running an independent research group or lab?<i>Please exclude your non-research career break, if any.</i></div>
+            </div>
+            <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+                    <br/>{!investigator.investigatorRecord.Years_of_Running_Research_Group_Lab__c}
+            </div>
+            <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+                <br/>
+                <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">Q5. Previous posts held (list the most recent first)</div>
+            </div>
+            <br/>
+            <table class="tableBorder" width="100%">
+                <thead>
+                    <tr class="slds-line-height_reset">
+                        <th class="" scope="col">
+                            <div class=" " title="Date from (dd/mm/yyyy) ">Date from (dd/mm/yyyy)</div>
+                        </th>
+                        <th class="" scope="col">
+                            <div class=" " title="Date to (dd/mm/yyyy) ">Date to (dd/mm/yyyy)</div>
+                        </th>
+                        <th class="" scope="col">
+                            <div class=" " title="Position">Position</div>
+                        </th>
+                        <th class="" scope="col">
+                            <div class=" " title="Department">Department</div>
+                        </th>
+                        <th class="" scope="col">
+                            <div class=" " title="Organisation">Institution/University</div>
+                        </th>
+                        <th class="" scope="col">
+                            <div class=" " title="Supervisor">Supervisor</div>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <apex:repeat var="ph" value="{!investigator.phList}">
+                        <tr class="slds-line-height_reset">
+                            <th class="" scope="col">
+                                <div class=" " title="{!ph.Date_From__c}">
+                                <apex:outputText value="{0, date, dd/MM/yyyy}">
+    <apex:param value="{!ph.Date_From__c}" /> 
+</apex:outputText></div>
+                            </th>
+                            <th class="" scope="col">
+                                <div class=" " title="{!ph.Date_To__c}">
+                                <apex:outputText value="{0, date, dd/MM/yyyy}">
+    <apex:param value="{!ph.Date_To__c}" /> 
+</apex:outputText></div>
+                            </th>
+                            <th class="" scope="col">
+                                <div class=" " title="{!ph.Name }">{!ph.Position__c }</div>
+                            </th>
+                            <th class="" scope="col">
+                                <div class=" " title="{!ph.Department__c}">{!ph.Department__c}</div>
+                            </th>
+                            <th class="" scope="col">
+                                <div class=" " title="{!ph.Organisations__r.Name}">{!ph.Organisations__r.Name} </div>
+                            </th>
+                            <th class="" scope="col">
+                                <div class=" " title="{!ph.Supervisor__c}">{!ph.Supervisor__c}</div>
+                            </th>
+                        </tr>
+                    </apex:repeat>
+                </tbody>
+            </table>
+            
+            <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+                <br/>
+                <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">Q6. Education/training (list the most recent first)</div>
+            </div>
+            <table class="tableBorder" width="100%">
+            <thead>
+                <tr class="slds-line-height_reset">
+                    <th class="" scope="col"> 
+                        <div class=" " title="Date from (mm/yyyy) ">Date from (dd/mm/yyyy)</div>
+                    </th>
+                    <th class="" scope="col">
+                        <div class=" " title="Date to (mm/yyyy) ">Date to (dd/mm/yyyy)</div>
+                    </th>
+                    <th class="" scope="col">
+                        <div class=" " title="Qualification">Qualification</div>
+                    </th>
+                    <th class="" scope="col">
+                        <div class=" " title="Subject">Subject</div>
+                    </th>
+                    <th class="" scope="col">
+                        <div class=" " title="Organisation">Institution/University</div>
+                    </th>
+                    <th class="" scope="col">
+                        <div class=" " title="Supervisor">Supervisor</div>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <apex:repeat var="quly" value="{!investigator.qualificationlList}">
+                    <tr class="slds-line-height_reset">
+                        <th class="" scope="col">
+                            <div class=" " title="{!quly.Date_From__c}">
+                            <apex:outputText value="{0, date, dd/MM/yyyy}">
+    <apex:param value="{!quly.Date_From__c}" /> 
+</apex:outputText>
+                            </div>
+                        </th>
+                        <th class="" scope="col">
+                            <div class=" " title="{!quly.Date_To__c}">
+                            <apex:outputText value="{0, date, dd/MM/yyyy}">
+    <apex:param value="{!quly.Date_To__c}" /> 
+</apex:outputText>
+                            </div>
+                        </th>
+                        <th class="" scope="col">
+                            <div class=" " title="{!quly.Name}">{!quly.Qualification__c}</div>
+                        </th>
+                        <th class="" scope="col">
+                            <div class=" " title="{!quly.Subject__c}">{!quly.Subject__c}</div>
+                        </th>
+                        <th class="" scope="col">
+                            <div class=" " title="{!quly.Organisation__r.Name}">{!quly.Organisation__r.Name}</div>
+                        </th>
+                        <th class="" scope="col">
+                            <div class=" " title="{!quly.Supervisor__c}">{!quly.Supervisor__c}</div>
+                        </th>
+                    </tr>
+                </apex:repeat>
+            </tbody>
+        </table>
+        <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+            <br/>
+            <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">Q7. Summary of scientific career to date, including key achievements (Limit 350 words)</div>
+        </div>
+        <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+            <br/>
+                {!investigator.investigatorRecord.Summary_of_Scientific_Career_to_Date__c}
+        </div>
+           <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+                <br/>
+                <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">Q8. Experience relevant to this proposal (Limit 350 words)</div>
+            </div>
+            <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+                <br/>
+                    {!investigator.investigatorRecord.Experience_Relevant_to_this_Proposal__c}
+            </div> 
+            
+            <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+                <br/>
+                <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">Q9. Research output in last 5 years </div><br/>
+            </div>
+            <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+                <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">Please list:</div><br/>
+                <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">•   Peer-reviewed publications. List should include peer reviewed research articles, systematic reviews and meta-analyses, but exclude abstracts and literature reviews. Please provide PubMed Central ID (PMCID) reference for each. </div>
+                <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">•   Preprints. List should include manuscripts that have been submitted to a preprint repository or service. Please provide full citation, including title of paper, all authors, along with repository’s name and the article identifier. It is mandatory to mention a permanent identifier such as DOI. </div>
+                <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">•   Inventions and patents. Please provide title, authors, granting agency, patent number, year and status of the application. </div><br/>
+                <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">Guidelines:</div><br/>
+                <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">•   The author details including the author order and corresponding author information must be accurate and as per the published article. Improper representation of credit or authorship would be considered as a serious misconduct by India Alliance and may lead to rejection of the application.</div>
+                <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">•   Publications should have names of all authors. “et al” should not be used unless there are more than 06 authors. “et al” should not be used unless there are more than 06 authors. Please use Vancouver referencing style. </div>
+                <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">•   All entries should be in chronological order, with most recent first. Use sub-headings to segregate the list (such as research articles, preprints, patents, etc.)</div>
+                <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">•   Use asterisks (*) to highlight if you are a corresponding author (along with other co-corresponding authors) and underline if you are a joint-first author.</div>
+                <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">•   Please provide number of citations at present in bracket at the end of each entry.</div>
+                <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">•   Please do not list the journal Impact Factor.</div>
+                <br/>
+                <br/>
+                    <apex:outputField value="{!investigator.investigatorRecord.Research_Output_in_last_5_years__c}" />
+                    </div>
+                    
+                <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+                    <br/>
+                    <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">Q10. Other financial support </div><br/>
+                </div>
+                <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+                <div class="slds-progress__item_content slds-grid slds-grid_align-spread">Please list all key financial support that you have received in the last five years (research grants, fellowships, commercial etc.), with the most recent first. The information provided should state: (i) Name of the funder; (ii) Name(s) of recipient(s); (iii) Title of the project; (iv) Awarded Budget with currencies; (v) Your role in the project; and (vi) Start and end dates of project. For all active awards, indicate the number of hours per week that you spend on each project.</div>
+                <br/>
+                <div class="slds-progress__item_content slds-grid slds-grid_align-spread">Please list all key financial support that you have received in the last five years (research grants, fellowships, commercial etc.), with the most recent first. The information provided should state: (i) Name of the funder; (ii) Name(s) of recipient(s); (iii) Title of the project; (iv) Awarded Budget with currencies; (v) Your role in the project; and (vi) Start and end dates of project. For all active awards, indicate the number of hours per week that you spend on each project.</div>
+                <br/>
+                {!investigator.investigatorRecord.Is_other_financial_support__c}
+                <br/>
+                <apex:outputPanel layout="none" rendered="{!investigator.investigatorRecord.Is_other_financial_support__c== 'Yes'}">
+                <table class="tableBorder" width="100%">
+                        <thead>
+                            <tr class="slds-line-height_reset">
+                                <th class="nowrap" scope="col">
+                                    <div class=" " title="Name of the funder">Name of the funder</div>
+                                </th>
+                                <th class="nowrap" scope="col">
+                                    <div class=" " title="Name(s) of recipient">Name(s) of recipient</div>
+                                </th>  
+                                <th class="nowrap" scope="col">
+                                    <div class=" " title="Title of the project">Title of the project</div>
+                                </th> 
+                                <th class="nowrap" scope="col">
+                                    <div class=" " title=" Awarded Budget with currencies"> Awarded Budget with currencies</div>
+                                </th>
+                                <th class="nowrap" scope="col">
+                                    <div class=" " title="Your role in the project">Your role in the project</div>
+                                </th>
+                                <th class="nowrap" scope="col">
+                                    <div class=" " title="Start Date">Start Date</div>
+                                </th>
+                                <th class="nowrap" scope="col">
+                                    <div class=" " title="End Date">End Date</div>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <apex:repeat var="ofc" value="{!investigator.otherFinancialSupportList}" >
+                                <tr>
+                                    <th class="" scope="col">
+                                        <div class=" " title="{!ofc.Name_of_the_funder__c}">{!ofc.Name_of_the_funder__c}</div>
+                                    </th>
+                                    <th class="" scope="col">
+                                        <div class=" " title="{!ofc.Name_s_of_recipient__c}">{!ofc.Name_s_of_recipient__c}</div>
+                                    </th>
+                                    <th class="" scope="col">
+                                        <div class=" " title="{!ofc.Title_of_the_project__c}">{!ofc.Title_of_the_project__c}</div>
+                                    </th>
+                                    <th class="" scope="col">
+                                        <div class=" " title="{!ofc.Awarded_Budget_with_currencies__c}">{!ofc.Awarded_Budget_with_currencies__c}</div>
+                                    </th>
+                                    <th class="" scope="col">
+                                        <div class=" " title="{!ofc.Your_role_in_the_project__c}">{!ofc.Your_role_in_the_project__c}</div>
+                                    </th>
+                                    <th class="nowrap" scope="col">
+                                        <div class=" " title="{!ofc.Start_Date__c}">
+                                        <apex:outputText value="{0, date, dd/MM/yyyy}">
+    <apex:param value="{!ofc.Start_Date__c}" /> 
+</apex:outputText></div>
+                                    </th>
+                                    <th class="nowrap" scope="col">
+                                        <div class=" " title="{!ofc.End_Date__c}">
+                                        <apex:outputText value="{0, date, dd/MM/yyyy}">
+    <apex:param value="{!ofc.End_Date__c}" /> 
+</apex:outputText>
+                                        </div>
+                                    </th>
+                                </tr>
+                            </apex:repeat>
+                        </tbody>
+                    </table>
+                    </apex:outputPanel>
+            </div>
+            <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+                <br/>
+                <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">Q11.    Please describe how the current active awards listed above relate to this application (Limit 200 words)</div>
+            </div>
+            <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+                    <br/>{!investigator.investigatorRecord.Describe_the_Current_Active_Awards__c}
+            </div>
+            <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+                <br/>
+                <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">Q12. Clinical status. These questions should be answered by only those PIs who have a medical/dental degree.</div>
+            </div>
+            <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+                <div class="slds-progress__item_content slds-grid slds-grid_align-spread">(a) Please specify your medical degree</div>
+                <br/>
+                    {!investigator.investigatorRecord.Please_specify_your_medical_degree__c}
+            </div>
+            <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+                <div class="slds-progress__item_content slds-grid slds-grid_align-spread">(b) If you are clinically active, what is your specialty?</div>
+                <br/>
+                    {!investigator.investigatorRecord.what_is_your_specialty_Active__c}
+            </div>
+            <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+                <br/>
+                <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">Q13. Related applications</div> 
+            </div>
+             
+             <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+            <div class="slds-progress__item_content slds-grid slds-grid_align-spread">Has a similar application been submitted / will be submitted for funding elsewhere? If yes, please provide following details: (i) Name of the funding organisation; (ii) Expected decision date; and (iii) Brief summary (under 200 words) of the other application including aims and overlap with the current proposal. </div>
+            <br/>{!investigator.investigatorRecord.Will_be_submitted_for_funding__c}
+            <br/>
+            <apex:outputPanel layout="none" rendered="{!investigator.investigatorRecord.Will_be_submitted_for_funding__c == 'Yes'}">
+            <table class="tableBorder" width="100%">
+            <thead>
+                <tr class="slds-line-height_reset">
+                    <th class="nowrap" scope="col">
+                        <div class=" " title="Name of the funding organisation">Name of the funding organisation</div>
+                    </th>
+                    <th class="nowrap" scope="col">
+                        <div class=" " title="Expected decision date">Expected decision date</div>
+                    </th>  
+                    <th class="nowrap" scope="col" style="width: 500px;">
+                        <div class=" " title="Brief summary">Brief summary</div>
+                    </th> 
+                </tr>
+            </thead>
+            <tbody>
+                <apex:repeat var="fo" value="{!investigator.fundingOrganisationList}">
+                    <tr>
+                        <th class="" scope="col">
+                            <div class=" " title="{!fo.Name_of_the_funding_organisation__c}">{!fo.Name_of_the_funding_organisation__c}</div>
+                        </th>
+                        <th class="" scope="col">
+                            <div class=" " title="{!fo.Expected_decision_date__c}">
+                            <apex:outputText value="{0, date, dd/MM/yyyy}">
+    <apex:param value="{!fo.Expected_decision_date__c}" /> 
+</apex:outputText>
+                            </div>
+                        </th>
+                        <th class="" scope="col">
+                            <div class=" " title="{!fo.Brief_summary_under_200_words__c}">{!fo.Brief_summary_under_200_words__c}</div>
+                        </th>
+                    </tr>
+                </apex:repeat>
+            </tbody>
+            </table>
+            </apex:outputPanel>
+            <br/><br/>
+             </div>
+                
+            <div style="page-break-before:always;"></div>
+            </apex:repeat>
+            <apex:repeat value="{!form.investigatorRecordListPH}" var="investigator">
+                <i>Note: The details and CV of all Principal Investigators including Lead PI must be provided in the format given below:</i>
+                <br/>
+                <b style="font-size:14px;">{!investigator.investigatorRecord.Full_Name__c}</b><br/>
+                <table width="100%" class="tableBorder">
+                <tbody>
+                    
+                    <tr >
+                        <th width="30%">
+                            <div>Role (Choose appropriately)</div>
+                        </th>
+                        <th width="70%">
+                            <div class=" " title="{!investigator.investigatorRecord.Role__c}">{!investigator.investigatorRecord.Role__c}</div>
+                        </th>
+                    </tr>
+                    <tr>
+                        <th width="30%">
+                            <div>Full Name</div>
+                        </th>
+                        <th>
+                            <div>{!investigator.investigatorRecord.Full_Name__c}</div>
+                        </th>
+                    </tr>
+                    <tr>
+                        <th width="30%">
+                            <div>Date of Birth (DD/MM/YYYY)</div>
+                        </th>
+                        <th>
+                            <div >{!investigator.investigatorRecord.Date_of_Birth__c}</div>
+                        </th>
+                    </tr>
+                    <tr >
+                        <th width="30%">
+                            <div >Nationality</div>
+                        </th>
+                        <th >
+                            <div >{!investigator.investigatorRecord.Nationality__c}</div>
+                        </th>
+                    </tr>
+                    <tr >
+                        <th width="30%">
+                            <div class=" " title="Gender">Gender</div>
+                        </th>
+                        <th >
+                            <div >{!investigator.investigatorRecord.Gender__c}</div>
+                        </th>
+                    </tr>
+                    <tr >
+                        <th width="30%">
+                            <div >Direct contact number:<br/>(The office may contact you on this number). </div>
+                        </th>
+                        <th class="" scope="col">
+                            <div class=" " title="{!investigator.investigatorRecord.Contact_Number__c}">{!investigator.investigatorRecord.Contact_Number__c}</div>
+                        </th>
+                    </tr>
+                    <tr class="slds-line-height_reset">
+                        <th class="" scope="col" width="30">
+                            <div class=" " title="Email ID">Email ID</div>
+                        </th>
+                        <th class="" scope="col">
+                            <div class=" " title="{!investigator.investigatorRecord.Email__c}">{!investigator.investigatorRecord.Email__c}</div>
+                        </th>
+                    </tr>
+                    <tr class="slds-line-height_reset">
+                        <th class="" scope="col" width="30">
+                            <div class=" " title="Expertise">Expertise</div>
+                        </th>
+                        <th class="" scope="col">
+                            <div class=" " title="{!investigator.investigatorRecord.Discipline_expertise__c}">{!investigator.investigatorRecord.Discipline_expertise__c}</div>
+                        </th>
+                    </tr>
+                    <tr class="slds-line-height_reset">
+                        <th class="" scope="col" width="30">
+                            <div class=" " title="ORCID ID (optional)">ORCID ID (optional)</div>
+                        </th>
+                        <th class="" scope="col">
+                            <div class=" " title="{!investigator.investigatorRecord.ORCID_ID__c}">{!investigator.investigatorRecord.ORCID_ID__c}</div>
+                        </th>
+                    </tr>
+                </tbody>
+            </table>
+            <br/>
+            <i>Q2. Current position</i>
+            <table class="tableBorder" width="100%">
+            <tbody>
+                <tr class="slds-line-height_reset">
+                    <th class="nowrap" scope="col" width="30%">
+                        <div class=" " title="Name of the institution">Name of the institution</div>
+                    </th>
+                    <th class="" scope="col">
+                        <div class=" " title="{!investigator.investigatorRecord.Institution__r.Name}">{!investigator.investigatorRecord.Institution__r.Name}</div>
+                    </th>
+                </tr>
+                <tr class="slds-line-height_reset">
+                    <th class="nowrap" scope="col" width="30%">
+                        <div class=" " title="Name of the Sponsor ">Name of the Sponsor <br/><i>Check Sponsor and Sponsoring Institutes <a href="https://www.indiaalliance.org/Team-Science-Grants" target="_blank">here</a></i></div>
+                    </th>
+                    <th class="" scope="col">
+                            {!investigator.investigatorRecord.Name_of_the_Sponsor__c}
+                    </th>
+                </tr>
+                <tr class="slds-line-height_reset">
+                    <th class="nowrap" scope="col" width="30%">
+                        <div class=" " title="Email of the Sponsor">Email of the Sponsor</div>
+                    </th>
+                    <th class="" scope="col">
+                            {!investigator.investigatorRecord.Email_of_the_Sponsor__c}
+                    </th>
+                </tr>
+                <tr class="slds-line-height_reset">
+                    <th class="" scope="col" width="30%">
+                        <div class="nowrap" title="(a) Title of current post ">(a) Title of current post</div>
+                    </th>
+                    <th class="" scope="col">
+                            {!investigator.investigatorRecord.Title_of_current_Post__c}
+                    </th>
+                </tr> 
+                <tr>
+                    <th class="" scope="col" colspan="2">
+                    <div class="nowrap" title="(a) Title of current post ">(a) Title of current post</div>
+                            <br/><br/>{!investigator.investigatorRecord.Your_Contract_of_Employment__c}
+                    </th>
+                </tr>
+                <tr>
+                    <th class="" scope="col" colspan="2">
+                    <div class="nowrap" title="(b) With whom do you have your contract of employment? ">(b) With whom do you have your contract of employment? </div>
+                            <br/><br/>{!investigator.investigatorRecord.Source_of_personal_salary_support__c}
+                    </th>
+                </tr> 
+                <tr>
+                    <th class="" scope="col" colspan="2">
+                    <div class="nowrap" title="(c) Source of personal salary support">(c) Source of personal salary support<br/><i><br/>Also be specific if your current salary is funded from more than one source. Indicate with an asterisk (*) those sources of salary support that have contributed to the background of this proposal. </i></div>
+                            <br/><br/>{!investigator.investigatorRecord.Other_affiliations__c}
+                    </th>
+                </tr> 
+            </tbody>
+        </table> 
+        <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+                <br/>
+                <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">Q3. Highest Degree (PhD/MD/MBBS-MS/MD-PhD/MPH/equivalent)</div>
+            </div>
+            <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+                    <br/>{!investigator.investigatorRecord.Highest_Degree__c}
+                
+            </div>
+            <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+                                    <br/>
+                <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">Q4. For how many years have you been running an independent research group or lab?<i>Please exclude your non-research career break, if any.</i></div>
+            </div>
+            <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+                    <br/>{!investigator.investigatorRecord.Years_of_Running_Research_Group_Lab__c}
+            </div>
+            <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+                <br/>
+                <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">Q5. Previous posts held (list the most recent first)</div>
+            </div>
+            <br/>
+            <table class="tableBorder" width="100%">
+                <thead>
+                    <tr class="slds-line-height_reset">
+                        <th class="" scope="col">
+                            <div class=" " title="Date from (dd/mm/yyyy) ">Date from (dd/mm/yyyy)</div>
+                        </th>
+                        <th class="" scope="col">
+                            <div class=" " title="Date to (dd/mm/yyyy) ">Date to (dd/mm/yyyy)</div>
+                        </th>
+                        <th class="" scope="col">
+                            <div class=" " title="Position">Position</div>
+                        </th>
+                        <th class="" scope="col">
+                            <div class=" " title="Department">Department</div>
+                        </th>
+                        <th class="" scope="col">
+                            <div class=" " title="Organisation">Institution/University</div>
+                        </th>
+                        <th class="" scope="col">
+                            <div class=" " title="Supervisor">Supervisor</div>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <apex:repeat var="ph" value="{!investigator.phList}">
+                        <tr class="slds-line-height_reset">
+                            <th class="" scope="col">
+                                <div class=" " title="{!ph.Date_From__c}">{!ph.Date_From__c}</div>
+                            </th>
+                            <th class="" scope="col">
+                                <div class=" " title="{!ph.Date_To__c}">{!ph.Date_To__c}</div>
+                            </th>
+                            <th class="" scope="col">
+                                <div class=" " title="{!ph.Name }">{!ph.Position__c }</div>
+                            </th>
+                            <th class="" scope="col">
+                                <div class=" " title="{!ph.Department__c}">{!ph.Department__c}</div>
+                            </th>
+                            <th class="" scope="col">
+                                <div class=" " title="{!ph.Organisations__r.Name}">{!ph.Organisations__r.Name} </div>
+                            </th>
+                            <th class="" scope="col">
+                                <div class=" " title="{!ph.Supervisor__c}">{!ph.Supervisor__c}</div>
+                            </th>
+                        </tr>
+                    </apex:repeat>
+                </tbody>
+            </table>
+            
+            <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+                <br/>
+                <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">Q6. Education/training (list the most recent first)</div>
+            </div>
+            <table class="tableBorder" width="100%">
+            <thead>
+                <tr class="slds-line-height_reset">
+                    <th class="" scope="col"> 
+                        <div class=" " title="Date from (mm/yyyy) ">Date from (dd/mm/yyyy)</div>
+                    </th>
+                    <th class="" scope="col">
+                        <div class=" " title="Date to (mm/yyyy) ">Date to (dd/mm/yyyy)</div>
+                    </th>
+                    <th class="" scope="col">
+                        <div class=" " title="Qualification">Qualification</div>
+                    </th>
+                    <th class="" scope="col">
+                        <div class=" " title="Subject">Subject</div>
+                    </th>
+                    <th class="" scope="col">
+                        <div class=" " title="Organisation">Institution/University</div>
+                    </th>
+                    <th class="" scope="col">
+                        <div class=" " title="Supervisor">Supervisor</div>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <apex:repeat var="quly" value="{!investigator.qualificationlList}">
+                    <tr class="slds-line-height_reset">
+                        <th class="" scope="col">
+                            <div class=" " title="{!quly.Date_From__c}">{!quly.Date_From__c}</div>
+                        </th>
+                        <th class="" scope="col">
+                            <div class=" " title="{!quly.Date_To__c}">{!quly.Date_To__c}</div>
+                        </th>
+                        <th class="" scope="col">
+                            <div class=" " title="{!quly.Name}">{!quly.Qualification__c}</div>
+                        </th>
+                        <th class="" scope="col">
+                            <div class=" " title="{!quly.Subject__c}">{!quly.Subject__c}</div>
+                        </th>
+                        <th class="" scope="col">
+                            <div class=" " title="{!quly.Organisation__r.Name}">{!quly.Organisation__r.Name}</div>
+                        </th>
+                        <th class="" scope="col">
+                            <div class=" " title="{!quly.Supervisor__c}">{!quly.Supervisor__c}</div>
+                        </th>
+                    </tr>
+                </apex:repeat>
+            </tbody>
+        </table>
+        <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+            <br/>
+            <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">Q7. Summary of scientific career to date, including key achievements (Limit 350 words)</div>
+        </div>
+        <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+            <br/>
+                {!investigator.investigatorRecord.Summary_of_Scientific_Career_to_Date__c}
+        </div>
+           <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+                <br/>
+                <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">Q8. Experience relevant to this proposal (Limit 350 words)</div>
+            </div>
+            <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+                <br/>
+                    {!investigator.investigatorRecord.Experience_Relevant_to_this_Proposal__c}
+            </div> 
+            
+            <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+                <br/>
+                <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">Q9. Research output in last 5 years </div><br/>
+            </div>
+            <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+                <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">Please list:</div><br/>
+                <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">•   Peer-reviewed publications. List should include peer reviewed research articles, systematic reviews and meta-analyses, but exclude abstracts and literature reviews. Please provide PubMed Central ID (PMCID) reference for each. </div>
+                <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">•   Preprints. List should include manuscripts that have been submitted to a preprint repository or service. Please provide full citation, including title of paper, all authors, along with repository’s name and the article identifier. It is mandatory to mention a permanent identifier such as DOI. </div>
+                <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">•   Inventions and patents. Please provide title, authors, granting agency, patent number, year and status of the application. </div><br/>
+                <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">Guidelines:</div><br/>
+                <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">•   The author details including the author order and corresponding author information must be accurate and as per the published article. Improper representation of credit or authorship would be considered as a serious misconduct by India Alliance and may lead to rejection of the application.</div>
+                <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">•   Publications should have names of all authors. “et al” should not be used unless there are more than 06 authors. “et al” should not be used unless there are more than 06 authors. Please use Vancouver referencing style. </div>
+                <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">•   All entries should be in chronological order, with most recent first. Use sub-headings to segregate the list (such as research articles, preprints, patents, etc.)</div>
+                <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">•   Use asterisks (*) to highlight if you are a corresponding author (along with other co-corresponding authors) and underline if you are a joint-first author.</div>
+                <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">•   Please provide number of citations at present in bracket at the end of each entry.</div>
+                <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">•   Please do not list the journal Impact Factor.</div>
+                <br/>
+                <br/>
+                    <apex:outputField value="{!investigator.investigatorRecord.Research_Output_in_last_5_years__c}" />
+                    </div>
+                    
+                <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+                    <br/>
+                    <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">Q10. Other financial support </div><br/>
+                </div>
+                <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+                <div class="slds-progress__item_content slds-grid slds-grid_align-spread">Please list all key financial support that you have received in the last five years (research grants, fellowships, commercial etc.), with the most recent first. The information provided should state: (i) Name of the funder; (ii) Name(s) of recipient(s); (iii) Title of the project; (iv) Awarded Budget with currencies; (v) Your role in the project; and (vi) Start and end dates of project. For all active awards, indicate the number of hours per week that you spend on each project.</div>
+                <br/>
+                <div class="slds-progress__item_content slds-grid slds-grid_align-spread">Please list all key financial support that you have received in the last five years (research grants, fellowships, commercial etc.), with the most recent first. The information provided should state: (i) Name of the funder; (ii) Name(s) of recipient(s); (iii) Title of the project; (iv) Awarded Budget with currencies; (v) Your role in the project; and (vi) Start and end dates of project. For all active awards, indicate the number of hours per week that you spend on each project.</div>
+                <br/>
+                {!investigator.investigatorRecord.Is_other_financial_support__c}
+                <br/>
+                <apex:outputPanel layout="none" rendered="{!investigator.investigatorRecord.Is_other_financial_support__c == 'Yes'}">
+                <table class="tableBorder" width="100%">
+                        <thead>
+                            <tr class="slds-line-height_reset">
+                                <th class="nowrap" scope="col">
+                                    <div class=" " title="Name of the funder">Name of the funder</div>
+                                </th>
+                                <th class="nowrap" scope="col">
+                                    <div class=" " title="Name(s) of recipient">Name(s) of recipient</div>
+                                </th>  
+                                <th class="nowrap" scope="col">
+                                    <div class=" " title="Title of the project">Title of the project</div>
+                                </th> 
+                                <th class="nowrap" scope="col">
+                                    <div class=" " title=" Awarded Budget with currencies"> Awarded Budget with currencies</div>
+                                </th>
+                                <th class="nowrap" scope="col">
+                                    <div class=" " title="Your role in the project">Your role in the project</div>
+                                </th>
+                                <th class="nowrap" scope="col">
+                                    <div class=" " title="Start Date">Start Date</div>
+                                </th>
+                                <th class="nowrap" scope="col">
+                                    <div class=" " title="End Date">End Date</div>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <apex:repeat var="ofc" value="{!investigator.otherFinancialSupportList}" >
+                                <tr>
+                                    <th class="" scope="col">
+                                        <div class=" " title="{!ofc.Name_of_the_funder__c}">{!ofc.Name_of_the_funder__c}</div>
+                                    </th>
+                                    <th class="" scope="col">
+                                        <div class=" " title="{!ofc.Name_s_of_recipient__c}">{!ofc.Name_s_of_recipient__c}</div>
+                                    </th>
+                                    <th class="" scope="col">
+                                        <div class=" " title="{!ofc.Title_of_the_project__c}">{!ofc.Title_of_the_project__c}</div>
+                                    </th>
+                                    <th class="" scope="col">
+                                        <div class=" " title="{!ofc.Awarded_Budget_with_currencies__c}">{!ofc.Awarded_Budget_with_currencies__c}</div>
+                                    </th>
+                                    <th class="" scope="col">
+                                        <div class=" " title="{!ofc.Your_role_in_the_project__c}">{!ofc.Your_role_in_the_project__c}</div>
+                                    </th>
+                                    <th class="nowrap" scope="col">
+                                        <div class=" " title="{!ofc.Start_Date__c}">
+                                         <apex:outputText value="{0, date, dd/MM/yyyy}">
+    <apex:param value="{!ofc.Start_Date__c}" /> 
+</apex:outputText>
+   
+                                        </div>
+                                    </th>
+                                    <th class="nowrap" scope="col">
+                                        <div class=" " title="{!ofc.End_Date__c}">
+                                        <apex:outputText value="{0, date, dd/MM/yyyy}">
+    <apex:param value="{!ofc.End_Date__c}" /> 
+</apex:outputText>
+
+                                        </div>
+                                    </th>
+                                </tr>
+                            </apex:repeat>
+                        </tbody>
+                    </table>
+                    </apex:outputPanel>
+            </div>
+            <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+                <br/>
+                <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">Q11.    Please describe how the current active awards listed above relate to this application (Limit 200 words)</div>
+            </div>
+            <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+                    <br/>{!investigator.investigatorRecord.Describe_the_Current_Active_Awards__c}
+            </div>
+            <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+                <br/>
+                <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">Q12. Clinical status. These questions should be answered by only those PIs who have a medical/dental degree.</div>
+            </div>
+            <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+                <div class="slds-progress__item_content slds-grid slds-grid_align-spread">(a) Please specify your medical degree</div>
+                <br/>
+                    {!investigator.investigatorRecord.Please_specify_your_medical_degree__c}
+            </div>
+            <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+                <div class="slds-progress__item_content slds-grid slds-grid_align-spread">(b) If you are clinically active, what is your specialty?</div>
+                <br/>
+                    {!investigator.investigatorRecord.what_is_your_specialty_Active__c}
+            </div>
+            <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+                <br/>
+                <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">Q13. Related applications</div> 
+            </div>
+             
+             <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+            <div class="slds-progress__item_content slds-grid slds-grid_align-spread">Has a similar application been submitted / will be submitted for funding elsewhere? If yes, please provide following details: (i) Name of the funding organisation; (ii) Expected decision date; and (iii) Brief summary (under 200 words) of the other application including aims and overlap with the current proposal. </div>
+            <br/>{!investigator.investigatorRecord.Will_be_submitted_for_funding__c}
+            <br/>
+            <apex:outputPanel layout="none" rendered="{!investigator.investigatorRecord.Will_be_submitted_for_funding__c == 'Yes'}">
+            <table class="tableBorder" width="100%">
+            <thead>
+                <tr class="slds-line-height_reset">
+                    <th class="nowrap" scope="col">
+                        <div class=" " title="Name of the funding organisation">Name of the funding organisation</div>
+                    </th>
+                    <th class="nowrap" scope="col">
+                        <div class=" " title="Expected decision date">Expected decision date</div>
+                    </th>  
+                    <th class="nowrap" scope="col" style="width: 500px;">
+                        <div class=" " title="Brief summary">Brief summary</div>
+                    </th> 
+                </tr>
+            </thead>
+            <tbody>
+                <apex:repeat var="fo" value="{!investigator.fundingOrganisationList}">
+                    <tr>
+                        <th class="" scope="col">
+                            <div class=" " title="{!fo.Name_of_the_funding_organisation__c}">{!fo.Name_of_the_funding_organisation__c}</div>
+                        </th>
+                        <th class="" scope="col">
+                            <div class=" " title="{!fo.Expected_decision_date__c}">
+                            <apex:outputText value="{0, date, dd/MM/yyyy}">
+    <apex:param value="{!fo.Expected_decision_date__c}" /> 
+</apex:outputText>
+                            </div>
+                        </th>
+                        <th class="" scope="col">
+                            <div class=" " title="{!fo.Brief_summary_under_200_words__c}">{!fo.Brief_summary_under_200_words__c}</div>
+                        </th>
+                    </tr>
+                </apex:repeat>
+            </tbody>
+            </table>
+            </apex:outputPanel>
+            <br/><br/>
+             </div>
+                
+            <div style="page-break-before:always;"></div>
+            </apex:repeat>
+            
+            
+            <center>
+                <hr style="background-color:rgb(91, 155, 213);width:100%"/>
+                <h4>
+                    <b><i>{!sn}. Budget (with justification)</i></b>
+                    <apex:variable var="sn" value="{!sn+1}"/>
+                </h4>
+                <hr style="background-color:rgb(91, 155, 213);width:100%"/>
+            </center>
+            <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+                <br/>
+                <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">Q1. Since the research will be conducted at multiple locations, please provide details of fund sharing. In case of award, India Alliance would only send funds to Sponsoring institution of the PI. The funds would be given in INR.</div><br/>
+            </div>
+                <table class="tableBorder" width="100%">
+                    <thead>
+                        <tr class="slds-line-height_reset">
+                            <th class="" scope="col">
+                                <div class=" " title="Location">Location</div>
+                            </th>
+                            <th class="" scope="col">
+                                <div class=" " title="Total Funds requested (INR)">Total Funds requested (INR)</div>
+                            </th>
+                            <th class="" scope="col">
+                                <div class=" " title="Percentage of total funds ">Percentage of total funds </div>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <apex:repeat var="investigator" value="{!form.investigatorRecordList}">
+                            <tr class="slds-line-height_reset">
+                                <th class="" scope="col">
+                                    <div class=" " title="{! investigator.investigatorRecord.Institution__r.Name  }">{! investigator.investigatorRecord.Institution__r.Name  }</div>
+                                </th>
+                                <th class="" scope="col">
+                                    <div class=" " title="">
+                                            {!investigator.investigatorRecord.Total_Funds_requested_INR__c}
+                                    </div>
+                                </th>
+                                <th class="" scope="col">
+                                    <div class=" " title="">
+                                            {!investigator.investigatorRecord.Percentage_of_total_funds__c}
+                                    </div>
+                                </th>
+                            </tr>
+                        </apex:repeat>
+                    </tbody>
+                </table><br/>
+            
+            <div class="">While working on the budget please be mindful of our <a href="https://www.indiaalliance.org/costing-policies-grants" target="_blank">grant costing policies</a>, particularly the disallowed costs. All requests made in this section should be commensurate with the objectives of the proposal and supported with strong justification.</div>
+            <div class="slds-progress__item_content slds-grid slds-grid_align-spread">The total costs must be within the amount requested (Z). This includes the direct cost requested on the application (A) and institutional overheads (B).</div><br/>
+                            
+            <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12" style="text-align: center;">
+                <br/>
+                <table class="tableBorder" width="100%">
+                    <thead>
+                        <tr class="slds-line-height_reset">
+                            <th class="" scope="col" colspan="3">
+                                <div class=" " title="Budget overview" style="text-align:center;">Budget overview</div>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="slds-line-height_reset">
+                            <th class="" scope="col">
+                                <div class=" " title="1.">1.</div>
+                            </th>
+                            <th class="" scope="col">
+                                <div class=" " title="Salaries for PIs*">Salaries for PIs*</div>
+                            </th>
+                            <th class="" scope="col">
+                                {!form.totalYearAmount }
+                            </th>
+                        </tr>
+                        <tr class="slds-line-height_reset">
+                            <th class="" scope="col">
+                                <div class=" " title="1.">2.</div>
+                            </th>
+                            <th class="" scope="col">
+                                <div class=" " title="Support Staff salaries ">Support Staff salaries </div>
+                            </th>
+                            <th class="" scope="col">
+                                {!form.budget.totalsfAmount }
+                            </th>
+                        </tr>
+                        <tr class="slds-line-height_reset">
+                            <th class="" scope="col">
+                                <div class=" " title="3.">3.</div>
+                            </th>
+                            <th class="" scope="col">
+                                <div class=" " title="Materials and consumables ">Materials and consumables </div>
+                            </th>
+                            <th class="" scope="col">
+                                {!form.budget.totalmcAmount }
+                            </th>
+                        </tr>
+                        <tr class="slds-line-height_reset">
+                            <th class="" scope="col">
+                                <div class=" " title="4.">4.</div>
+                            </th>
+                            <th class="" scope="col">
+                                <div class=" " title="Animals">Animals </div>
+                            </th>
+                            <th class="" scope="col">
+                                {!form.budget.totalanimalAmount} 
+                            </th>
+                        </tr>
+                        <tr class="slds-line-height_reset">
+                            <th class="" scope="col">
+                                <div class=" " title="5.">5.</div>
+                            </th>
+                            <th class="" scope="col">
+                                <div class=" " title="Animal Associated Cost">Animal Associated Cost  </div>
+                            </th>
+                            <th class="" scope="col">
+                                {!form.budget.totalanimalacAmount }
+                            </th>
+                        </tr>
+                        <tr class="slds-line-height_reset">
+                            <th class="" scope="col">
+                                <div class=" " title="6.">6.</div>
+                            </th>
+                            <th class="" scope="col">
+                                <div class=" " title="Equipment">Equipment</div>
+                            </th>
+                            <th class="" scope="col">
+                                {!form.budget.totaleqAmount  }
+                            </th>
+                        </tr>
+                        <tr class="slds-line-height_reset">
+                            <th class="" scope="col">
+                                <div class=" " title="7.">7.</div>
+                            </th>
+                            <th class="" scope="col">
+                                <div class=" " title="Access charges">Access charges</div>
+                            </th>
+                            <th class="" scope="col">
+                                {!form.budget.totalaccessAmount}
+                            </th>
+                        </tr>
+                        <tr class="slds-line-height_reset">
+                            <th class="" scope="col">
+                                <div class=" " title="8.">8.</div>
+                            </th>
+                            <th class="" scope="col">
+                                <div class=" " title="Miscellaneous">Miscellaneous</div>
+                            </th>
+                            <th class="" scope="col">
+                                {!form.budget.totalmisAmount}
+                            </th>
+                        </tr>
+                        <tr class="slds-line-height_reset">
+                            <th class="" scope="col">
+                                <div class=" " title="9.">9.</div>
+                            </th>
+                            <th class="" scope="col">
+                                <div class=" " title="Travel costs">Travel costs</div>
+                            </th>
+                            <th class="" scope="col">
+                                {!form.budget.totaltcAmount }
+                            </th>
+                        </tr>
+                        <tr class="slds-line-height_reset">
+                            <th class="" scope="col">
+                                <div class=" " title="10.">10.</div>
+                            </th>
+                            <th class="" scope="col">
+                                <div class=" " title="India Alliance contributions (Includes Flexible Funding Allowance)">India Alliance contributions <br/>(Includes Flexible Funding Allowance) </div>
+                            </th>
+                            <th class="" scope="col">
+                                {!form.budget.IAContributionAmount }
+                            </th>
+                        </tr>
+                    </tbody>
+                    <thead>
+                        <tr class="slds-line-height_reset">
+                            <th class="" scope="col">
+                                <div class=" " title="(A)">(A)</div>
+                            </th>
+                            <th class="" scope="col">
+                                <div class=" " title="Sub-total ">Sub-total </div>
+                            </th>
+                            <th class="" scope="col">
+                                {!form.subTotal }
+                            </th>
+                        </tr>
+                        <tr class="slds-line-height_reset">
+                            <th class="" scope="col">
+                                <div class=" " title="(B)">(B)</div>
+                            </th>
+                            <th class="" scope="col">
+                                <div class=" " title="Overheads (10% of A)">Overheads (10% of A)</div>
+                            </th>
+                            <th class="" scope="col">
+                                {!form.x10subTotal}
+                            </th>
+                        </tr>
+                        <tr class="slds-line-height_reset">
+                            <th class="" scope="col">
+                                <div class=" " title="(Z)">(Z)</div>
+                            </th>
+                            <th class="" scope="col">
+                                <div class=" " title="Total (not more than INR 10 Crores)">Total (not more than INR 10 Crores) </div>
+                            </th>
+                            <th class="" scope="col">
+                                {!form.total }
+                            </th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+            
+            
+            <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+                <br/>
+                <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">(i) *Salaries for PIs: PIs (PI and co-PIs) must hold an academic or research post and have a salary, or the guarantee of a salary, for the duration of the award period. If your academic or research position requires you to get all/part of your salary from extramural funding, please refer to the scheme guidelines and grant costing policies. For this, you must be based at an eligible Indian host institution and your host institution must confirm in writing that your employment contract requires you to raise your salary from extramural funding.  </div>
+                <div class="slds-progress__item_content slds-grid slds-grid_align-spread">Please indicate the salary that is being requested as part of this application. </div>
+            </div>
+            <table class="tableBorder" width="100%">
+            <thead>
+                <tr class="slds-line-height_reset">
+                    <th class="" scope="col">
+                        <div class=" " title="Investigator Name">Investigator Name</div>
+                    </th>
+                    <th class="" scope="col">
+                        <div class=" " title="Year">Year 1</div>
+                    </th>
+                    <th class="" scope="col">
+                        <div class=" " title="Year">Year 2</div>
+                    </th>
+                    <th class="" scope="col">
+                        <div class=" " title="Year">Year 3</div>
+                    </th>
+                    <th class="" scope="col">
+                        <div class=" " title="Year">Year 4</div>
+                    </th>
+                    <th class="" scope="col">
+                        <div class=" " title="Year">Year 5</div>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <apex:repeat var="investigator" value="{!form.investigatorRecordList}">
+                    <tr class="slds-line-height_reset">
+                        <th class="" scope="col">
+                            <div class=" " title="{!investigator.investigatorRecord.Full_Name__c}">{!investigator.investigatorRecord.Full_Name__c}</div>
+                        </th>
+                        <th class="" scope="col">
+                                {!investigator.investigatorRecord.Year_1__c}
+                        </th>
+                        <th class="" scope="col">
+                                {!investigator.investigatorRecord.Year_2__c}
+                        </th>
+                        <th class="" scope="col">
+                                {!investigator.investigatorRecord.Year_3__c}
+                        </th>
+                        <th class="" scope="col">
+                                {!investigator.investigatorRecord.Year_4__c}
+                        </th>
+                        <th class="" scope="col">
+                                {!investigator.investigatorRecord.Year_5__c}
+                        </th>
+                    </tr>
+                </apex:repeat>
+                <tr class="slds-line-height_reset">
+                    <th class="" scope="col"  colspan="5">
+                        <div class=" " title="Total cost requested under PI salary head">Total cost requested under PI salary head</div>
+                    </th>
+                    <th class="" scope="col">
+                        {!form.totalYearAmount }
+                    </th>
+                </tr>
+            </tbody>
+        </table>
+        <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+            <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">Justification (Limit 400 words)</div>
+            <br/>{!form.budget.budgetRecord.Salaries_for_PIs_Justification__c}
+        </div>
+        <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+            <br/>
+            <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">(ii)    Support Staff and their Salary Justification</div>
+        </div>
+        <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+            <div class="">Support staff category: Research assistants, technicians, PhD students, junior research fellows, senior research fellows, research associates, senior residents, field workers, nurses etc. Salaries for support staff should be in line with the recent <a href="https://dst.gov.in/sites/default/files/OM-Scientific_Technical%20Manpower-Guidelines%20and%20emoluments.pdf" target="_blank">Government of India guidelines</a>.</div>
+        </div>
+        
+        
+        <table class="tableBorder" width="100%">
+        <thead>
+            <tr class="slds-line-height_reset">
+                <th class="nowrap" scope="col">
+                    <div class=" " title="">Staff category</div>
+                </th>
+                <th class="nowrap" scope="col">
+                    <div class=" " title="Number of positions">Number of positions</div>
+                </th>
+                <th class="nowrap" scope="col">
+                    <div class=" " title="Location/organisation">Location/organisation</div>
+                </th>
+                <th class="nowrap" scope="col">
+                    <div class=" " title="Monthly Salary">Monthly Salary</div>
+                </th>
+                <th class="nowrap" scope="col">
+                    <div class=" " title="Period on project (months)">Period on project (months)</div>
+                </th>
+                <th class="nowrap" scope="col">
+                    <div class=" " title="% time">% time</div>
+                </th>
+                <th class="nowrap" scope="col">
+                    <div class=" " title="Total cost requested on grant for entire duration ">Total cost requested on <br/>grant for entire duration </div>
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            <apex:repeat var="sf" value="{!form.budget.supportStaffList}">
+                <tr>
+                    <th class="nowrap" scope="col">
+                        <div class=" " title="{!sf.Staff_Category__c}">{!sf.Staff_Category__c}</div>
+                    </th>
+                    <th class="nowrap" scope="col">
+                        <div class=" " title="{!sf.Number_of_Positions__c}">{!sf.Number_of_Positions__c}</div>
+                    </th>
+                    <th class="nowrap" scope="col">
+                        <div class=" " title="{!sf.Organisation__r.Name}">{!sf.Organisation__r.Name}</div> 
+                    </th>
+                    <th class="nowrap" scope="col">
+                        <div class=" " title="{!sf.Salary_Grade__c}">{!sf.Salary_Grade__c}</div>
+                    </th>
+                    <th class="nowrap" scope="col">
+                        <div class=" " title="{!sf.Period_on_Project__c}">{!sf.Period_on_Project__c}</div>
+                    </th>
+                    <th class="nowrap" scope="col">
+                        <div class=" " title="{!sf.Time__c}">{!sf.Time__c}</div>
+                    </th>
+                    <th class="nowrap" scope="col">
+                        {!sf.Total__c}
+                    </th>
+                </tr>
+            </apex:repeat>
+        </tbody>
+        <thead>
+            <tr>
+                <th class="" scope="col" colspan="6">
+                    <div class=" " title="Total cost requested under support staff salary head">Total cost requested under support staff salary head</div>
+                </th>
+                <th class="" scope="col">
+                    {!form.budget.totalsfAmount }
+                </th>
+            </tr>
+        </thead>
+    </table>
+        <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+            <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">Support staff justification(Justification for personnel requested, specifying their role and responsibilities; Limit 500 words)</div>
+                <br/>{!form.budget.budgetRecord.Support_staff_justification__c}
+            
+        </div>
+        
+        <br/><br/>
+        <table class="tableBorder" width="100%">
+        <thead>
+            <tr class="slds-line-height_reset">
+                <th class="nowrap" scope="col">
+                    <div class=" " title="">Materials and consumables (description of items) <br/>Please add separate entries in the table below </div>
+                </th>
+                <th class="nowrap" scope="col">
+                    <div class=" " title="Costs (INR)">Costs (INR)</div>
+                </th>   
+            </tr>
+        </thead>
+        <tbody>
+            <apex:repeat var="mc" value="{!form.budget.MConsumablesList}">
+                <tr>
+                    <th class="" scope="col">
+                        <div class=" " title="{!mc.Name}">{!mc.Materials_and_Consumables_Name__c}</div>
+                    </th>
+                    <th class="" scope="col">
+                        {!mc.Costs__c}
+                    </th>
+                </tr>
+            </apex:repeat>
+        </tbody>
+        <thead>
+            <tr>
+                <th class="" scope="col">
+                    <div class=" " title="Total cost requested under materials and consumables head">Total cost requested under materials and consumables head</div>
+                </th>
+                <th class="" scope="col">
+                    {!form.budget.totalmcAmount }
+                </th>
+            </tr>
+        </thead>
+    </table>
+        <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+        <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">Itemised justification for materials and consumables requested (Limit 500 words)</div>
+        <br/>{!form.budget.budgetRecord.Materials_and_Consumables_Justification__c}
+        </div>
+        <br/><br/>
+        <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">Equipment purchase</div>
+        <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">Guidelines:</div>
+        <div class="slds-progress__item_content slds-grid slds-grid_align-spread">• The estimated price of the equipment should cover all aspects including delivery, installation, maintenance, and training, where appropriate. Customs Tax is not covered by the India Alliance.</div>
+        <div class="slds-progress__item_content slds-grid slds-grid_align-spread">• The India Alliance does not normally supplement support provided by other funding bodies. However, a contribution from the host institution, or other source, will normally be expected where the application includes a substantial equipment request.</div>
+        <div class="slds-progress__item_content slds-grid slds-grid_align-spread">• Maintenance costs: It is expected that the equipment requested will be covered by the manufacturer’s warranty for the first year after it is purchased. A negotiated extended warranty is desirable. The India Alliance will consider funding reasonable maintenance costs for the remaining duration of the award.</div>
+        <div class="slds-progress__item_content slds-grid slds-grid_align-spread">• The cost for desktop computers and laptops, if required, must be indicated under Equipment.</div>
+        
+        <table class="tableBorder" width="100%">
+        <thead>
+            <tr class="slds-line-height_reset">
+                <th class="nowrap" scope="col">
+                    <div class=" " title="Type of equipment ">Type of <br/>equipment</div>
+                </th>
+                <th class="nowrap" scope="col">
+                    <div class=" " title="Number of items ">Number of <br/>items </div>
+                </th>  
+                <th class="nowrap" scope="col">
+                    <div class=" " title="Cost per item">Cost per item</div>
+                </th>
+                <th class="nowrap" scope="col">
+                    <div class=" " title="Cost of maintenance contract per year">Cost of maintenance <br/>contract <br/>per year</div>
+                </th>
+                <th class="nowrap" scope="col">
+                    <div class=" " title="Duration of maintenance contract (years)">Duration of <br/>maintenance contract <br/>(years)</div>
+                </th>
+                <th class="nowrap" scope="col">
+                    <div class=" " title="Contribution from other sources">Contribution from <br/>other sources</div>
+                </th>
+                <th class="nowrap" scope="col">
+                    <div class=" " title="Amount requested">Amount requested</div>
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            <apex:repeat var="equ" value="{!form.budget.eqList }">
+                <tr>
+                    <th class="" scope="col">
+                        <div class=" " title="{!equ.Type_of_Equipment__c}">{!equ.Type_of_Equipment__c}</div>
+                    </th>
+                    <th class="" scope="col">
+                        <div class=" " title="{!equ.Number_of_items__c}">{!equ.Number_of_items__c}</div>
+                    </th>
+                    <th class="" scope="col">
+                       {!equ.Cost_per_item__c}
+                    </th>
+                    <th class="" scope="col">
+                        <div class=" " title="{!equ.Cost_of_maintenance_contract_per_year__c}">{!equ.Cost_of_maintenance_contract_per_year__c}</div>
+                    </th>
+                    <th class="" scope="col">
+                        <div class=" " title="{!equ.Duration_of_Maintenance__c}">{!equ.Duration_of_Maintenance__c}</div>
+                    </th>
+                    <th class="" scope="col">
+                        <div class=" " title="{!equ.Contribution_from_other_sources__c}">{!equ.Contribution_from_other_sources__c}</div>
+                    </th>
+                    <th class="" scope="col">
+                        {!equ.Total__c}
+                    </th>
+                </tr>
+            </apex:repeat>
+        </tbody>
+        <thead>
+            <tr>
+                <th class="" scope="col" colspan="6">
+                    <div class=" " title="Total cost requested under equipment purchase head">Total cost requested under equipment purchase head</div>
+                </th>
+                <th class="" scope="col">
+                    {!form.budget.totaleqAmount  }
+                </th>
+            </tr>
+        </thead>
+    </table>
+        
+        <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+            <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">Justification for equipment and equipment maintenance requested (Limit 500 words)</div>
+             <br/>{!form.budget.budgetRecord.Equipment_Justification__c}
+        </div>
+        
+        <br/><br/>
+        Access charges
+        
+        <table class="tableBorder" width="100%">
+        <thead>
+            <tr class="slds-line-height_reset">
+                <th class="nowrap" scope="col">
+                    <div class=" " title="Details of equipment/facility with location">Details of equipment/facility <br/>with location</div>
+                </th>
+                <th class="nowrap" scope="col">
+                    <div class=" " title="Specify access (units can be either defined as day or hour)">Specify access (units can be either <br/>defined as day or hour)</div>
+                </th>  
+                <th class="nowrap" scope="col">
+                    <div class=" " title="Place">Place</div>
+                </th> 
+                <th class="nowrap" scope="col">
+                    <div class=" " title="Number of units">Number of units</div>
+                </th>
+                <th class="nowrap" scope="col">
+                    <div class=" " title="Access charge per unit">Access charge per unit</div>
+                </th>
+                <th class="nowrap" scope="col">
+                    <div class=" " title="Total">Total</div>
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            <apex:repeat var="acc" value="{!form.budget.accessList  }">
+                <tr>
+                    <th class="" scope="col">
+                        <div class=" " title="{!acc.Access_Charge_Name__c}">{!acc.Access_Charge_Name__c}</div>
+                    </th>
+                    <th class="" scope="col">
+                        <div class=" " title="{!acc.Specify_access__c}">{!acc.Specify_access__c}</div>
+                    </th>
+                    <th class="" scope="col">
+                        <div class=" " title="{!acc.Place__c}">{!acc.Place__c}</div>
+                    </th>
+                    <th class="" scope="col">
+                        <div class=" " title="{!acc.Number_of_Units__c}">{!acc.Number_of_Units__c}</div>
+                    </th>
+                    <th class="" scope="col">
+                        {!acc.Access_Charges_Per_Unit__c}
+                    </th>
+                    <th class="" scope="col">
+                        {!acc.Total__c}
+                    </th>
+                </tr>
+            </apex:repeat>
+        </tbody>
+        <thead>
+            <tr>
+                <th class="" scope="col" colspan="5">
+                    <div class=" " title="Total cost requested under equipment purchase head">Total cost requested under access charges head </div>
+                </th>
+                <th class="" scope="col">
+                    {!form.budget.totalaccessAmount}
+                </th>
+            </tr>
+        </thead>
+    </table>
+    <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+        <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">Justification for access charges requested. (Limit 300 words)</div>
+        <br/>{!form.budget.budgetRecord.Justification_for_access_charges__c}
+        
+    </div>
+        <br/><br/>
+        Animals
+        <br/>
+        
+        <table class="tableBorder" width="100%">
+        <thead>
+            <tr class="slds-line-height_reset">
+                <th class="nowrap" scope="col">
+                    <div class=" " title="Animal species">Animal species</div>
+                </th>
+                <th class="nowrap" scope="col">
+                    <div class=" " title="Total number to be purchased">Total number to be purchased</div>
+                </th>  
+                <th class="nowrap" scope="col">
+                    <div class=" " title="Purchase cost for each">Purchase cost for each</div>
+                </th>
+                <th class="nowrap" scope="col">
+                    <div class=" " title="Total maintenance and procedure cost">Total maintenance <br/>and procedure cost</div>
+                </th>
+                <th class="nowrap" scope="col">
+                    <div class=" " title="Total">Total</div>
+                </th>
+                
+            </tr>
+        </thead>
+        <tbody>
+            <apex:repeat var="an" value="{!form.budget.animalList}">
+                <tr>
+                    <th class="" scope="col">
+                        <div class=" " title="{!an.Animal_species__c}">{!an.Animal_species__c}</div>
+                    </th>
+                    <th class="" scope="col">
+                        <div class=" " title="{!an.Total_number_to_be_purchased__c}">{!an.Total_number_to_be_purchased__c}</div>
+                    </th>
+                    <th class="" scope="col">
+                        {!an.Total_purchase_cost__c}
+                    </th>
+                    <th class="" scope="col">
+                        {!an.Total_maintenance_and_procedure_cost__c}
+                    </th>
+                    <th class="" scope="col">
+                        {!an.Total__c}
+                    </th>
+                </tr>
+            </apex:repeat>
+        </tbody>
+        <thead>
+            <tr>
+                <th class="" scope="col" colspan="4">
+                    <div class=" " title="Total cost requested under animal purchase and maintenance">Total cost requested under animal purchase and maintenance </div>
+                </th>
+                <th class="" scope="col">
+                    {!form.budget.totalanimalAmount }
+                </th>
+            </tr>
+        </thead>
+    </table>
+    <br/><br/>
+    Animal associated costs (You cannot request animal attendant or manpower under this head. Such requests have to be added under Support staff heading).
+    <br/>
+        <table class="tableBorder" width="100%">
+        <thead>
+            <tr class="slds-line-height_reset">
+                <th class="nowrap" scope="col">
+                    <div class=" " title="Description (may include training and environmental enrichment, cost of animal licences, etc.) ">Description <br/>(may include training and environmental enrichment, cost of animal licences, etc.) </div>
+                </th>
+                <th class="nowrap" scope="col">
+                    <div class=" " title="Total">Total</div>
+                </th>  
+            </tr>
+        </thead>
+        <tbody>
+            <apex:repeat var="ac" value="{!form.budget.animalaclList}">
+                <tr>
+                    <th class="" scope="col">
+                        <div class=" " title="{!ac.Description__c }">{!ac.Description__c}</div>
+                    </th>
+                    <th class="" scope="col">
+                        {!ac.Total__c }
+                    </th>
+                </tr>
+            </apex:repeat>
+        </tbody>
+        <thead>
+            <tr>
+                <th class="" scope="col">
+                    <div class=" " title="Total cost requested under animal associated costs">Total cost requested under animal associated costs</div>
+                </th>
+                <th class="" scope="col">
+                    {!form.budget.totalanimalacAmount }
+                </th>
+            </tr>
+        </thead>
+    </table>
+    <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+        <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">Justification for animal costs requested (Limit 500 words). Please provide itemised justification for all animal and animal associated costs. Power calculation/justification for animal numbers must be provided in response to “Details of project” under section 3 of the application and should not be repeated here. </div>
+            <br/>{!form.budget.budgetRecord.Justification_for_animal_costs_requested__c}
+        
+    </div>
+    <br/><br/>
+    Miscellaneous <br/>For any cost that do not fall under any other category.
+    <br/>
+    
+    <table class="tableBorder" width="100%">
+    <thead>
+        <tr class="slds-line-height_reset">
+            <th class="nowrap" scope="col" width="50">
+                <div class=" " title="Type">Type</div>
+            </th>
+            <th class="nowrap" scope="col">
+                <div class=" " title="Description">Description</div>
+            </th>  
+            <th class="nowrap" scope="col">
+                <div class=" " title="Total">Total</div>
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        <apex:repeat var="mis" value="{!form.budget.misList}">
+            <tr>
+                <th class="" scope="col" width="50" style="width: 200px;">
+                    <div class=" " title="{!mis.Type__c}">{!mis.Type__c}</div>
+                </th>
+                <th class="" scope="col" >
+                    <div class=" " title="{!mis.Description__c}">{!mis.Description__c}</div>
+                </th>
+                <th class="" scope="col">
+                    {!mis.Total__c}
+                </th>
+            </tr>
+        </apex:repeat>
+    </tbody>
+    <thead>
+        <tr>
+            <th class="" scope="col" colspan="2">
+                <div class=" " title="Total cost requested under miscellaneous head">Total cost requested under miscellaneous head</div>
+            </th>
+            <th class="" scope="col">
+                {!form.budget.totalmisAmount }
+            </th>
+        </tr>
+    </thead>
+</table>
+    <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+        <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">Justification for miscellaneous costs requested. (Limit 500 words)</div>
+        <br/>{!form.budget.budgetRecord.Justification_for_miscellaneous_costs__c}
+    </div>
+    <br/><br/>
+    <br/>Travel costs <br/>This can cover cost for PIs and support staff employed on the grant to (i) attend research meetings/conferences/symposiums; (ii) collaborative visits; and (iii) fieldwork and sample collection.
+    <br/>
+    <table class="tableBorder" width="100%">
+    <thead>
+        <tr class="slds-line-height_reset">
+            <th class="" scope="col">
+                <div class=" " title="Year">Year</div>
+            </th>
+            <th class="" scope="col">
+                <div class=" " title="Place to travel">Place to travel</div>
+            </th>   
+            <th class="" scope="col">
+                <div class=" " title="Amount">Amount</div>
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        <apex:repeat var="tc" value="{!form.budget.tcList}">
+            <tr>
+                <th class="" scope="col">
+                    <div class=" " title="{!tc.Year__c}">{!tc.Year__c}</div>
+                </th>
+                <th class="" scope="col">
+                    <div class=" " title="{!tc.Place_to_Travel__c}">{!tc.Place_to_Travel__c}</div>
+                </th>
+                <th class="" scope="col">
+                    {!tc.Amount__c}
+                </th>
+            </tr>
+        </apex:repeat>
+    </tbody>
+    <thead>
+        <tr>
+            <th class="" scope="col" colspan="2">
+                <div class=" " title="Total requested under travel cost">Total requested under travel cost</div>
+            </th>
+            <th class="" scope="col">
+                {!form.budget.totaltcAmount}
+            </th>
+        </tr>
+    </thead>
+</table>
+<div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+    <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">Justification (Limit 400 words)</div>
+        {!form.budget.budgetRecord.Justification_for_Travel_Costs__c}
+</div>
+    <br/><br/>
+    <br/>India Alliance contributions
+    <br/>Flexible Funding Allowance: The India Alliance recognizes that unanticipated costs might arise during the tenure of the project. Therefore, in addition to the requested costs, the India Alliance will provide fixed contingency funds called Flexible Funding Allowance.<br/>
+        <table class="tableBorder" width="100%">
+        <thead>
+            <tr class="slds-line-height_reset">
+                <th class="" scope="col">
+                    <div class=" " title="Type">Type</div>
+                </th>
+                <th class="" scope="col">
+                    <div class=" " title="Year 1">Year 1</div>
+                </th>
+                <th class="" scope="col">
+                    <div class=" " title="Year 2">Year 2</div>
+                </th>
+                <th class="" scope="col">
+                    <div class=" " title="Year 3">Year 3</div>
+                </th>
+                <th class="" scope="col">
+                    <div class=" " title="Year 4">Year 4</div>
+                </th>
+                <th class="" scope="col">
+                    <div class=" " title="Year 5">Year 5</div>
+                </th>
+                <th class="" scope="col">
+                    <div class=" " title="Total">Total (INR)</div>
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <th class="" scope="col">
+                    <div class=" " title="Flexible Funding Allowance (not editable)">Flexible Funding Allowance</div>
+                </th>
+                <th class="" scope="col">
+                    <div class=" " title="4,00,000">4,00,000</div>
+                </th>
+                <th class="" scope="col">
+                    <div class=" " title="4,00,000">4,00,000</div>
+                </th>
+                <th class="" scope="col">
+                    <div class=" " title="4,00,000">4,00,000</div>
+                </th>
+                <th class="" scope="col">
+                    <div class=" " title="4,00,000">4,00,000</div>
+                </th>
+                <th class="" scope="col">
+                    <div class=" " title="4,00,000">4,00,000</div>
+                </th>
+                <th class="" scope="col">
+                    <div class=" " title="20,00,000">20,00,000</div>
+                </th>
+            </tr>
+        </tbody>
+    </table>
+        <div style="page-break-before:always;">
+        </div>
+        
+        <center>
+            <hr style="background-color:rgb(91, 155, 213);width:100%"/>
+            <h4>
+                <b><i>{!sn}. Data management and sharing</i></b>
+                <apex:variable var="sn" value="{!sn+1}"/>
+            </h4>
+            <hr style="background-color:rgb(91, 155, 213);width:100%"/>
+        </center>
+        <br/><br/>
+        
+        <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">Q1.Will the proposed research generate outputs of data, software, materials, or intellectual property that hold significant value as a resource for the wider research community? If yes, please provide your plan on managing and sharing it. (Limit 700 words)</div><br/>
+        <br/>
+        <i>
+        <div class="">India Alliance policy on data management and sharing is available on its <a href="https://www.indiaalliance.org/award-policies" target="_blank">website</a>. <br/>Your plan should be focused on how the outputs will be managed and used to advance potential benefits to the larger community. </div><br/>
+        <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">For software, material output, please indicate:</div>
+        <div class="slds-progress__item_content slds-grid slds-grid_align-spread">• Significant outputs</div>
+        <div class="slds-progress__item_content slds-grid slds-grid_align-spread">• When, where and how will you make these outputs available to others? How will these be maintained? </div>
+        <div class="slds-progress__item_content slds-grid slds-grid_align-spread">• Are there any limitations on sharing your output with others?</div><br/>
+        <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">For intellectual property (IP),</div>
+        <div class="slds-progress__item_content slds-grid slds-grid_align-spread">• Significant outputs</div>
+        <div class="slds-progress__item_content slds-grid slds-grid_align-spread">• How will you protect this IP?</div><br/>
+        <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">Any other resource and details thereof.</div><br/><br/>
+        </i>
+        <br/><br/>
+        {!form.grantRecord.Will_the_Proposed_research_generates__c}
+        
+        <div style="page-break-before:always;"></div>
+        
+        <center>
+            <hr style="background-color:rgb(91, 155, 213);width:100%"/>
+            <h4>
+                <b><i>{!sn}. Public Engagement Plan</i></b>
+                <apex:variable var="sn" value="{!sn+1}"/>
+            </h4>
+            <hr style="background-color:rgb(91, 155, 213);width:100%"/>
+        </center>
+        <br/><br/>
+        <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">Q1. India Alliance strongly encourages public dissemination of its funded research. Please share plans for engaging with the general public about your work. (Limit 300 words)</div><br/>
+        <br/><br/>{!form.grantRecord.Public_Dissemination_of_Funded_Research__c}
+        
+        <div style="page-break-before:always;"></div>
+        
+        <center>
+            <hr style="background-color:rgb(91, 155, 213);width:100%"/>
+            <h4>
+                <b><i>{!sn}. Research Involving Human Participation</i></b>
+                <apex:variable var="sn" value="{!sn+1}"/>
+            </h4>
+            <hr style="background-color:rgb(91, 155, 213);width:100%"/>
+        </center>
+        <br/><br/>
+        <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">Q1. Does your proposal include working with human participants, experiments with human stem cells, biological samples and/or personal data relating to living or dead persons? <br/>If yes, please tick as appropriate: </div><br/>
+        
+        <table class="tableBorder" width="100%">
+        <tr>
+            <td style="border: 1px solid black;padding-left:5px;width:80%">Human participants</td>
+            <td style="border: 1px solid black;padding-left:5px;width:20%">
+                <apex:image url="{!$Resource.Tick}" rendered="{!form.grantRecord.Human_participants__c}" />
+                <apex:image url="{!$Resource.Cross}" rendered="{!!form.grantRecord.Human_participants__c}" />
+            </td>
+        </tr>
+        <tr>
+            <td style="border: 1px solid black;padding-left:5px;width:80%">Experiments with human stem cells</td>
+            <td style="border: 1px solid black;padding-left:5px;width:20%">
+                <apex:image url="{!$Resource.Tick}" rendered="{!form.grantRecord.Experiments_with_human_stem_cells__c}" />
+                <apex:image url="{!$Resource.Cross}" rendered="{!!form.grantRecord.Experiments_with_human_stem_cells__c}" />
+            </td>
+        </tr>
+        <tr>
+            <td style="border: 1px solid black;padding-left:5px;width:80%">Personal data</td>
+            <td style="border: 1px solid black;padding-left:5px;width:20%">
+                <apex:image url="{!$Resource.Tick}" rendered="{!form.grantRecord.Personal_data__c}" />
+                <apex:image url="{!$Resource.Cross}" rendered="{!!form.grantRecord.Personal_data__c}" />
+            </td>
+        </tr>
+        <tr>
+            <td style="border: 1px solid black;padding-left:5px;width:80%">Biological samples</td>
+            <td style="border: 1px solid black;padding-left:5px;width:20%">
+                <apex:image url="{!$Resource.Tick}" rendered="{!form.grantRecord.Biological_samples__c}" />
+                <apex:image url="{!$Resource.Cross}" rendered="{!!form.grantRecord.Biological_samples__c}" />
+            </td>
+        </tr>
+    </table>
+        <apex:outputPanel layout="none" rendered="{!if(or(form.grantRecord.Human_participants__c,form.grantRecord.Experiments_with_human_stem_cells__c,form.grantRecord.Personal_data__c,form.grantRecord.Biological_samples__c), true,false)}">
+        
+        <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">Q2. Please state: By whom and when the ethics of the project was/will be reviewed? Also specify any other regulatory approvals that have been/will be obtained. (Limit 200 words)</div>
+        <br/>{!form.grantRecord.By_Whom_and_When_the_Project_was_Review__c} <br/><br/>
+        
+        <div class="QuestionClass">Q3. If your project involves Experiments with human stem cells, respond to the following questions: <br/>Does the institution where the work is to be carried out have approval from India’s National Apex Committee for Stem Cell Research and Therapy (<a href="http://bic.icmr.org.in/nacscrt/" target="_blank">NAC-SCRT</a>)?</div>
+        <br/>{!form.grantRecord.If_your_project_involves_Experiments__c} <br/><br/>
+        
+        <div class="QuestionClass">Q4. Will this work require approval from</div>
+        <table class="tableBorder" width="100%">
+        <tr>
+            <td style="border: 1px solid black;padding-left:5px;width:80%">Institutional Committee for Stem Cell Research (IC-SCR)</td>
+            <td style="border: 1px solid black;padding-left:5px;width:20%">
+                <apex:image url="{!$Resource.Tick}" rendered="{!form.grantRecord.Institutional_Committee_for_Stem_Cell__c}" />
+                <apex:image url="{!$Resource.Cross}" rendered="{!!form.grantRecord.Institutional_Committee_for_Stem_Cell__c}" />
+            </td>
+        </tr>
+        <tr>
+            <td style="border: 1px solid black;padding-left:5px;width:80%">Institutional Ethics Committee (IEC) [According to ICMR guidelines, “IEC supplemented with additional expertise to review stem cell research may handle the proposals related to research on stem cells.]</td>
+            <td style="border: 1px solid black;padding-left:5px;width:20%">
+                <apex:image url="{!$Resource.Tick}" rendered="{!form.grantRecord.Institutional_Ethics_Committee_IEC__c}" />
+                <apex:image url="{!$Resource.Cross}" rendered="{!!form.grantRecord.Institutional_Ethics_Committee_IEC__c}" />
+            </td>
+        </tr>
+        <tr>
+            <td style="border: 1px solid black;padding-left:5px;width:80%">National Apex Committee for Stem Cell Research and Therapy (NAC-SCRT)</td>
+            <td style="border: 1px solid black;padding-left:5px;width:20%">
+                <apex:image url="{!$Resource.Tick}" rendered="{!form.grantRecord.National_Apex_Committee_for_Stem_Cell_Re__c}" />
+                <apex:image url="{!$Resource.Cross}" rendered="{!!form.grantRecord.National_Apex_Committee_for_Stem_Cell_Re__c}" />
+            </td>
+        </tr>
+        </table><br/><br/>
+        
+        <div class="QuestionClass">Also specify any other regulatory approvals that have been/will be obtained. (Limit 500 words)</div>
+        <br/>{!form.grantRecord.Will_your_project_require_National__c}<br/><br/>
+        
+        <div class="QuestionClass">Q5. Provide details of source(s) of stem cells and nature of experiments. (Limit 200 words)</div>
+        <br/>{!form.grantRecord.Details_of_Stem_Cell_Experiments__c}<br/>
+        <div class="">Based on the source(s) of stem cells and nature of experiments, the list of restricted areas of research is available at <a href="http://bic.icmr.org.in/nacscrt/index.html" target="_blank">ICMR website</a>. The NAC-SCRT is authorized to review approve and monitor the type of studies listed under prohibited areas of research as outlined in the ICMR guidelines through IC-SCR/IEC.</div><br/><br/>
+        
+        <div class="QuestionClass">Q6. If your project requires access to patients under treatment at a hospital/clinical facility, provide name of the clinician(s) along with the details of the hospital or clinical facility. A letter confirming this access/collaboration from competent authority (of the clinical facility/hospital must be attached with the application along with other undertakings). </div>
+        <br/>{!form.grantRecord.Project_Requires_to_patients_Treatments__c}<br/><br/>
+        
+        </apex:outputPanel>
+        <div style="page-break-before:always;"></div>
+        
+        <center>
+            <hr style="background-color:rgb(91, 155, 213);width:100%"/>
+            <h4>
+                <b><i>{!sn}. Research Involving Animals</i></b>
+                <apex:variable var="sn" value="{!sn+1}"/>
+            </h4>
+            <hr style="background-color:rgb(91, 155, 213);width:100%"/>
+        </center>
+        <br/><br/>
+        <div class="QuestionClass">Q1. Does your proposal involve any of the following? </div><br/>
+        <table class="tableBorder" width="100%">
+        <tr>
+            <td style="border: 1px solid black;padding-left:5px;width:80%">Use of animals</td>
+            <td style="border: 1px solid black;padding-left:5px;width:20%">
+                <apex:image url="{!$Resource.Tick}" rendered="{!form.grantRecord.Use_of_animals__c}" />
+                <apex:image url="{!$Resource.Cross}" rendered="{!!form.grantRecord.Use_of_animals__c}" />
+            </td>
+        </tr>
+        <tr>
+            <td style="border: 1px solid black;padding-left:5px;width:80%">Use of animal tissue</td>
+            <td style="border: 1px solid black;padding-left:5px;width:20%">
+                <apex:image url="{!$Resource.Tick}" rendered="{!form.grantRecord.Use_of_animal_tissue__c}" />
+                <apex:image url="{!$Resource.Cross}" rendered="{!!form.grantRecord.Use_of_animal_tissue__c}" />
+            </td>
+        </tr>
+        <tr>
+            <td style="border: 1px solid black;padding-left:5px;width:80%">Use of animal stem cells</td>
+            <td style="border: 1px solid black;padding-left:5px;width:20%">
+                <apex:image url="{!$Resource.Tick}" rendered="{!form.grantRecord.Use_of_animal_stem_cells__c}" />
+                <apex:image url="{!$Resource.Cross}" rendered="{!!form.grantRecord.Use_of_animal_stem_cells__c}" />
+            </td>
+        </tr>
+        </table>
+        <apex:outputPanel layout="none" rendered="{!IF(or(form.grantRecord.Use_of_animal_stem_cells__c,form.grantRecord.Use_of_animal_tissue__c,form.grantRecord.Use_of_animals__c), true, false)}">
+        <br/><br/>
+        <div class="QuestionClass">•    PIs must refer to the <a href="https://www.indiaalliance.org/award-policies" target="_blank">India Alliance’s policy on the use of animals in biomedical research</a>. For further information regarding the National Centre for the Replacement, Refinement and Reduction of Animals in Research (NC3Rs), please see <a href="https://www.nc3rs.org.uk/" target="_blank">www.nc3rs.org.uk</a>.</div>
+        <div class="">• All applications involving the use of primates, cats, dogs and Equidae animals, or their tissue/data will be further reviewed by the NC3Rs.The office may approach you with additional questions in this regard. </div>
+        <div class="">• All proposed research involving genetically altered mice are expected to consider the welfare assessment set up on <a href="https://www.nc3rs.org.uk/generation-and-breeding-genetically-altered-mice" target="_blank">NC3Rs website</a>. </div>
+        <div class="">• The institution where the animal work is to be carried out must have approval from CPCSEA or SCLA. This should be confirmed in your application.</div>
+        
+        <br/><br/>
+        <div class="QuestionClass">Q2. Please provide details of any procedures on animals of substantial or moderate severity? (Limit 200 words)</div>
+        <br/>{!form.grantRecord.Details_Procedures_of_Animals__c}
+        
+        <br/><br/>
+        <div class="QuestionClass">Q3. Why is animal use necessary? Are there other possible approaches? (Limit 200 words)</div>
+        <br/>{!form.grantRecord.Why_is_animal_use_necessary__c}
+        
+        <br/><br/>
+        <div class="QuestionClass">Q4. If you plan to work on animal stem cells, please provide details of source of stem cells and nature of experiments. The institution where the work is to be carried out should have the IC-SCR or IAEC with required expertise to review the stem cell research in place. Please confirm this in your response to this question. </div>
+        <br/>{!form.grantRecord.plan_to_work_on_animal_stem_cells__c}
+        
+        <br/><br/>
+        <div class="QuestionClass">Q5. Indicate if any of the following species will be used: <br/>Primate, Cat, Dog, Equidae, Pig, Genetically Altered Animals? If yes, the office may contact you with additional questions. </div>
+        <br/>{!form.grantRecord.following_species_will_be_used__c}  
+        
+        <br/><br/>
+        <div class="QuestionClass">Q6. Why are the species to be used the most appropriate? (Limit 250 words)</div>  
+        <br/>{!form.grantRecord.Why_are_the_species_to_be_used__c}                        
+        </apex:outputPanel>
+        
+        
+        <div style="page-break-before:always;"></div>
+        
+        <center>
+            <hr style="background-color:rgb(91, 155, 213);width:100%"/>
+            <h4>
+                <b><i>{!sn}. Risks of Research Misuse</i></b>
+                <apex:variable var="sn" value="{!sn+1}"/>
+            </h4>
+            <hr style="background-color:rgb(91, 155, 213);width:100%"/>
+        </center>
+        <br/><br/>
+        <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">Q1. Please confirm that you have considered whether your proposed research or its outcomes pose risk of being misused for harmful purposes. If you have identified potential “non-hypothetical” risks, please describe briefly the steps that you and your institution will take to manage them (Limit 250 words).</div><br/>  
+        <br/>{!form.grantRecord.Proposed_Research_or_Outcomes_Pose_Risk__c}  
+        
+        <div style="page-break-before:always;"></div>
+        
+        <center>
+            <hr style="background-color:rgb(91, 155, 213);width:100%"/>
+            <h4>
+                <b><i>{!sn}. Conflicts of Interest</i></b>
+                <apex:variable var="sn" value="{!sn+1}"/>
+            </h4>
+            <hr style="background-color:rgb(91, 155, 213);width:100%"/>
+        </center>
+        <br/><br/> 
+        
+        <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">Q1. Do you have any research sponsorship agreements, consultancies with, or equity holdings in, or directorships of, companies or other organisations that might have an interest in the results of the proposed research? If yes, then please provide brief details (200 words max.) </div>
+        <div class=""><i>For India Alliance’s policy on 'Grantholders relationship with commercial organisation', please visit <a href="https://www.indiaalliance.org/award-policies" target="_blank">https://indiaalliance.org/award-policies</a>.</i></div><br/>
+        <br/>{!form.grantRecord.Have_any_Research_Sponsorship_Agreements__c}  <br/><br/>
+        
+        <div class="QuestionClass">Q2. If applicable, let us know details of </div><br/>
+        <div class="">(i) Technology, materials, or other inventions that you may use for this project that are subject to any patents or other form of intellectual property protection, if any.</div>
+        <div class="">Agreements with commercial, academic, or other organisations, including arrangements with collaborators named in the grant application that might lead to intellectual property issues or restrictions. India Alliance policies and award conditions are indicated at <a href="https://www.indiaalliance.org/award-conditions" target="_blank">https://indiaalliance.org/award-conditions</a> and <a href="https://indiaalliance.org/award-policies" target="_blank">https://indiaalliance.org/award-policies</a> (Limit 200 words) </div>
+        <br/>{!form.grantRecord.Details_of_Technology_materials__c}<br/><br/> 
+        
+        <div style="page-break-before:always;"></div>
+        
+        <center>
+            <hr style="background-color:rgb(91, 155, 213);width:100%"/>
+            <h4>
+                <b><i>{!sn}. Reviewers and Restrictions</i></b>
+                <apex:variable var="sn" value="{!sn+1}"/>
+            </h4>
+            <hr style="background-color:rgb(91, 155, 213);width:100%"/>
+        </center>
+        <br/><br/> 
+        <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">You may suggest up to 3 potential reviewers who may be appropriate to evaluate your proposal. Likewise, let us know if we should not approach someone to review your application (up to 3). Both the lists should be reasonable and supported with a justification.  </div><br/><br/>
+        
+        <table class="tableBorder" width="100%">
+        <thead>
+            <tr class="slds-line-height_reset">
+                <th class="nowrap" scope="col">
+                    <div class="" title="Type">Type</div>
+                </th>
+                <th class="nowrap" scope="col">
+                    <div class="" title="Full name">Full name</div>
+                </th>
+                <th class="nowrap" scope="col">
+                    <div class="" title="Email ">Email </div>
+                </th>
+                <th class="nowrap" scope="col">
+                    <div class="" title="Institution">Institution</div>
+                </th>
+                <th class="nowrap" scope="col">
+                    <div class="" title="Expertise">Expertise</div>
+                </th>
+                <th class="nowrap" scope="col" width="30%">
+                    <div class="" title="Reason to choose" >Reason to choose</div>
+                </th>
+                <th class="nowrap" scope="col">
+                    <div class="" title="Explain if you know the reviewer personally">Explain if you know <br/>the reviewer personally</div>
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            <apex:repeat var="r" value="{!form.rarList}">
+                <tr class="slds-line-height_reset">
+                    <th class="" scope="col" width="15" style="width: 150px;">
+                        {!r.Type__c}
+                    </th>
+                    <th class="" scope="col" width="15" style="width: 150px;">
+                        {!r.Full_Name__c}
+                    </th>
+                    <th class="" scope="col" width="15" style="width: 150px;">
+                        {!r.Email__c}
+                    </th>
+                    <th class="" scope="col">
+                        {!r.Institution__r.Name}
+                    </th>
+                    <th class="" scope="col">
+                        {!r.Area_of_Expertise__c}
+                    </th>
+                    <th class="" scope="col" width="30%">
+                        {!r.Reason_for_being_appropriate_to_review__c }
+                    </th>
+                    <th class="" scope="col">
+                        {!r.Explain_if_you_know_the_reviewer__c }
+                    </th>
+                </tr>
+            </apex:repeat>
+        </tbody>
+    </table>
+        <div style="page-break-before:always;"></div>
+        
+        <center>
+            <hr style="background-color:rgb(91, 155, 213);width:100%"/>
+            <h4>
+                <b><i>{!sn}. Undertakings from PIs</i></b>
+                <apex:variable var="sn" value="{!sn+1}"/>
+            </h4>
+            <hr style="background-color:rgb(91, 155, 213);width:100%"/>
+        </center>
+        <div class="slds-progress__item_content slds-grid slds-grid_align-spread"><i>Note: This statement must be signed by all PIs. </i></div><br/>
+        <div class="slds-progress__item_content slds-grid slds-grid_align-spread"><i>Please upload signed document from all investigators for the following undertaking statement.</i></div><br/>
+        <br/><br/> 
+        <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass"><b>UNDERTAKING STATEMENT:</b></div>
+        <div class="QuestionClass">It is confirmed that </div>
+        <div class="">1. Those providing personal information in the application have read and understood India Alliance Data Protection Statement. </div>
+        <div class="">2. To the best of our knowledge, the information provided in this application is accurate and complete and we agree to inform the India Alliance of any changes to this information during the period of the grant. </div>
+        <div class="">3. We agree to abide by the <a href="https://www.indiaalliance.org/award-conditions" target="_blank">conditions set by India Alliance</a>, should an award be made. </div>
+        
+        <br/><br/>
+        <table class="tableBorder" width="100%">
+        <thead>
+            <tr class="slds-line-height_reset">
+                <th class="" scope="col"> Name of investigator</th>
+            </tr>
+        </thead>
+        <tbody>
+            <apex:repeat var="investigator" value="{!form.investigatorRecordList}">
+                <tr>
+                    <th class="" scope="col">
+                        <div class=" " title="1"> {! investigator.investigatorRecord.Full_Name__c }  &nbsp; {! investigator.code}</div>
+                    </th>
+                </tr>
+            </apex:repeat>
+        </tbody>
+    </table><br/><br/>
+    Uploaded Documents
+    <table class="tableBorder" width="100%">
+        <tbody>
+            <apex:repeat var="cdl" value="{!form.contentDocumentLinkUndertakingList }">
+                <apex:outputPanel rendered="{!form.grantRecord.PI_Documents__c == cdl.LinkedEntityId}" layout="none">
+                    <tr class="slds-line-height_reset">
+                        <th class="" scope="col">
+                            {!cdl.ContentDocument.Title}
+                        </th>
+                    </tr>
+                </apex:outputPanel>
+            </apex:repeat> 
+        </tbody>
+    </table>
+    
+    
+    <div style="page-break-before:always;"></div>
+        
+        <center>
+            <hr style="background-color:rgb(91, 155, 213);width:100%"/>
+            <h4>
+                <b><i>{!sn}. Institutional Undertakings</i></b>
+                <apex:variable var="sn" value="{!sn+1}"/>
+            </h4>
+            <hr style="background-color:rgb(91, 155, 213);width:100%"/>
+        </center>
+        <br/><br/>
+        <apex:outputPanel layout="none" rendered="{!form.isTSG}">
+            <div class="QuestionClass">A Sponsor is the Head of the <a href="https://www.indiaalliance.org/remit-and-eligibility" target="_blank">sponsoring host institution</a> and will be signing this undertaking on behalf of the host institution. </div>
+            <div class="">• He/She must be in a position to guarantee space and resources at the institution/ department for the duration of the grant;</div>
+            <div class="">• He/ She must have the administrative authority to sign up to the India Alliance’s <a href="https://www.indiaalliance.org/award-policies" target="_blank">Award Conditions&amp;Policies</a>.</div><br/>
+            <div class="">The undertaking from the sponsor(s) at the host institution(s) should be issued in the format given below. It should be issued on institutional letterhead with date, full name of the person who is signing the undertaking along with his/her designation. This undertaking should be provided by sponsors of all Investigators. All the undertakings should be attached with the application at the time of submission. <br/>In case of an award, the funds will be transferred to the Sponsoring institution of the Principal Investigator. All the participating institutions would be required to sign a contract/agreement for fund disbursement before activation of the award. </div>
+            <div class="QuestionClass">UNDERTAKING STATEMENT: </div>
+            <div class="">I confirm that </div>
+            <div class="">• In case of an award, _______________________, who is applying for a TEAM SCIENCE GRANT, will be granted the status and prerogatives of other academic staff of similar seniority.</div>
+            <div class="">• I have read and understood the India Alliance’s Data Protection Statement.</div>
+            <div class="">• To the best of my knowledge, the information provided in this application is accurate and complete, and I agree to inform India Alliance of any changes to this information during the period of the grant.</div>
+            <div class="">• I agree to abide by the <a href="https://www.indiaalliance.org/award-conditions" target="_blank">conditions set by India Alliance</a>, should an award be made</div>
+            <div class="">• Necessary facilities will be made available to conduct the research/activities funded by India Alliance and will continue to be made available for the duration of the grant.</div><br/>
+            <div class="">The commitment/contribution that the host institution(s) agree to make to this project (Limit 500 words) beyond usual support for space and utilities.  </div>
+        
+        </apex:outputPanel>
+        <apex:outputPanel layout="none" rendered="{! !form.isTSG}">
+            <div class="">Clinical/Public Health Research Centres are institutional grants and must be signed off by the head (or competent authority) of the <a href="https://www.indiaalliance.org/remit-and-eligibility" target="_blank">host institution(s) </a> who will be designated as sponsors.</div>
+            <div class="">They must</div>
+            <div class="">• Be in a position to guarantee space and resources at the institution/ department for the duration of the grant;</div>
+            <div class="">• Have the administrative authority to sign up to the India Alliance’s <a href="https://www.indiaalliance.org/award-policies" target="_blank">Award Conditions&amp;Policies</a>.</div>
+            <div class="">The undertaking from the sponsor(s) at the host institution(s) should be issued in the format given below. It should be issued on institutional letter head with date, full name of the person who is signing the undertaking along with his/her designation. This undertaking should be provided by sponsors of participating institutions. All the undertakings should be attached with the application at the time of submission. In case of an award, the funds will be transferred to the lead institution. All the participating institutions would be required to sign a contract/agreement for fund disbursement before activation of the award. </div>
+            <div class="">UNDERTAKING STATEMENT: </div>
+            <div class="">I confirm that </div>
+            
+            <div class="">• I have read and understood the India Alliance’s Data Protection Statement </div>
+            <div class="">• To the best of my knowledge, the information provided in this application is accurate and complete and I agree to inform India Alliance of any changes to this information during the period of the grant.</div>
+            <div class="">• To the best of my knowledge, the information provided in this application is accurate and complete and I agree to inform India Alliance of any changes to this information during the period of the grant.</div>
+            <div class="">• Necessary facilities and support will be made available to conduct the research/activities funded by India Alliance and will continue to be made available for the duration of the grant.</div>
+            <div class="">• _______________________________________________is/are designated as the PI/co-PI(s) on this project. In addition, the designated PI/co-PI(s) has/have guaranteed tenure at the institution for duration of the CRC.</div>
+            <div class="">• The designated PI/co-PI has ________________ institution as his/her primary affiliation. </div>
+            <div class="">• Status and benefits available to PI and co-PIs is similar to that of other academic staff of similar seniority at the institution.</div>
+            <div class="">The commitment/contribution that the host institution(s) agree to make to this project (Limit 500 words) beyond usual support for space and utilities. </div>
+        </apex:outputPanel>
+        <br/>
+        Uploaded Documents 
+        <table class="tableBorder" width="100%">
+            <tbody>
+                <apex:repeat var="cdl" value="{!form.contentDocumentLinkUndertakingList }">
+                    <apex:outputPanel layout="none" rendered="{! form.grantRecord.IU_Documents__c  == cdl.LinkedEntityId}">
+                    
+                        <tr class="slds-line-height_reset">
+                            <th class="" scope="col">
+                                {!cdl.ContentDocument.Title}
+                            </th>
+                        </tr>
+                    </apex:outputPanel>
+                </apex:repeat> 
+            </tbody>
+        </table>    
+        <div style="page-break-before:always;"></div>
+        
+        <center>
+            <hr style="background-color:rgb(91, 155, 213);width:100%"/>
+            <h4>
+                <b><i>{!sn}. Other Documents</i></b>
+                <apex:variable var="sn" value="{!sn+1}"/>
+            </h4>
+            <hr style="background-color:rgb(91, 155, 213);width:100%"/>
+        </center>
+        <br/><i>You may upload any other file to support the application. Please include a list of collaborators and letters from them if you have included collaborators. Please do not continue the proposal here.</i>
+        <br/><br/>
+        <apex:repeat var="od" value="{!form.OtherDocumentsList}">
+        <table class="tableBorder" width="100%">
+        <tbody>
+            <tr class="slds-line-height_reset">
+                <th class="" scope="col">
+                    <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">Subject</div><br/>
+                    {!od.other_Document.Subject__c}
+                </th>
+            </tr>
+            <tr class="slds-line-height_reset">
+                <th class="" scope="col" colspan="2">
+                    <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">Description</div><br/>
+                    {!od.other_Document.Description__c}
+                </th>
+            </tr>
+            <tr class="slds-line-height_reset">
+                <th class="" scope="col">
+                    <div class="slds-progress__item_content slds-grid slds-grid_align-spread QuestionClass">Uploaded Documents</div><br/>
+                </th>
+            </tr>
+            <apex:repeat var="cdl" value="{!od.contentDocumentLinkList}">
+                <tr class="slds-line-height_reset">
+                    <th class="" scope="col">
+                        {!cdl.ContentDocument.Title}
+                    </th>
+                </tr>
+            </apex:repeat> 
+        </tbody>
+    </table>
+    </apex:repeat>
+        </apex:form>
+    </body>
+    </html>
+</apex:page>

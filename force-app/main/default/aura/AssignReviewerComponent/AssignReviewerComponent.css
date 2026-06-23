@@ -1,0 +1,28 @@
+.THIS table {
+   width: 100%;
+   border-collapse: collapse;
+}
+.THIS .slds-table th{
+    border: 1px solid gray;
+}
+.THIS .slds-table thead th{ 
+    background: darkgray;
+    color: white;
+    font-weight: bold;
+}
+.THIS tbody th {
+   word-break: break-all;
+   white-space: initial !important;
+}
+.THIS .QuestionClass{
+    font-size: 13px;
+    font-weight: 700;
+    color: indigo;
+}
+.THIS .nowrap{
+    word-break: inherit;
+    white-space: nowrap !important;
+}
+.THIS .tableScroll{
+    overflow:auto;
+}

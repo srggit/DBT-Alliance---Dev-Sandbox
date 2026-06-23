@@ -1,0 +1,489 @@
+<apex:page controller="CNT_CommunityLogin" id="pg">
+    <html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <head>
+        <apex:slds />
+        <style>
+            .slds-input{
+                width:90% !important;
+            }
+            .dateFormat{
+                display:none !important;
+            }
+            .btn{
+                background-image: none !important;
+            }
+        </style>
+         <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
+        <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+        <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+        <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+        <script>
+            function setValue(name,id){
+                var ht ='<span class="slds-icon_container slds-icon-standard-account slds-combobox__input-entity-icon" title="Account">';
+                ht +='<svg class="slds-icon slds-icon_small" aria-hidden="true">';
+                ht +='<use xlink:href="/_slds/icons/standard-sprite/svg/symbols.svg#account"></use>';
+                ht +='</svg>';
+                ht +='<span class="slds-assistive-text">Account</span>';
+                ht +='</span>';
+                ht +='<input type="text" class="slds-input slds-combobox__input slds-combobox__input-value" id="orgSearchOutput" aria-controls="listbox-id-5" autoComplete="off" role="textbox" placeholder="Select an Option" readonly="readonly" value="'+name+'" />';
+                ht +='<button class="slds-button slds-button_icon slds-input__icon slds-input__icon_right" title="Remove selected option" onClick="removeValue(); return false;">';
+                ht +='<svg class="slds-button__icon" aria-hidden="true">';
+                ht +='<use xlink:href="/_slds/icons/utility-sprite/svg/symbols.svg#close"></use>';
+                ht +='</svg>';
+                ht +='<span class="slds-assistive-text">Remove selected option</span>';
+                ht +='</button>';
+                document.getElementById('customLookupOutput').innerHTML = ht ;
+                
+                document.getElementById('pg:frm:orgname').value = name;
+                document.getElementById('pg:frm:orgid').value = id;
+                document.getElementById('orgSearch').value = '';
+                document.getElementById('orgSearchOutput').value = name;
+                var element = document.getElementById("customLookupinput");
+                element.classList.add("slds-hide");
+                var element = document.getElementById("customLookup");
+                element.classList.remove("slds-is-open");
+                var element2 = document.getElementById("customLookupOutput");
+                element2.classList.remove("slds-hide");
+            }
+            function removeValue(){
+                document.getElementById('pg:frm:orgname').value = '';
+                document.getElementById('pg:frm:orgid').value = '';
+                document.getElementById('orgSearchOutput').value = '';
+                var element = document.getElementById("customLookupinput");
+                element.classList.remove("slds-hide");
+                var element2 = document.getElementById("customLookupOutput");
+                element2.classList.add("slds-hide");
+            }
+            function getRemoteOrganisation() {
+                var accountName = document.getElementById('orgSearch').value;
+            
+                Visualforce.remoting.Manager.invokeAction(
+                    '{!$RemoteAction.CNT_CommunityLogin.getOrganisationByFilterString}',
+                    accountName, 
+                    function(result, event){
+                        if (event.status) {
+                            var html = '';
+                            for(var i=0; i< result.length; i++){
+                                html +='<li role="presentation" class="slds-listbox__item" onClick="setValue(\''+result[i].Name+'\',\''+result[i].Id+'\')">';
+                                html +='<div id="option1" class="slds-media slds-listbox__option slds-listbox__option_entity slds-listbox__option_has-meta" role="option">';
+                                html +='<span class="slds-media__figure slds-listbox__option-icon">';
+                                html +='<span class="slds-icon_container slds-icon-standard-account">';
+                                html +='<svg class="slds-icon slds-icon_small" aria-hidden="true">';
+                                html +='<use xlink:href="/_slds/icons/standard-sprite/svg/symbols.svg#account"></use>';
+                                html +='</svg>';
+                                html +='</span>';
+                                html +='</span>';
+                                html +='<span class="slds-media__body">';
+                                html +='<span class="slds-listbox__option-text slds-listbox__option-text_entity">'+result[i].Name+'</span>';
+                                html +='<span class="slds-listbox__option-meta slds-listbox__option-meta_entity"></span>';
+                                html +='</span>';
+                                html +='</div>';
+                                html +='</li>';
+                            }
+                            if(result.length > 0){
+                                document.getElementById('dropul').innerHTML = html;
+                                var element = document.getElementById("customLookup");
+                                element.classList.add("slds-is-open");
+                            }else{
+                                var element = document.getElementById("customLookup");
+                                element.classList.remove("slds-is-open");
+                            }
+                            console.log(result);
+                        } else if (event.type === 'exception') {
+                        } else {
+                        }
+                    }, 
+                    {escape: true}
+                );
+            }
+        </script>
+    </head>
+    
+    <apex:form id="frm">
+    <apex:inputHidden value="{!userRegistration.Organisation__c}" id="orgname"/>
+    <apex:inputHidden value="{!userRegistration.Organisation_Id__c}" id="orgid"/>
+    <apex:inputHidden value="{!dob}" id="dob"/>
+        <apex:image url="{!$Resource.IA_Login_Logo}" style="width:20%"/>
+        <apex:outputPanel id="loginPanel" rendered="{!showLoginSection}">
+            <br/><br/><br/><br/><br/>
+            <div>
+                <div style="width:50%;float:left;padding-left:5%">
+                    
+                    <font style="color:blue"><b>Please login to access your account</b></font>
+                    <br/><br/>
+                    <div class="slds-grid slds-wrap">
+                      <div class="slds-col slds-size_1-of-1 slds-large-size_2-of-12">
+                        Username 
+                      </div>
+                      <div class="slds-col slds-size_1-of-1 slds-large-size_6-of-12">
+                        <apex:inputText value="{!username}" styleClass="slds-input"/><abbr class="slds-required" title="required">* </abbr>
+                      </div>
+                    </div><br/>
+                    <div class="slds-grid slds-wrap">
+                      <div class="slds-col slds-size_1-of-1 slds-large-size_2-of-12">
+                        Password 
+                      </div>
+                      <div class="slds-col slds-size_1-of-1 slds-large-size_6-of-12">
+                        <apex:inputsecret value="{!password}" styleClass="slds-input"/><abbr class="slds-required" title="required">* </abbr>
+                      </div>
+                    </div><br/>
+                    
+                    <!--Username &nbsp;&nbsp;&nbsp;&nbsp;
+                    <apex:inputText value="{!username}" />
+                    <br/><br/>
+                    Password &nbsp;&nbsp;&nbsp;&nbsp;
+                    <apex:inputsecret value="{!password}"/>-->
+                    <apex:outputPanel id="loginError" rendered="{!showLoginError}">
+                        <div style="color:red">
+                            Invalid username or password. Please contact system administration.
+                        </div><br/>
+                    </apex:outputPanel>
+                    <div class="slds-grid slds-wrap">
+                      <div class="slds-col slds-size_1-of-1 slds-large-size_3-of-12">
+                        <apex:inputCheckbox value="{!rememberMe}"/>&nbsp;Remember me
+                      </div>
+                      <div class="slds-col slds-size_1-of-1 slds-large-size_6-of-12">
+                        <apex:outputLink value="{!$Page.VFP_ForgotPassword}"> {!$Label.site.forgot_your_password_q}</apex:outputLink>
+                      </div>
+                    </div><br/>
+                    <div class="slds-grid slds-wrap">
+                      <div class="slds-col slds-size_1-of-1 slds-large-size_2-of-12">
+                      </div>
+                      <div class="slds-col slds-size_1-of-1 slds-large-size_6-of-12">
+                        <apex:commandButton value="Login" action="{!login}" reRender="frm, loginError" styleClass="slds-button--brand"/>
+                      </div>
+                    </div><br/>
+                    <!--&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <!--<apex:commandLink value="Forgetten Password?" action="{!forgotPassword}"/>-->
+                    <!--<apex:outputLink value="{!$Page.ForgotPassword}"> {!$Label.site.forgot_your_password_q}</apex:outputLink>
+                    <br/>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <apex:inputCheckbox value="{!rememberMe}"/>&nbsp;Remember me
+                    <br/>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <apex:commandButton value="Login" action="{!login}" reRender="frm, loginError" styleClass="slds-button--brand"/>-->
+                </div>
+                           </div>
+        </apex:outputPanel>
+        
+        <apex:outputPanel id="registerPanel" rendered="{!showRegisterSection}">
+            <br/><br/><br/>
+            <!--<div style="padding-left:5%">
+                <b>Register</b>
+                <br/><br/>
+                Please enter your email address below.
+                (<font style="color:red">*</font> denotes a mandatory field for registration)
+                <br/><br/><br/>
+            </div>-->
+            
+            <div style="padding-left:8%">
+                <!--Email 
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <apex:inputText value="{!email}" />
+                <font style="color:red; font-size:20px; font-weight:bold">*</font>
+                <br/><br/>
+                Confirm Email 
+                &nbsp;&nbsp;
+                <apex:inputText value="{!confirmEmail}" />
+                <font style="color:red; font-size:20px; font-weight:bold">*</font>
+                <br/><br/>-->
+                <div class="slds-grid slds-wrap">
+                  <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+                    <b>Register</b>
+                    <br/><br/>
+                    Please enter your email address below.
+                    (<font style="color:red">*</font> denotes a mandatory field for registration)
+                    <br/> 
+                  </div>
+                </div><br/>
+                <apex:outputPanel id="registerError" rendered="{!showRegisterError}">
+                    <div style="color:red">
+                        {!registerErrorMessage}
+                    </div><br/><br/>
+                </apex:outputPanel>
+                <div class="slds-grid slds-wrap">
+                  <div class="slds-col slds-size_1-of-1 slds-large-size_1-of-12">
+                    Email 
+                  </div>
+                  <div class="slds-col slds-size_1-of-1 slds-large-size_4-of-12">
+                    <apex:inputText value="{!email}" styleClass="slds-input"/><abbr class="slds-required" title="required">* </abbr>
+                  </div>
+                </div><br/>
+                <div class="slds-grid slds-wrap">
+                  <div class="slds-col slds-size_1-of-1 slds-large-size_1-of-12">
+                    Confirm Email 
+                  </div>
+                  <div class="slds-col slds-size_1-of-1 slds-large-size_4-of-12">
+                    <apex:inputText value="{!confirmEmail}" styleClass="slds-input"/><abbr class="slds-required" title="required">* </abbr>
+                  </div>
+                </div><br/>
+                <div class="slds-grid slds-wrap">
+                  <div class="slds-col slds-size_1-of-1 slds-large-size_1-of-12">
+                  </div>
+                  <div class="slds-col slds-size_1-of-1 slds-large-size_4-of-12">
+                    <apex:commandButton value="Next" action="{!next}" reRender="frm,registerPanel,registerationPanel" styleClass="slds-button--brand"/>&nbsp;&nbsp;
+                    <apex:commandButton value="Clear" action="{!clear}" reRender="frm,registerPanel" styleClass="slds-button--brand"/>&nbsp;&nbsp;
+                    <apex:commandButton value="Cancel" action="{!cancel}" reRender="frm,loginPanel,registerPanel,registerationPanel" styleClass="slds-button--brand"/>
+                  </div>
+                </div><br/>
+                
+            </div>
+        </apex:outputPanel>
+        
+        <apex:outputPanel id="registerationPanel" rendered="{!showRegisterationSection}">
+            <br/><br/><br/>
+            <div>
+                <div style="padding-left:5%;float:left;width:50%">
+                    <b>Register</b>
+                    <br/><br/>
+                    Thank you. Please complete the remainder of this short registration form.
+                    <br/>
+                    (<font style="color:red">*</font> denotes a mandatory field for registration)
+                    <br/><br/>
+                    
+                    <div class="slds-grid slds-wrap">
+                      <div class="slds-col slds-size_1-of-1 slds-large-size_3-of-12">
+                        Email
+                      </div>
+                      <div class="slds-col slds-size_1-of-1 slds-large-size_9-of-12">
+                        <apex:outputText value="{!email}"/>
+                      </div>
+                    </div><br/>
+                    <div class="slds-grid slds-wrap">
+                      <div class="slds-col slds-size_1-of-1 slds-large-size_3-of-12">
+                        User Name
+                      </div>
+                      <div class="slds-col slds-size_1-of-1 slds-large-size_9-of-12">
+                        {!usrName}
+                      </div>
+                    </div><br/>
+                    <!--<div class="slds-grid slds-wrap">
+                      <div class="slds-col slds-size_1-of-1 slds-large-size_3-of-12">
+                        Choose Form Type
+                      </div>
+                      <div class="slds-col slds-size_1-of-1 slds-large-size_9-of-12">
+                        <apex:inputField value="{!userRegistration.Form_Type__c}" styleClass="slds-input"/><abbr class="slds-required" title="required">* </abbr>
+                      </div>
+                    </div><br/>-->
+                    <div class="slds-grid slds-wrap">
+                      <div class="slds-col slds-size_1-of-1 slds-large-size_3-of-12">
+                        Title
+                      </div>
+                      <div class="slds-col slds-size_1-of-1 slds-large-size_9-of-12">
+                        <apex:inputField value="{!userRegistration.Title__c}" styleClass="slds-input"/><abbr class="slds-required" title="required">* </abbr>
+                      </div>
+                    </div><br/>
+                    <div class="slds-grid slds-wrap">
+                      <div class="slds-col slds-size_1-of-1 slds-large-size_3-of-12">
+                        First Name
+                      </div>
+                      <div class="slds-col slds-size_1-of-1 slds-large-size_9-of-12">
+                        <apex:inputField value="{!userRegistration.FirstName}" styleClass="slds-input"/><abbr class="slds-required" title="required">* </abbr>
+                      </div>
+                    </div><br/>
+                    <div class="slds-grid slds-wrap">
+                      <div class="slds-col slds-size_1-of-1 slds-large-size_3-of-12">
+                        Last Name
+                      </div>
+                      <div class="slds-col slds-size_1-of-1 slds-large-size_9-of-12">
+                        <apex:inputText value="{!userLastName}" styleClass="slds-input"/><abbr class="slds-required" title="required">* </abbr>
+                      </div>
+                    </div><br/>
+                    <div class="slds-grid slds-wrap">
+                      <div class="slds-col slds-size_1-of-1 slds-large-size_3-of-12">
+                        Date of Birth
+                      </div>
+                      <div class="slds-col slds-size_1-of-1 slds-large-size_9-of-12">
+                        <!--<apex:inputField value="{!userRegistration.Date_of_Birth__c}" styleClass="slds-input"/>-->
+                        <input type="text" name="birthday" class="slds-input" /> <abbr class="slds-required" title="required">* </abbr>
+                        <script>
+                        $(function() {
+                          $('input[name="birthday"]').daterangepicker({
+                            singleDatePicker: true,
+                            showDropdowns: true,
+                            minYear: 1940,
+                            maxYear: parseInt(moment().format('YYYY'),10)
+                          }, function(start, end, label) {
+                            document.getElementById('pg:frm:dob').value = start.format('YYYY-MM-DD');
+                          });
+                        });
+                        </script>
+                      </div>
+                    </div><br/>
+                    <div class="slds-grid slds-wrap">
+                      <div class="slds-col slds-size_1-of-1 slds-large-size_3-of-12">
+                        Gender 
+                      </div>
+                      <div class="slds-col slds-size_1-of-1 slds-large-size_9-of-12">
+                        <apex:inputField value="{!userRegistration.Gender__c}" styleClass="slds-input"/> <abbr class="slds-required" title="required">* </abbr>
+                      </div>
+                    </div><br/>
+                    <div class="slds-grid slds-wrap">
+                      <div class="slds-col slds-size_1-of-1 slds-large-size_3-of-12">
+                        Nationality
+                      </div>
+                      <div class="slds-col slds-size_1-of-1 slds-large-size_9-of-12">
+                        <apex:inputField value="{!userRegistration.Nationality__c}" styleClass="slds-input"/> <abbr class="slds-required" title="required">* </abbr>
+                      </div>
+                    </div><br/>
+                    <div class="slds-grid slds-wrap">
+                      <div class="slds-col slds-size_1-of-1 slds-large-size_3-of-12">
+                        Expertise
+                      </div>
+                      <div class="slds-col slds-size_1-of-1 slds-large-size_9-of-12">
+                        <apex:inputField value="{!userRegistration.Expertise__c}" styleClass="slds-input"/><abbr class="slds-required" title="required">* </abbr>
+                      </div>
+                    </div><br/>
+                    <div class="slds-grid slds-wrap">
+                      <div class="slds-col slds-size_1-of-1 slds-large-size_3-of-12">
+                        Position
+                      </div>
+                      <div class="slds-col slds-size_1-of-1 slds-large-size_9-of-12">
+                        <apex:inputField value="{!userRegistration.Position__c}" styleClass="slds-input"/> <abbr class="slds-required" title="required">* </abbr>
+                      </div>
+                    </div><br/>
+                    <div class="slds-grid slds-wrap">
+                      <div class="slds-col slds-size_1-of-1 slds-large-size_3-of-12">
+                        Department
+                      </div>
+                      <div class="slds-col slds-size_1-of-1 slds-large-size_9-of-12">
+                        <apex:inputField value="{!userRegistration.Department__c}" styleClass="slds-input"/> <abbr class="slds-required" title="required">* </abbr>
+                      </div>
+                    </div><br/>
+                    <div class="slds-grid slds-wrap">
+                      <div class="slds-col slds-size_1-of-1 slds-large-size_3-of-12">
+                        Organisation
+                      </div>
+                      <div class="slds-col slds-size_1-of-1 slds-large-size_9-of-12">
+                        <!--<apex:inputField value="{!userRegistration.Organisation__c}" styleClass="slds-input"/><abbr class="slds-required" title="required">* </abbr>-->
+                        <div class="slds-form-element">
+                          <div class="slds-form-element__control">
+                            <div class="slds-combobox_container">
+                              <div class="slds-combobox slds-dropdown-trigger slds-dropdown-trigger_click" aria-expanded="false" aria-haspopup="listbox" role="combobox" id="customLookup">
+                                <div class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_right" role="none" id="customLookupinput">
+                                  <input type="text" class="slds-input slds-combobox__input slds-combobox__input-value" id="orgSearch" aria-autocomplete="list" aria-controls="listbox-id-1" autoComplete="off" role="textbox" placeholder="Search Organisation" onKeyup="getRemoteOrganisation();"/> <abbr class="slds-required" title="required">* </abbr>
+                                </div>
+                                
+                                <div class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_left-right slds-hide" role="none" id="customLookupOutput">
+                                  
+                                </div>
+                                <script>
+                                    if(document.getElementById('pg:frm:orgname').value != null && document.getElementById('pg:frm:orgname').value != ''){
+                                        setValue(document.getElementById('pg:frm:orgname').value, document.getElementById('pg:frm:orgid').value);
+                                    }
+                                </script>
+                                <div id="listbox-id-1" class="slds-dropdown slds-dropdown_length-with-icon-7 slds-dropdown_fluid" role="listbox" style="width: 90%;left: 45%;">
+                                  <ul class="slds-listbox slds-listbox_vertical" role="presentation" id="dropul">
+                                    
+                                  </ul>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div><br/>
+                    <div class="slds-grid slds-wrap">
+                      <div class="slds-col slds-size_1-of-1 slds-large-size_3-of-12">
+                        Address
+                      </div>
+                      <div class="slds-col slds-size_1-of-1 slds-large-size_9-of-12">
+                        <apex:inputField value="{!userRegistration.Address__c}" styleClass="slds-input"/> <abbr class="slds-required" title="required">* </abbr>
+                      </div>
+                    </div><br/>
+                    <div class="slds-grid slds-wrap">
+                      <div class="slds-col slds-size_1-of-1 slds-large-size_3-of-12">
+                        City/Town
+                      </div>
+                      <div class="slds-col slds-size_1-of-1 slds-large-size_9-of-12">
+                        <apex:inputField value="{!userRegistration.City__c}" styleClass="slds-input"/> <abbr class="slds-required" title="required">* </abbr>
+                      </div>
+                    </div><br/>
+                    <div class="slds-grid slds-wrap">
+                      <div class="slds-col slds-size_1-of-1 slds-large-size_3-of-12">
+                        Country
+                      </div>
+                      <div class="slds-col slds-size_1-of-1 slds-large-size_9-of-12">
+                        <apex:inputField value="{!userRegistration.Countries__c}" styleClass="slds-input"/> <abbr class="slds-required" title="required">* </abbr>
+                      </div>
+                    </div><br/>
+                    <div class="slds-grid slds-wrap">
+                      <div class="slds-col slds-size_1-of-1 slds-large-size_3-of-12">
+                        Postal Code
+                      </div>
+                      <div class="slds-col slds-size_1-of-1 slds-large-size_9-of-12">
+                        <apex:inputField value="{!userRegistration.Postal_Code__c}" styleClass="slds-input"/> <abbr class="slds-required" title="required">* </abbr>
+                      </div>
+                    </div><br/>
+                    <div class="slds-grid slds-wrap">
+                      <div class="slds-col slds-size_1-of-1 slds-large-size_3-of-12">
+                        International Dialing Code
+                      </div>
+                      <div class="slds-col slds-size_1-of-1 slds-large-size_9-of-12">
+                        <apex:inputField html-placeholder="+91 for India, +65 for Singapore" value="{!userRegistration.International_Dialing_Code__c}" styleClass="slds-input"/> <abbr class="slds-required" title="required">* </abbr>
+                      </div>
+                    </div><br/>
+                    <div class="slds-grid slds-wrap">
+                      <div class="slds-col slds-size_1-of-1 slds-large-size_3-of-12">
+                        Mobile No / Land Line 
+                      </div>
+                      <div class="slds-col slds-size_1-of-1 slds-large-size_9-of-12">
+                        <apex:inputField html-placeholder="Enter mobile number here" value="{!userRegistration.Phone}" styleClass="slds-input"/> <abbr class="slds-required" title="required">* </abbr>
+                      </div>
+                    </div><br/>
+                    <apex:outputPanel id="userCreationError" rendered="{!showUserCreationError}">
+                        <div style="color:red">
+                            {!userCreationErrorMessage}
+                        </div>
+                    </apex:outputPanel><br/>
+                    <div class="slds-grid slds-wrap">
+                      <div class="slds-col slds-size_1-of-1 slds-large-size_3-of-12">
+                        
+                      </div>
+                      <div class="slds-col slds-size_1-of-1 slds-large-size_9-of-12">
+                        <apex:commandButton value="Next" action="{!nextToSubmit}" reRender="frm,registerationPanel,submitPanel" styleClass="slds-button--brand"/>&nbsp;&nbsp;
+                        <apex:commandButton value="Clear" action="{!clearUserDetails}" reRender="frm,registerationPanel" styleClass="slds-button--brand"/>&nbsp;&nbsp;
+                        <apex:commandButton value="Cancel" action="{!cancel}" reRender="frm,loginPanel,registerPanel,registerationPanel" styleClass="slds-button--brand" />
+                      </div>
+                    </div><br/>
+                </div>
+                <div style="float:left;width:22%;border:1px solid rgb(181,196,215);background-color:rgb(232,232,241);padding-left:1%;padding-top:1%;margin-top:5%">
+                    To register for acess to The Welcome Trust/DBT India Alliance's grants online please enter your personal details on the adjacent form
+                    <br/><br/>
+                    Upon successful registration, a confirmation of your login and password will be sent to the email address supplied.
+                    <br/><br/>
+                    Registered users should only have a single account, so if you already have an account in the system please return to the <apex:commandLink action="{!cancel}" value="Login"/>&nbsp; screen.
+                    <br/><br/>
+                    If you have an existing account but have forgotten your password please note that you can retreive it from the &nbsp;<apex:commandLink action="{!cancel}" value="Login"/>&nbsp; screen.
+                    <br/><br/>
+                    If you have any other queries about registration or your existing account then please <a href="#">contact us</a>.
+                    <br/><br/><br/>
+                </div>
+            </div>
+        </apex:outputPanel>
+        
+        <apex:outputPanel id="submitPanel" rendered="{!showSubmitSection}">
+            <br/><br/><br/>
+            <div style="padding-left:5%">
+                <b>Terms and Conditions</b>
+                <br/><br/>
+                Before you can submit your registration, please read and accept our terms and conditions below.
+                <br/><br/>
+                <apex:inputCheckbox value="{!termsAndConditions}"/>&nbsp; Please check this box to confirm that you have read and accepted the <a href="#">Terms and Conditions</a> for the use of.
+                <br/><br/>
+                <i>To complete the registration process, please click the submit button below. By doing so you agree to be bound by the terms and conditions detailed in the above link.</i>
+                <br/>
+                <br/>
+                <apex:outputPanel id="submitError" rendered="{!showSubmitError}">
+                    <div style="color:red">
+                        {!submitErrorMessage}
+                    </div><br/>
+                </apex:outputPanel>
+                <apex:commandButton value="Previous" action="{!previous}" reRender="frm,registerPanel,registerationPanel" styleClass="slds-button--brand"/>&nbsp;&nbsp;
+                <apex:commandButton value="Submit" action="{!submit}" reRender="frm,submitPanel" styleClass="slds-button--brand"/>&nbsp;&nbsp;
+                <apex:commandButton value="Cancel" action="{!cancel}" reRender="frm,loginPanel,registerPanel,registerationPanel" styleClass="slds-button--brand"/>
+            </div>
+        </apex:outputPanel>
+    </apex:form>
+    </html>
+</apex:page>

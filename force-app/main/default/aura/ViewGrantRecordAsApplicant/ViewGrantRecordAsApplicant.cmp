@@ -1,0 +1,16 @@
+<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningquickaction" access="global" >
+	<aura:html tag="style">
+        .slds-modal__container{
+            height:unset !important;
+            max-height:unset !important;
+        	max-width:unset !important;
+        	width: 95% !important;
+            height: 95% !important;
+        }
+        .modal-body{
+        	height: 100% !important;
+    	max-height: 100% !important;
+        }
+    </aura:html>
+    <c:GrantApplicationFormComponent aura:id="TSGFORM" defaultMode="read" recordId="{!v.recordId}"/>
+</aura:component>

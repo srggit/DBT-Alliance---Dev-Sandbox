@@ -1,0 +1,281 @@
+<apex:page sidebar="false" controller="Bulk_Application_SharingCTRL" id="pg">
+    <head>
+        <apex:slds />
+    </head>
+    <body>
+    <apex:form id="frm">
+    <fieldset class="slds-box">
+        <apex:pageMessages id="showmsg"></apex:pageMessages>
+        <apex:actionFunction name="deleteAssigned" action="{!apexDeleteRecord}" reRender="frm">
+            <apex:param name="p1" value="" assignTo="{!recordId}"/>
+        </apex:actionFunction>
+        <apex:actionFunction name="setupUser" action="{!setupUserMenu}" reRender="frm"/>
+        <apex:actionFunction name="selectGrant" action="{!nSelectAllGrantAction}" reRender="frm"/>
+        <apex:actionFunction name="nSelectAllUser" action="{!nSelectAllUserAction}" reRender="frm"/>
+        <apex:actionFunction name="selectGrantSetup" action="{!setupSelectAllGrant}" reRender="frm"/>
+        <apex:actionFunction name="setupSelectAll" action="{!setupSelectAllUser}" reRender="frm"/>
+        <apex:actionFunction name="nSelectUser" action="{!nSelectUserAll}" reRender="frm"/>
+        <apex:outputPanel layout="none" rendered="{!profileUserNext }" id="pOp">
+        <apex:actionFunction name="selectProfile" action="{!selectAllProfile}" reRender="frm"/>
+        <apex:actionFunction name="selectUser" action="{!selectAllUser}" reRender="frm"/>
+        
+        
+        
+        <div class="slds-grid slds-wrap">
+          <div class="slds-col slds-size_1-of-1 slds-large-size_6-of-12">
+          <h2 class="slds-truncate" style="background: gray; font-size: 13px; font-weight: 600; padding: 2px; color: white;">
+                  Available Profile
+          </h2>
+          <div style="overflow: auto; max-height: 450px;border-right: 1px solid gray;">
+            <table class="slds-table slds-table_cell-buffer slds-table_bordered" >
+                <tbody>
+                    <tr class="slds-hint-parent" style="background: lightgray;font-weight: 600;color: white;">
+                        <td width="10%">
+                            <div class="slds-checkbox">
+                              <apex:inputCheckbox value="{!profileSelectAll }" id="chkProfile" onchange="selectProfile();"/>
+                              <label class="slds-checkbox__label" for="pg:frm:chkProfile">
+                                <span class="slds-checkbox_faux"></span>
+                                <span class="slds-form-element__label"></span>
+                              </label>
+                            </div>
+                        </td>
+                        <td >
+                            Profile Name
+                        </td>
+                    </tr>
+                    <apex:variable value="{!0}" var="index"/>
+                    <apex:repeat value="{!profileList}" var="p" id="repeatP">
+                        <tr class="slds-hint-parent">
+                            <td>
+                                <div class="slds-checkbox">
+                                  <apex:inputCheckbox value="{!p.isSelected}" id="chk" onchange="setupUser(); return false;"/>
+                                  <label class="slds-checkbox__label" for="pg:frm:repeatP:{!index}:chk">
+                                  <apex:variable value="{!index+1}" var="index"/>
+                                    <span class="slds-checkbox_faux"></span>
+                                    <span class="slds-form-element__label"></span>
+                                  </label>
+                                </div>
+                            </td>
+                            <td data-label="{!p.profile.Name}">
+                                <div class="slds-truncate" title="{!p.profile.Name}">
+                                      {!p.profile.Name}
+                                </div>
+                            </td>
+                        </tr>
+                    </apex:repeat>
+                </tbody>
+            </table>
+            </div>
+        </div>
+        <div class="slds-col slds-size_1-of-1 slds-large-size_6-of-12">
+            <h2 class="slds-truncate" style="background: gray; font-size: 13px; font-weight: 600; padding: 2px; color: white;">
+                  Available User
+            </h2>
+            <div style="overflow: auto; max-height: 450px;">
+            <table class="slds-table slds-table_cell-buffer slds-table_bordered">
+                <tbody>
+                    <tr class="slds-hint-parent" style="background: lightgray;font-weight: 600;color: white;">
+                            <td width="10%">
+                                <div class="slds-checkbox">
+                                  <apex:inputCheckbox value="{!userSelectAll}" id="chkUser" onchange="selectUser();"/>
+                                  <label class="slds-checkbox__label" for="pg:frm:chkUser">
+                                    <span class="slds-checkbox_faux"></span>
+                                    <span class="slds-form-element__label"></span>
+                                  </label>
+                                </div>
+                            </td>
+                            <td >
+                                User Name
+                            </td>
+                            <td >
+                                Status (Active/Inactive)
+                            </td>
+                        </tr>
+                    <apex:variable value="{!0}" var="index"/>
+                    <apex:repeat value="{!userList}" var="u" id="repeatP2">
+                    <tr class="slds-hint-parent">
+                        <td>
+                            <div class="slds-checkbox">
+                              <apex:inputCheckbox value="{!u.isSelected}" id="chk2" /> <!--onchange="setupSelectAll(); return false;"-->
+                              <label class="slds-checkbox__label" for="pg:frm:repeatP2:{!index}:chk2">
+                              <apex:variable value="{!index+1}" var="index"/>
+                                <span class="slds-checkbox_faux"></span>
+                                <span class="slds-form-element__label"></span>
+                              </label>
+                            </div>
+                        </td>
+                        <td data-label="{!u.user.Name}">
+                            <div class="slds-truncate" title="{!u.user.Name}">
+                                  {!u.user.Name}
+                            </div>
+                        </td>
+                        <td data-label="">
+                            <div class="slds-truncate" title="">
+                                  <apex:outputPanel layout="none" rendered="{!u.user.IsActive}"> (Active) </apex:outputPanel>
+                                  <apex:outputPanel layout="none" rendered="{! !u.user.IsActive}"> (Inactive) </apex:outputPanel>
+                            </div>
+                        </td>
+                    </tr>
+                    </apex:repeat>
+                </tbody>
+            </table>
+            </div>
+        </div>
+        </div>
+        </apex:outputPanel>
+        <apex:outputPanel layout="none" rendered="{! !profileUserNext }">
+            <div class="slds-grid slds-wrap">
+              <div class="slds-col slds-size_1-of-1 slds-large-size_6-of-12">
+                  <h2 class="slds-truncate" style="background: gray; font-size: 13px; font-weight: 600; padding: 2px; color: white;">
+                          Selected Users
+                  </h2>
+                  <div style="overflow: auto; max-height: 450px;border-right: 1px solid gray;">
+                    <table class="slds-table slds-table_cell-buffer slds-table_bordered" >
+                        <tbody>
+                            <tr class="slds-hint-parent" style="background: lightgray;font-weight: 600;color: white;">
+                                <td width="10%">
+                                    <div class="slds-checkbox">
+                                      <apex:inputCheckbox value="{!userSelectNextAll}" id="chkUserNext" onchange="nSelectAllUser();"/>
+                                      <label class="slds-checkbox__label" for="pg:frm:chkUserNext">
+                                        <span class="slds-checkbox_faux"></span>
+                                        <span class="slds-form-element__label"></span>
+                                      </label>
+                                    </div>
+                                </td>
+                                <td >
+                                    User Name
+                                </td>
+                                <td >
+                                    Status (Active/Inactive)
+                                </td>
+                            </tr>
+                            <apex:variable value="{!0}" var="index"/>
+                            <apex:repeat value="{!selectedUserOptionList}" var="u" id="repeatP4">
+                                <tr class="slds-hint-parent">
+                                    <td >
+                                         <div class="slds-checkbox">
+                                          <apex:inputCheckbox value="{!u.isSelected}" id="chk4" /> <!--onchange="nSelectUser();"-->
+                                          <label class="slds-checkbox__label" for="pg:frm:repeatP4:{!index}:chk4">
+                                          <apex:variable value="{!index+1}" var="index"/>
+                                            <span class="slds-checkbox_faux"></span>
+                                            <span class="slds-form-element__label"></span>
+                                          </label>
+                                        </div>
+                                    </td>
+                                    <td data-label="{!u.user.Name}">
+                                        <div class="slds-truncate" title="{!u.user.Name}">
+                                              {!u.user.Name}
+                                        </div>
+                                    </td>
+                                    <td data-label="">
+                                        <div class="slds-truncate" title="">
+                                              <apex:outputPanel layout="none" rendered="{!u.user.IsActive}"> (Active) </apex:outputPanel>
+                                              <apex:outputPanel layout="none" rendered="{! !u.user.IsActive}"> (Inactive) </apex:outputPanel>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </apex:repeat>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="slds-col slds-size_1-of-1 slds-large-size_6-of-12">
+                  <h2 class="slds-truncate" style="background: gray; font-size: 13px; font-weight: 600; padding: 2px; color: white;">
+                          Available Grants
+                  </h2>
+                  <div style="overflow: auto; max-height: 450px;">
+                    <table class="slds-table slds-table_cell-buffer slds-table_bordered" >
+                        <tbody>
+                            <tr class="slds-hint-parent" style="background: lightgray;font-weight: 600;color: white;">
+                                <td >
+                                     <div class="slds-checkbox">
+                                      <apex:inputCheckbox value="{!grantSelectAll}" id="chkgrant" onchange="selectGrant();"/>
+                                      <label class="slds-checkbox__label" for="pg:frm:chkgrant">
+                                        <span class="slds-checkbox_faux"></span>
+                                        <span class="slds-form-element__label"></span>
+                                      </label>
+                                    </div>
+                                </td>
+                                <td >
+                                    Grant Name
+                                </td>
+                                <td >
+                                    Reference Number
+                                </td>
+                                <td >
+                                    Owner Name
+                                </td>
+                            </tr>
+                            <apex:variable value="{!0}" var="index"/>
+                            <apex:repeat value="{!grantOptionList }" var="g" id="repeatP3">
+                                <tr class="slds-hint-parent" style="background: lightgray;">
+                                    <td >
+                                         <div class="slds-checkbox">
+                                          <apex:inputCheckbox value="{!g.isSelected}" id="chk3"/> <!--onchange="selectGrantSetup();"-->
+                                          <label class="slds-checkbox__label" for="pg:frm:repeatP3:{!index}:chk3">
+                                          <apex:variable value="{!index+1}" var="index"/>
+                                            <span class="slds-checkbox_faux"></span>
+                                            <span class="slds-form-element__label"></span>
+                                          </label>
+                                        </div>
+                                    </td>
+                                    <td data-label="{!g.grant.Name}">
+                                        <div class="slds-truncate" title="{!g.grant.Name}">
+                                              <a href="/{!g.grant.Id}" target="_blank" style="font-weight: 600;">{!g.grant.Name} </a>
+                                        </div>
+                                    </td>
+                                    <td>
+                                    <div class="slds-truncate" title="{!g.grant.Owner.Name}">
+                                          {!g.grant.Reference_Number__c}
+                                    </div>
+                                    </td>
+                                    <td data-label="{!g.grant.Owner.Name}">
+                                        <div class="slds-truncate" title="{!g.grant.Owner.Name}">
+                                              {!g.grant.Owner.Name}
+                                        </div>
+                                    </td>
+                                </tr>
+                                <apex:variable value="{!1}" var="index2"/>
+                                <apex:repeat value="{!g.grant.Assigned_Reviewers__r}" var="u">
+                                <tr class="slds-hint-parent">
+                                    <td >
+                                         
+                                    </td>
+                                    <td data-label="{!g.grant.Name}">
+                                        <div class="slds-truncate" title="">
+                                              {!index2}
+                                              <apex:variable value="{! index2 + 1}" var="index2"/>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <apex:outputText value="{0,date,MM/dd/yyyy}"> <apex:param value="{!u.CreatedDate}" /> </apex:outputText> 
+                                    </td>
+                                    <td data-label="{!u.Assigned_User__r.Name}">
+                                        <div class="slds-truncate" title="{!u.Assigned_User__r.Name}">
+                                              {!u.Assigned_User__r.Name} <a  onClick="deleteAssigned('{!u.Id}')"><img src="/img/s.gif" class="recycleIcon" title="Delete"/></a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </apex:repeat>
+                            </apex:repeat>
+                        </tbody>
+                    </table>
+                </div>
+                </div>
+        </div>
+        </apex:outputPanel>
+    </fieldset>
+    <apex:outputPanel layout="none" rendered="{!profileUserNext }">
+        <div class="slds-var-p-around_small" style="text-align: end;">
+            <apex:commandButton action="{!profileUserNext}" value="Next" styleClass="slds-button slds-button_brand" reRender="frm"/>
+        </div>
+    </apex:outputPanel>
+    <apex:outputPanel layout="none" rendered="{! !profileUserNext }">
+        <div class="slds-var-p-around_small" style="text-align: end;">
+            <apex:commandButton action="{!profileUserPrevious}" value="Previous" styleClass="slds-button slds-button_brand" reRender="frm"/>
+            <apex:commandButton action="{!assignUserSetting}" value="Assign" styleClass="slds-button slds-button_brand" reRender="frm"/>
+        </div>
+    </apex:outputPanel>
+    </apex:form>
+    </body>
+</apex:page>

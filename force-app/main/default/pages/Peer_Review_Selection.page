@@ -1,0 +1,236 @@
+<apex:page sidebar="false" controller="Peer_Review_SelectionCTRL" id="pg">
+    <html xmlns:xlink="http://www.w3.org/1999/xlink">
+    <head>
+        <apex:slds />
+    </head>
+    <body>
+        <div class="slds-page-header">
+          <div class="slds-page-header__row">
+            <div class="slds-page-header__col-title">
+              <div class="slds-media">
+                <div class="slds-media__figure">
+                  <span class="slds-icon_container slds-icon-standard-account" title="Account">
+                    <svg class="slds-icon slds-page-header__icon" aria-hidden="true">
+                      <use xlink:href="/_slds/icons/standard-sprite/svg/symbols.svg#account"></use>
+                    </svg>
+                    <span class="slds-assistive-text">account</span>
+                  </span>
+                </div>
+                <div class="slds-media__body">
+                  <div class="slds-page-header__name">
+                    <div class="slds-page-header__name-title">
+                      <h1>
+                        <span class="slds-page-header__title slds-truncate" title="Peer Review Selection">Peer Review Selection</span>
+                      </h1>
+                    </div>
+                  </div>
+                  <p class="slds-page-header__name-meta">Peer Review Selection</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+    </body>
+    
+    <apex:form id="frm">
+        <apex:pagemessages ></apex:pagemessages>
+        <apex:actionFunction name="setValues" action="{!changeEventNext}"/>
+        <apex:actionFunction name="nexttotemp" action="{!nextToTemplateView}"  oncomplete="setValues();"/>
+        <apex:outputPanel rendered="{! !isNext }" layout="none">
+        <div class="slds-grid slds-wrap">
+            <br/>
+          <div class="slds-col slds-size_1-of-1 slds-large-size_6-of-12">
+              <div class="slds-form-element">
+              <label class="slds-form-element__label" for="text-input-id-1">
+                <abbr class="slds-required" title="required">* </abbr>Select Email Template</label>
+              <div class="slds-form-element__control">
+                <apex:selectList value="{!selectedTemplate}" multiselect="false" size="1" styleClass="slds-select">
+                    <apex:selectOptions value="{!templates}"/>
+                </apex:selectList>
+              </div>
+            </div>
+          </div>
+          <div class="slds-col slds-size_1-of-1 slds-large-size_6-of-12"></div>
+          
+          <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+              <br/>
+              <div style="overflow:auto;max-height: 400px;">
+              <table class="slds-table slds-table_cell-buffer slds-table_bordered">
+              <thead>
+                <tr class="slds-line-height_reset">
+                  
+                  <th class="" scope="col">
+                    
+                  </th>
+                  <th class="" scope="col">
+                    <div class="slds-truncate" title="Name">Name</div>
+                  </th>
+                  <th class="" scope="col">
+                    <div class="slds-truncate" title="Name">Email</div>
+                  </th>
+                  <th class="" scope="col">
+                    <div class="slds-truncate" title="Name">Designation</div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody >
+                  <apex:variable value="{!0}" var="index"/>
+                  <apex:repeat value="{!peerReviewerOption}" var="op" Id="repeat">
+                <tr class="slds-hint-parent">
+                  <th data-label="Opportunity Name" scope="row">
+                      <div class="slds-checkbox">
+                      <apex:inputCheckbox value="{!op.isSelected}" id="chk"/>
+                      <label class="slds-checkbox__label" for="pg:frm:repeat:{!index}:chk">
+                      <apex:variable value="{!index+1}" var="index"/>
+                        <span class="slds-checkbox_faux"></span>
+                        <span class="slds-form-element__label"></span>
+                      </label>
+                    </div>
+                  </th>
+                  <th data-label="Opportunity Name" scope="row">
+                    <div class="slds-truncate" title="{!op.Peer_Reviewer.Full_Name__c}">
+                      <a href="javascript:void(0);" tabindex="-1">{!op.Peer_Reviewer.Full_Name__c}</a>
+                    </div>
+                  </th>
+                  <th data-label="Opportunity Name" scope="row">
+                    <div class="slds-truncate" title="{!op.Peer_Reviewer.Email__c}">
+                      {!op.Peer_Reviewer.Email__c}
+                    </div>
+                  </th>
+                  <th data-label="Opportunity Name" scope="row">
+                    <div class="slds-truncate" title="{!op.Peer_Reviewer.Designation__c}">
+                      {!op.Peer_Reviewer.Designation__c}
+                    </div>
+                  </th>
+                </tr>
+                </apex:repeat>
+              </tbody>
+            </table>
+            <br/>
+              </div>
+          </div>
+        </div>
+        <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12" style="text-align: end;">
+            <apex:commandButton styleClass="slds-button slds-button_brand" action="{!next}" value="Next"/>
+        </div>
+        </apex:outputPanel>
+        
+        <apex:outputPanel rendered="{!isNext }" layout="none">
+        <apex:outputPanel rendered="{!nextGrantView}" layout="none">
+        <br/>
+            <div class="slds-grid slds-wrap">
+            <br/><br/>
+              <div class="slds-col slds-size_1-of-1 slds-large-size_6-of-12">
+                  <div class="slds-form-element">
+                      <label class="slds-form-element__label" for="text-input-id-1">Filter Grants</label>
+                      <div class="slds-form-element__control">
+                        <apex:inputText styleClass="slds-input" value="{!searchGrantName}" html-placeholder="Search grants by Name or Owner Name"/>
+                      </div>
+                    </div>
+              </div>
+              
+              <div class="slds-col slds-size_1-of-1 slds-large-size_6-of-12">
+                  <div class="slds-form-element">
+                      <label class="slds-form-element__label" for="text-input-id-1">&nbsp;</label>
+                      <div class="slds-form-element__control">
+                        <apex:commandButton styleClass="slds-button slds-button_brand" action="{!fatchGrantRecords}" value="Search"/>
+                      </div>
+                    </div>
+                  <br/>
+              </div>
+          </div>
+          <br/>
+          <br/>
+          
+              <div style="overflow:auto;max-height: 400px;">
+                  <table class="slds-table slds-table_cell-buffer slds-table_bordered">
+                  <thead>
+                    <tr class="slds-line-height_reset">
+                      
+                      <th class="" scope="col">
+                        
+                      </th>
+                      <th class="" scope="col">
+                        <div class="slds-truncate" title="Name">Name</div>
+                      </th>
+                      <th class="" scope="col">
+                        <div class="slds-truncate" title="Name">Owner</div>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody >
+                      <apex:variable value="{!0}" var="index"/>
+                      <apex:repeat value="{!grantRecordList }" var="op" Id="repeat2">
+                    <tr class="slds-hint-parent">
+                      <th data-label="Opportunity Name" scope="row">
+                          <div class="slds-checkbox">
+                          <apex:inputCheckbox value="{!op.isSelected}" id="chk2"/>
+                          <label class="slds-checkbox__label" for="pg:frm:repeat2:{!index}:chk2">
+                          <apex:variable value="{!index+1}" var="index"/>
+                            <span class="slds-checkbox_faux"></span>
+                            <span class="slds-form-element__label"></span>
+                          </label>
+                        </div>
+                      </th>
+                      <th data-label="Opportunity Name" scope="row">
+                        <div class="slds-truncate" title="{!op.grant.Name}">
+                          <a href="javascript:void(0);" tabindex="-1">{!op.grant.Name}</a>
+                        </div>
+                      </th>
+                      <th data-label="" scope="row">
+                        <div class="slds-truncate" title="{!op.grant.Owner.Name}">
+                          {!op.grant.Owner.Name}
+                        </div>
+                      </th>
+                    </tr>
+                    </apex:repeat>
+                  </tbody>
+                </table>
+                <br/>
+          </div>
+          <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12" style="text-align: end;">
+                <apex:commandButton styleClass="slds-button slds-button_brand" action="{!previous}" value="Previous"/>
+                <apex:commandButton styleClass="slds-button slds-button_brand" onclick="nexttotemp();" value="Next"/>
+          </div>
+        </apex:outputPanel>
+        <apex:outputPanel rendered="{!nextTemplateView }" layout="none">
+        <br/>
+         <div class="slds-grid slds-wrap">
+            <br/><br/>
+              <div class="slds-col slds-size_1-of-1 slds-large-size_6-of-12">
+                  <div class="slds-form-element">
+                  <label class="slds-form-element__label" for="text-input-id-1">Selected Peer Reviewer</label>
+                  <div class="slds-form-element__control">
+                    <apex:selectList value="{!selectedPeerReviewerId }" multiselect="false" size="1" styleClass="slds-select">
+                        <apex:selectOptions value="{!selectOptionPeerReviewer}"/>
+                        <apex:actionSupport event="onchange" action="{!changeEvent}"/>
+                    </apex:selectList>
+                  </div>
+                </div>
+              </div>
+              <div class="slds-col slds-size_1-of-1 slds-large-size_6-of-12">
+                  <div class="slds-form-element">
+                  <label class="slds-form-element__label" for="text-input-id-1">&nbsp;</label>
+                  <div class="slds-form-element__control">
+                    <apex:commandButton styleClass="slds-button slds-button_brand" action="{!submit}" value="Submit for Selected User"/>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <br/>
+            <apex:repeat value="{!peerReviewerOption}" var="pr">
+              <apex:outputPanel rendered="{!pr.Peer_Reviewer.Id == selectedPeerReviewerId }" layout="none">
+                  <apex:inputTextArea label="Body" richText="true" value="{!pr.emailBody}" style="width:100%;height:100%" rows="23"/>
+              </apex:outputPanel>
+            </apex:repeat>
+            <br/>
+            <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12" style="text-align: end;">
+                <apex:commandButton styleClass="slds-button slds-button_brand" action="{!previousToTemplateView}" value="Previous"/>
+                <!--<apex:commandButton styleClass="slds-button slds-button_brand" action="{!submitAll}" value="Submit All"/>-->
+            </div>
+        </apex:outputPanel>
+        </apex:outputPanel>
+    </apex:form>
+    
+    </html>
+</apex:page>

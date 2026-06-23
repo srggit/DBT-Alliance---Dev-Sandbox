@@ -1,0 +1,519 @@
+<aura:component implements="force:lightningQuickAction,force:hasRecordId" access="global" controller="CNT_CheckListForm">
+	<aura:attribute name="recordId" type="String" />
+    <aura:attribute name="currentReviewChecklist" type="Peer_Review_Checklist__c" />
+    <aura:attribute name="isEditable" type="Boolean" default="true"/>
+    
+    <aura:handler name="init" action="{!c.doInit}" value="{!this}"/>
+    
+    <aura:html tag="style">
+        .slds-modal__container{ 
+        width: 90%; max-width: 1200vh;
+        height: 100%;
+        } 
+    </aura:html>
+    
+    <div class="slds-modal__container">
+        <center><h4 style="font-size:12px">Peer review form for India Alliance’s Team Science Grants (TSG)</h4></center>
+        <lightning:recordEditForm aura:id="{!v.currentReviewChecklist.Id}" objectApiName="Peer_Review_Checklist__c">
+            <table style="border:1px solid black;">
+                <tr>
+                    <td style="border:1px solid black;width:25%;padding-left:10px"><b>Name of Lead PI</b></td>
+                    <td style="border:1px solid black;width:75%;padding-left:10px">{!v.currentReviewChecklist.Name_of_Lead_PI__c}</td>
+                </tr>
+                <tr>
+                    <td style="border:1px solid black;width:25%;padding-left:10px"><b>Name of Reviewer:</b></td>
+                    <td style="border:1px solid black;width:75%;padding-left:10px">{!v.currentReviewChecklist.Name_of_Reviewer__c}</td>
+                </tr>
+                <tr>
+                    <td style="border:1px solid black;width:25%;padding-left:10px"><b>Address of Reviewer:</b></td>
+                    <td style="border:1px solid black;width:75%;padding-left:10px">{!v.currentReviewChecklist.Address_of_Reviewer__c}</td>
+                </tr>
+            </table>
+            <br/>
+            <br/>
+            <table style="border:1px solid black;">
+                <tr>
+                    <td style="border:1px solid black;width:5%;text-align:center"><b>1</b></td>
+                    <td style="border:1px solid black;width:95%;padding-left:10px"><b>Please use this space to share any potential conflicts of interest</b></td>
+                </tr>
+                <tr>
+                    <td style="border:1px solid black;width:5%;text-align:center"></td>
+                    <aura:if isTrue="{!v.isEditable}">
+                        <td style="border:1px solid black;width:95%;padding-left:10px;padding-right:10px;padding-bottom:10px">
+                            <lightning:input type="number" value="{!v.currentReviewChecklist.Potential_Conflicts_of_Interest__c }"/>
+                        </td>
+                        <aura:set attribute="else">
+                            <td style="border:1px solid black;width:95%;padding-left:10px">{!v.currentReviewChecklist.Potential_Conflicts_of_Interest__c }</td>
+                        </aura:set>
+                    </aura:if>
+                </tr>
+            </table>
+            <br/>
+            <br/>
+            <table style="border:1px solid black;">
+                <tr>
+                    <td style="border:1px solid black;width:5%;text-align:center"><b>2</b></td>
+                    <td style="border:1px solid black;width:95%;padding-left:10px"><b>SCIENTIFIC AND LEADERSHIP TRACK RECORD OF THE TEAM</b></td>
+                </tr>
+                <tr>
+                    <td style="border:1px solid black;width:5%;text-align:center"></td>
+                    <td style="border:1px solid black;width:95%;padding-left:10px">
+                        a)	In the context of this scheme, how would you rate the scientific contributions and publication records of the core team (Lead PI and PIs)?
+                        <br/>
+                        b)	Would you consider them as one of the leaders in their field of research?
+                    </td>
+                </tr>
+                <tr>
+                    <td style="border:1px solid black;width:5%;text-align:center"></td>
+                    <aura:if isTrue="{!v.isEditable}">
+                        <td style="border:1px solid black;width:95%;padding-left:10px;padding-right:10px;padding-bottom:10px">
+                            <lightning:input type="number" value="{!v.currentReviewChecklist.Track_Record_of_the_Team__c}"/>
+                        </td>
+                        <aura:set attribute="else">
+                            <td style="border:1px solid black;width:95%;padding-left:10px">{!v.currentReviewChecklist.Track_Record_of_the_Team__c}</td>
+                        </aura:set>
+                    </aura:if>
+                </tr>
+            </table>
+            <br/>
+            <br/>
+            <table style="border:1px solid black;">
+                <tr>
+                    <td style="border:1px solid black;width:5%;text-align:center"><b>3</b></td>
+                    <td style="border:1px solid black;width:95%;padding-left:10px"><b>COLLABORATION</b></td>
+                </tr>
+                <tr>
+                    <td style="border:1px solid black;width:5%;text-align:center"></td>
+                    <td style="border:1px solid black;width:95%;padding-left:10px">
+                        The scheme is meant to bring together researchers with complementary skills, knowledge, and resources to address an important health challenge for India. 
+                        <br/>
+                        a)	Is a team approach necessary to execute this project? 
+                        <br/>
+                        b)	Is the current team sufficiently qualified to address the challenge? 
+                        <br/>
+                        c)	Are all participating PIs essential to the proposed project and their roles justified? If not, please elaborate.
+                        <br/>
+                        d)	Do participating PIs bring complementary expertise to the research project?
+                        <br/>
+                        e)	Is the team size appropriate for the proposed research?
+                        <br/>
+                        f)	What are the strengths and weakness of the applying team vis-à-vis this project? 
+                    </td>
+                </tr>
+                <tr>
+                    <td style="border:1px solid black;width:5%;text-align:center"></td>
+                    <aura:if isTrue="{!v.isEditable}">
+                        <td style="border:1px solid black;width:95%;padding-left:10px;padding-right:10px;padding-bottom:10px">
+                            <lightning:input type="number" value="{!v.currentReviewChecklist.Collaboration__c}"/>
+                        </td>
+                        <aura:set attribute="else">
+                            <td style="border:1px solid black;width:95%;padding-left:10px">{!v.currentReviewChecklist.Collaboration__c}</td>
+                        </aura:set>
+                    </aura:if>
+                </tr>
+            </table>
+            <br/>
+            <br/>
+            <table style="border:1px solid black;">
+                <tr>
+                    <td style="border:1px solid black;width:5%;text-align:center"><b>4</b></td>
+                    <td style="border:1px solid black;width:95%;padding-left:10px"><b>FEASIBILITY OF PROJECT AND RESEARCH VISION</b></td>
+                </tr>
+                <tr>
+                    <td style="border:1px solid black;width:5%;text-align:center"></td>
+                    <td style="border:1px solid black;width:95%;padding-left:10px">
+                        a)	Is this grant sufficiently inter-disciplinary?
+                        <br/>
+                        b)	Does it adequately justify addressing an important health challenge for India?  
+                        <br/>
+                        c)	What are the strengths and weakness of the proposed study?
+                        <br/>
+                        d)	If successful, would this research programme constitute a significant advancement to solving the health challenge?
+                        <br/>
+                        e)	Have the applicants adequately indicated how human and scientific resources would be developed and utilized at the Host Institution(s)? 
+                        <br/>
+                        f)	Are the proposed milestones and sustainability plan adequately addressed?
+                    </td>
+                </tr>
+                <tr>
+                    <td style="border:1px solid black;width:5%;text-align:center"></td>
+                    <aura:if isTrue="{!v.isEditable}">
+                        <td style="border:1px solid black;width:95%;padding-left:10px;padding-right:10px;padding-bottom:10px">
+                            <b>Strengths:</b><br/>
+                            <lightning:inputField fieldName="Strengths__c" variant="label-hidden" value="{!v.currentReviewChecklist.Strengths__c}"/>
+                            <br/>
+                            <b>Weaknesses:</b><br/>
+                            <lightning:inputField fieldName="Weaknesses__c" variant="label-hidden" value="{!v.currentReviewChecklist.Weaknesses__c}"/>
+                        </td>
+                        <aura:set attribute="else">
+                            <td style="border:1px solid black;width:95%;padding-left:10px">
+                                <b>Strengths:</b><br/>{!v.currentReviewChecklist.Strengths__c}
+                                <br/>
+                                <b>Weaknesses:</b><br/>{!v.currentReviewChecklist.Weaknesses__c}
+                            </td>
+                        </aura:set>
+                    </aura:if>
+                </tr>
+            </table>
+            <br/>
+            <br/>
+            <table style="border:1px solid black;">
+                <tr>
+                    <td style="border:1px solid black;width:5%;text-align:center"><b>5</b></td>
+                    <td style="border:1px solid black;width:95%;padding-left:10px"><b>TIME COMMITMENT</b></td>
+                </tr>
+                <tr>
+                    <td style="border:1px solid black;width:5%;text-align:center"></td>
+                    <td style="border:1px solid black;width:95%;padding-left:10px">
+                        It is not mandatory for the applicants to commit 100% of their time towards this grant.
+                        <br/><br/>
+                        Do you consider the time commitment indicated by the individual investigators to be appropriate? Would the proposed arrangement allow the applicants to adequately address the programme’s mandate?
+                    </td>
+                </tr>
+                <tr>
+                    <td style="border:1px solid black;width:5%;text-align:center"></td>
+                    <aura:if isTrue="{!v.isEditable}">
+                        <td style="border:1px solid black;width:95%;padding-left:10px;padding-right:10px;padding-bottom:10px">
+                            <lightning:input type="number" value="{!v.currentReviewChecklist.Time_Commitment__c}"/>
+                        </td>
+                        <aura:set attribute="else">
+                            <td style="border:1px solid black;width:95%;padding-left:10px">{!v.currentReviewChecklist.Time_Commitment__c}</td>
+                        </aura:set>
+                    </aura:if>
+                </tr>
+            </table>
+            <br/>
+            <br/>
+            <table style="border:1px solid black;">
+                <tr>
+                    <td style="border:1px solid black;width:5%;text-align:center"><b>6a</b></td>
+                    <td style="border:1px solid black;width:95%;padding-left:10px"><b>RESOURCES</b></td>
+                </tr>
+                <tr>
+                    <td style="border:1px solid black;width:5%;text-align:center"></td>
+                    <td style="border:1px solid black;width:95%;padding-left:10px">
+                        Is the request for resources commensurate with the proposed research? We understand if you cannot comment on the amounts as they are in INR. However, it would be helpful if you can comment on the suitability of the requested resources.
+                        <br/>
+                        For guidance: based on the current exchange rates 1 GBP = ~100 INR, 1 Euro = ~70 INR and 1 USD = ~68 INR. 
+                        <br/><br/>
+                        (Choose one of the following)
+                    </td>
+                </tr>
+                <tr>
+                    <td style="border:1px solid black;width:5%;text-align:center"></td>
+                    <aura:if isTrue="{!v.isEditable}">
+                        <td style="border:1px solid black;width:95%;padding:10px 10px 10px 10px">
+                            <lightning:inputField fieldName="Resources__c" variant="label-hidden" value="{!v.currentReviewChecklist.Resources__c}"/>
+                        </td>
+                        <aura:set attribute="else">
+                            <td style="border:1px solid black;width:95%;padding-left:10px">{!v.currentReviewChecklist.Resources__c}</td>
+                        </aura:set>
+                    </aura:if>
+                </tr>
+                <aura:if isTrue="{!v.currentReviewChecklist.Resources__c == 'No'}">
+                    <tr>
+                        <td style="border:1px solid black;width:5%;text-align:center"></td>
+                        <td style="border:1px solid black;width:95%;padding-left:10px"><b>Please explain why the request for resources is not appropriate</b></td>
+                    </tr>
+                    <tr>
+                        <td style="border:1px solid black;width:5%;text-align:center"></td>
+                        <aura:if isTrue="{!v.isEditable}">
+                            <td style="border:1px solid black;width:95%;padding:0px 10px 10px 10px">
+                                <lightning:inputField fieldName="Why_the_Resources_not_Appropriate__c" variant="label-hidden" value="{!v.currentReviewChecklist.Why_the_Resources_not_Appropriate__c}"/>
+                            </td>
+                            <aura:set attribute="else">
+                                <td style="border:1px solid black;width:95%;padding-left:10px">{!v.currentReviewChecklist.Why_the_Resources_not_Appropriate__c}</td>
+                            </aura:set>
+                        </aura:if>
+                    </tr>
+                </aura:if>
+            </table>
+            <br/>
+            <br/>
+            <table style="border:1px solid black;">
+                <tr>
+                    <td style="border:1px solid black;width:5%;text-align:center"><b>6b</b></td>
+                    <td style="border:1px solid black;width:95%;padding-left:10px"><b>Research on animals</b></td>
+                </tr>
+                <tr>
+                    <td style="border:1px solid black;width:5%;text-align:center"></td>
+                    <td style="border:1px solid black;width:95%;padding-left:10px">
+                        Please respond to this question only if the project involves experiments on animals/use of animal tissues/their stem cells/related experiments. 
+                        <br/><br/>
+                        Please comment whether the applicants have addressed the following questions:
+                        <br/><br/>
+                        •	Has the use of animals (and any specific animal species) been justified in terms of the likely outcomes of the research? 
+                        <br/>
+                        •	Have the applicants provided adequate justification for the numbers of animals used?
+                        <br/>
+                        •	If the use of primates, cats, dogs, or equidae is proposed, could any other animal species be used instead?
+                        <br/>
+                        •	Is there potential for improvement in the research approach which would replace the use of animals, reduce the number of animals used, and/or reduce suffering? Might changes in the research approach allow the researchers to derive significantly greater scientific benefit from their use of animals?
+                        <br/>
+                        •	Would any of the procedures be considered unacceptable in your laboratory – and if so why?
+                    </td>
+                </tr>
+                <tr>
+                    <td style="border:1px solid black;width:5%;text-align:center"></td>
+                    <aura:if isTrue="{!v.isEditable}">
+                        <td style="border:1px solid black;width:95%;padding:0px 10px 10px 10px">
+                            <lightning:input type="number" value="{!v.currentReviewChecklist.Research_on_Animals__c}"/>
+                        </td>
+                        <aura:set attribute="else">
+                            <td style="border:1px solid black;width:95%;padding-left:10px">{!v.currentReviewChecklist.Research_on_Animals__c }</td>
+                        </aura:set>
+                    </aura:if>
+                </tr>
+            </table>
+            <br/>
+            <br/>
+            <table style="border:1px solid black;">
+                <tr>
+                    <td style="border:1px solid black;width:5%;text-align:center"><b>6c</b></td>
+                    <td style="border:1px solid black;width:95%;padding-left:10px"><b>Research involving human participation</b></td>
+                </tr>
+                <tr>
+                    <td style="border:1px solid black;width:5%;text-align:center"></td>
+                    <td style="border:1px solid black;width:95%;padding-left:10px">
+                        Please respond to this question only if the project involves experiments where human participation/use of biologicals/their stem cells/related experiments
+                        <br/>
+                        •	Are the proposed experiments justified in terms of the likely outcomes of the research? 
+                        <br/>
+                        •	Have the applicants provided adequate justification for the study design and is the study sufficiently powered?
+                        <br/>
+                        •	In case of invasive experiments, are alternate routes/procedures considered? Are appropriate precautions and ‘benefit versus risk’ carefully assessed and factored?
+                        <br/>
+                        •	Would any of the procedures be considered unacceptable in your laboratory – and if so why?
+                    </td>
+                </tr>
+                <tr>
+                    <td style="border:1px solid black;width:5%;text-align:center"></td>
+                    <aura:if isTrue="{!v.isEditable}">
+                        <td style="border:1px solid black;width:95%;padding:0px 10px 10px 10px">
+                            <lightning:input type="number" value="{!v.currentReviewChecklist.Research_Involving_Human_Participation__c}"/>
+                        </td>
+                        <aura:set attribute="else">
+                            <td style="border:1px solid black;width:95%;padding-left:10px">{!v.currentReviewChecklist.Research_Involving_Human_Participation__c }</td>
+                        </aura:set>
+                    </aura:if>
+                </tr>
+            </table>
+            <br/>
+            <br/>
+            <table style="border:1px solid black;">
+                <tr>
+                    <td style="border:1px solid black;width:5%;text-align:center"><b>7</b></td>
+                    <td style="border:1px solid black;width:95%;padding-left:10px"><b>Data Management and Sharing</b></td>
+                </tr>
+                <tr>
+                    <td style="border:1px solid black;width:5%;text-align:center"></td>
+                    <td style="border:1px solid black;width:95%;padding-left:10px">
+                        Please respond to this question only if the project involves experiments where human participation/use of biologicals/their stem cells/related experiments
+                        <br/>
+                        If the goal of the grant proposal is principally to create or develop a resource for the benefit of the research community, or if the proposed work is likely to generate a large data-set that could potentially be shared for added benefit, please comment on the arrangements for data management and sharing, during and after the lifetime of the project.
+                    </td>
+                </tr>
+                <tr>
+                    <td style="border:1px solid black;width:5%;text-align:center"></td>
+                    <aura:if isTrue="{!v.isEditable}">
+                        <td style="border:1px solid black;width:95%;padding:0px 10px 10px 10px">
+                            <lightning:input type="number" value="{!v.currentReviewChecklist.Data_Management_and_Sharing__c}"/>
+                        </td>
+                        <aura:set attribute="else">
+                            <td style="border:1px solid black;width:95%;padding-left:10px">{!v.currentReviewChecklist.Data_Management_and_Sharing__c}</td>
+                        </aura:set>
+                    </aura:if>
+                </tr>
+            </table>
+            <br/>
+            <br/>
+            <table style="border:1px solid black;">
+                <tr>
+                    <td style="border:1px solid black;width:5%;text-align:center"><b>8</b></td>
+                    <td style="border:1px solid black;width:95%;padding-left:10px"><b>INSTITUTIONAL SUPPORT</b></td>
+                </tr>
+                <tr>
+                    <td style="border:1px solid black;width:5%;text-align:center"></td>
+                    <td style="border:1px solid black;width:95%;padding-left:10px">
+                        We realize that you may not be aware of one or more institutions where the applicants are based or propose to work. Therefore, please comment only if you are comfortable. 
+                        <br/><br/>
+                        a)	This programme provides an opportunity to researchers based at different host institutions to collaborate on a research problem.  Are the institutions providing sufficient interest and stake in the project?
+                        <br/>
+                        b)	Based on the information on the Institution’s website, the application form and the Sponsor’s section, please comment on the suitability of the Host Institution(s) in the context of the programme and whether this combination is complementary.
+                    </td>
+                </tr>
+                <tr>
+                    <td style="border:1px solid black;width:5%;text-align:center"></td>
+                    <aura:if isTrue="{!v.isEditable}">
+                        <td style="border:1px solid black;width:95%;padding:0px 10px 10px 10px">
+                            <lightning:input type="number" value="{!v.currentReviewChecklist.Institutional_Support__c}"/>
+                        </td>
+                        <aura:set attribute="else">
+                            <td style="border:1px solid black;width:95%;padding-left:10px">{!v.currentReviewChecklist.Institutional_Support__c}</td>
+                        </aura:set>
+                    </aura:if>
+                </tr>
+            </table>
+            <br/>
+            <br/>
+            <table style="border:1px solid black;">
+                <tr>
+                    <td style="border:1px solid black;width:5%;text-align:center"><b>9</b></td>
+                    <td style="border:1px solid black;width:95%;padding-left:10px"><b>IMPACT</b></td>
+                </tr>
+                <tr>
+                    <td style="border:1px solid black;width:5%;text-align:center"></td>
+                    <td style="border:1px solid black;width:95%;padding-left:10px">
+                        This programme requires a “synergistic effort” between the investigators located at different institutions.  
+                        <br/>
+                        a)	Do you think that the project has potential to make an impact on the health challenge?
+                        <br/>
+                        b)	Has the applying team provided an appropriate research management plan and if so, will the Host Institution(s) benefit from it?
+                    </td>
+                </tr>
+                <tr>
+                    <td style="border:1px solid black;width:5%;text-align:center"></td>
+                    <aura:if isTrue="{!v.isEditable}">
+                        <td style="border:1px solid black;width:95%;padding:0px 10px 10px 10px">
+                            <lightning:input type="number" value="{!v.currentReviewChecklist.Impact__c}"/>
+                        </td>
+                        <aura:set attribute="else">
+                            <td style="border:1px solid black;width:95%;padding-left:10px">{!v.currentReviewChecklist.Impact__c}</td>
+                        </aura:set>
+                    </aura:if>
+                </tr>
+            </table>
+            <br/>
+            <br/>
+            <table style="border:1px solid black;">
+                <tr>
+                    <td style="border:1px solid black;width:5%;text-align:center"><b>10</b></td>
+                    <td style="border:1px solid black;width:95%;padding-left:10px" colspan="6"><b>OVERALL ASSESSMENT</b></td>
+                </tr>
+                <tr>
+                    <td style="border:1px solid black;width:5%;text-align:center"></td>
+                    <td style="border:1px solid black;width:95%;padding-left:10px" colspan="6">
+                        Please give ratings for this application for the team and the research project, selecting the most appropriate category from those listed below. 
+                        <br/>
+                        Note: An ‘Outstanding’ rating should only be given if you feel this proposal falls into the top 5% of similar grant applications you have refereed.
+                    </td>
+                </tr>
+                <tr>
+                    <td style="border:1px solid black;width:5%;text-align:center"></td>
+                	<td style="border:1px solid black;padding-left:10px"><b>Team:</b></td>
+                    <td style="border:1px solid black;padding-left:10px"><b>Not supportable</b></td>
+                    <td style="border:1px solid black;padding-left:10px"><b>Satisfactory</b></td>
+                    <td style="border:1px solid black;padding-left:10px"><b>Competitive</b></td>
+                    <td style="border:1px solid black;padding-left:10px"><b>Excellent</b></td>
+                    <td style="border:1px solid black;padding-left:10px"><b>Outstanding</b></td>
+                </tr>
+                <tr>
+                    <td style="border:1px solid black;width:5%;text-align:center"></td>
+                    <td style="border:1px solid black;padding-left:10px">Please tick only one rating:</td>
+                    <td style="border:1px solid black;padding:10px 10px 10px 10px">
+                        <lightning:input type="checkbox" checked="{!v.currentReviewChecklist.Team_Not_Supportable__c}" disabled="{!!v.isEditable}" name="Team_Not_Supportable__c" onchange="{!c.setTeamCheckboxValue}"/>
+                    </td>
+                    <td style="border:1px solid black;padding:10px 10px 10px 10px">
+                        <lightning:input type="checkbox" name="Team_Satisfactory__c" checked="{!v.currentReviewChecklist.Team_Satisfactory__c}" disabled="{!!v.isEditable}" onchange="{!c.setTeamCheckboxValue}"/>
+                    </td>
+                    <td style="border:1px solid black;padding:10px 10px 10px 10px">
+                        <lightning:input type="checkbox" name="Team_Compititive__c" checked="{!v.currentReviewChecklist.Team_Compititive__c}" disabled="{!!v.isEditable}" onchange="{!c.setTeamCheckboxValue}"/>
+                    </td>
+                    <td style="border:1px solid black;padding:10px 10px 10px 10px">
+                        <lightning:input type="checkbox" name="Team_Excellent__c" checked="{!v.currentReviewChecklist.Team_Excellent__c}" disabled="{!!v.isEditable}" onchange="{!c.setTeamCheckboxValue}"/>
+                    </td>
+                    <td style="border:1px solid black;padding:10px 10px 10px 10px">
+                        <lightning:input type="checkbox" name="Team_Outstanding__c" checked="{!v.currentReviewChecklist.Team_Outstanding__c}" disabled="{!!v.isEditable}" onchange="{!c.setTeamCheckboxValue}"/>
+                    </td>
+                </tr>
+                <tr style="height:20px">
+                	<td style="border:1px solid black;width:5%"></td>
+                    <td style="border:1px solid black;width:95%" colspan="6"></td>
+                </tr>
+                <tr>
+                    <td style="border:1px solid black;width:5%;text-align:center"></td>
+                    <td style="border:1px solid black;padding-left:10px"><b>Project:</b></td>
+                    <td style="border:1px solid black;padding-left:10px"><b>Not supportable</b></td>
+                    <td style="border:1px solid black;padding-left:10px"><b>Satisfactory</b></td>
+                    <td style="border:1px solid black;padding-left:10px"><b>Competitive</b></td>
+                    <td style="border:1px solid black;padding-left:10px"><b>Excellent</b></td>
+                    <td style="border:1px solid black;padding-left:10px"><b>Outstanding</b></td>
+                </tr>
+                <tr>
+                    <td style="border:1px solid black;width:5%;text-align:center"></td>
+                    <td style="border:1px solid black;padding-left:10px">Please tick only one rating:</td>
+                    <td style="border:1px solid black;padding:10px 10px 10px 10px">
+                        <lightning:input type="checkbox" name="Project_Not_Supportable__c" checked="{!v.currentReviewChecklist.Project_Not_Supportable__c}" disabled="{!!v.isEditable}" onchange="{!c.setProjectCheckboxValue}"/>
+                    </td>
+                    <td style="border:1px solid black;padding:10px 10px 10px 10px">
+                        <lightning:input type="checkbox" name="Project_Satisfactory__c" checked="{!v.currentReviewChecklist.Project_Satisfactory__c}" disabled="{!!v.isEditable}" onchange="{!c.setProjectCheckboxValue}"/>
+                    </td>
+                    <td style="border:1px solid black;padding:10px 10px 10px 10px">
+                        <lightning:input type="checkbox" name="Project_Compititive__c" checked="{!v.currentReviewChecklist.Project_Compititive__c}" disabled="{!!v.isEditable}" onchange="{!c.setProjectCheckboxValue}"/>
+                    </td>
+                    <td style="border:1px solid black;padding:10px 10px 10px 10px">
+                        <lightning:input type="checkbox" name="Project_Excellent__c" checked="{!v.currentReviewChecklist.Project_Excellent__c}" disabled="{!!v.isEditable}" onchange="{!c.setProjectCheckboxValue}"/>
+                    </td>
+                    <td style="border:1px solid black;padding:10px 10px 10px 10px">
+                        <lightning:input type="checkbox" name="Project_Outstanding__c" checked="{!v.currentReviewChecklist.Project_Outstanding__c}" disabled="{!!v.isEditable}" onchange="{!c.setProjectCheckboxValue}"/>
+                    </td>
+                </tr>
+                <tr style="height:20px">
+                	<td style="border:1px solid black;width:5%"></td>
+                    <td style="border:1px solid black;width:95%" colspan="6"></td>
+                </tr>
+                <tr>
+                    <td style="border:1px solid black;width:5%;text-align:center"></td>
+                    <td style="border:1px solid black;width:95%;padding-left:10px" colspan="6">
+                        Please summarise your overall opinion of the proposal and its quality, and why you have chosen the ratings selected above.
+                    </td>
+                </tr>
+                <tr>
+                    <td style="border:1px solid black;width:5%;text-align:center"></td>
+                    <aura:if isTrue="{!v.isEditable}">
+                        <td style="border:1px solid black;width:95%;padding:10px 10px 10px 10px" colspan="6">
+                            <lightning:inputField fieldName="Summarise_Ratings__c" variant="label-hidden" value="{!v.currentReviewChecklist.Summarise_Ratings__c}"/>
+                        </td>
+                        <aura:set attribute="else">
+                            <td style="border:1px solid black;width:95%;padding-left:10px" colspan="6">{!v.currentReviewChecklist.Summarise_Ratings__c}</td>
+                        </aura:set>
+                    </aura:if>
+                </tr>
+            </table>
+            <br/>
+            <br/>
+            <table style="border:1px solid black;">
+                <tr>
+                    <td style="border:1px solid black;width:5%;text-align:center"><b>11</b></td>
+                    <td style="border:1px solid black;width:95%;padding-left:10px"><b>Feedback to applicants:</b></td>
+                </tr>
+                <tr>
+                    <td style="border:1px solid black;width:5%;text-align:center"></td>
+                    <td style="border:1px solid black;width:95%;padding-left:10px">
+                        The Office typically provides feedback to all applicants, regardless of outcome, in an anonymous format. Your identity will only be known to the Office and the Committee. If there are comments you would specifically not want to be passed back to the applicants, please indicate below.
+                    </td>
+                </tr>
+                <tr>
+                    <td style="border:1px solid black;width:5%;text-align:center"></td>
+                    <aura:if isTrue="{!v.isEditable}">
+                        <td style="border:1px solid black;width:95%;padding:10px 10px 10px 10px">
+                            <lightning:inputField fieldName="Feedback_to_Applicants__c" variant="label-hidden" value="{!v.currentReviewChecklist.Feedback_to_Applicants__c}"/>
+                        </td>
+                        <aura:set attribute="else">
+                            <td style="border:1px solid black;width:95%;padding-left:10px">{!v.currentReviewChecklist.Feedback_to_Applicants__c}</td>
+                        </aura:set>
+                    </aura:if>
+                </tr>
+            </table>
+        </lightning:recordEditForm>
+        <br/><br/>
+        <!-- Button Section Starts -->
+        <div style="padding-left:45%">
+            <aura:if isTrue="{!v.isEditable}">
+                <lightning:button variant="neutral" label="Save" onclick="{!c.saveReviewChecklist}"/>
+                <lightning:button variant="neutral" label="Submit" onclick="{!c.submitReviewChecklist}"/>
+            </aura:if>
+        </div>
+        <!-- Button Section Ends -->
+    </div>
+</aura:component>

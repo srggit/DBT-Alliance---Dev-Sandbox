@@ -1,0 +1,64 @@
+.THIS .text-align-right{
+    text-align: right;
+}
+.THIS .slds-table th{
+    border: 1px solid gray;
+}
+.THIS .slds-table thead th{ 
+    background: darkgray;
+    color: white;
+    font-weight: bold;
+}
+.THIS .tab2 lightning-input label{
+    display:none;
+}
+.THIS .autocompleteWrapper input, .THIS .uiInputSelect{
+    background-color: rgb(255, 255, 255);
+    border: 1px solid rgb(217, 219, 221);
+    border-radius: .25rem;
+    width: 100%;
+    transition: border .1s linear,background-color .1s linear;
+    display: inline-block;
+    padding: 0 1rem 0 .75rem;
+    line-height: 1.875rem;
+    min-height: calc(1.875rem + (1px * 2));
+}
+.THIS .slds-path__scroller-container{
+    font-size: 10px;
+    font-weight: 600;
+    font-style: italic;
+}
+.THIS .slds-textarea {
+    min-height: 150px;
+}
+.THIS .slds-button_brand{
+    font-size: 10px;
+}
+.THIS table {
+   width: 100%;
+   border-collapse: collapse;
+}
+
+.THIS tbody th {
+   word-break: break-all;
+   white-space: initial !important;
+}
+.THIS .QuestionClass{
+    font-size: 13px;
+    font-weight: 700;
+    color: indigo;
+}
+.THIS .nowrap{
+    word-break: inherit;
+    white-space: nowrap !important;
+}
+.THIS .tableScroll{
+    overflow:auto;
+}
+.THIS.slds-spinner_container {  
+  z-index: 10000;
+  position: fixed;   
+}
+.THIS .labelHide label{
+    display:none !important;
+}

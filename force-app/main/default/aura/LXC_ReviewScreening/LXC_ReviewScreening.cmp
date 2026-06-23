@@ -1,0 +1,75 @@
+<aura:component implements="force:lightningQuickAction,force:hasRecordId" access="global" controller="CNT_CheckListForm">
+	<aura:attribute name="recordId" type="String" />
+    <aura:attribute name="currentReviewScreening" type="Screening_Committee__c" />
+    <aura:attribute name="isEditable" type="Boolean" default="true"/>
+    <aura:handler name="init" action="{!c.doInit}" value="{!this}"/>
+    
+    <aura:html tag="style">
+        .slds-modal__container{ 
+        width: 90%; max-width: 1200vh;
+        height: 100%;
+        } 
+    </aura:html>
+    <div class="slds-modal__container">
+        <center><h4 style="font-size:12px">P5- Review Form for Screening Committee</h4></center>
+        <lightning:recordEditForm aura:id="{!v.currentReviewScreening.Id}" objectApiName="Screening_Committee__c">
+        <table style="border:1px solid black;">
+            <tr style="height:50px">
+                <td style="border:1px solid black;width:70%;text-align:center">Name of PI and Organization</td>
+                <td style="border:1px solid black;width:30%;text-align:center">{!v.currentReviewScreening.Name_of_PI_and_Organization__c}</td>
+            </tr>
+            <tr style="height:50px">
+                <td style="border:1px solid black;width:70%;text-align:center">Name of Co-PIs and Organization</td>
+                <td style="border:1px solid black;width:30%;text-align:center">{!v.currentReviewScreening.Name_of_Co_PIs_and_Organization__c}</td>
+            </tr>
+            <tr style="height:50px">
+                <td style="border:1px solid black;width:70%;text-align:center">Name of Committee Member</td>
+                <td style="border:1px solid black;width:30%;text-align:center">{!v.currentReviewScreening.Name_of_Committee_Member__c}</td>
+            </tr>
+            <tr>
+                <td style="border:1px solid black;width:70%;text-align:center">Comments on the application</td>
+                <aura:if isTrue="{!v.isEditable}">
+                    <td style="border:1px solid black;width:30%;text-align:center;padding:10px">
+                        <lightning:inputField fieldName="Comments_on_the_Application__c" variant="label-hidden" value="{!v.currentReviewScreening.Comments_on_the_Application__c}"/>
+                    </td>
+                    <aura:set attribute="else">
+                        <td style="border:1px solid black;width:30%;text-align:center;height:50px">{!v.currentReviewScreening.Comments_on_the_Application__c}</td>
+                    </aura:set>
+                </aura:if> 
+            </tr>
+            <tr>
+                <td style="border:1px solid black;width:70%;text-align:center">Scores</td>
+                <aura:if isTrue="{!v.isEditable}">
+                    <td style="border:1px solid black;width:30%;text-align:center;padding:0px 10px 10px 10px">
+                    	<lightning:input type="number" value="{!v.currentReviewScreening.Scores__c}" step="0.1" min="0" max="5" messageWhenBadInput="Scores upto 1 decimal point from 0 to 5"/>
+                    </td>
+                    <aura:set attribute="else">
+                        <td style="border:1px solid black;width:30%;text-align:center;height:50px">{!v.currentReviewScreening.Scores__c}</td>
+                    </aura:set>
+                </aura:if> 
+            </tr>
+            <tr>
+                <td style="border:1px solid black;width:70%;text-align:center">Shall this application be taken forward to next stage</td>
+                <aura:if isTrue="{!v.isEditable}">
+                    <td style="border:1px solid black;width:30%;text-align:center;padding:10px">
+                        <lightning:inputField fieldName="Application_Taken_Forward_to_Next_Stage__c" variant="label-hidden" value="{!v.currentReviewScreening.Application_Taken_Forward_to_Next_Stage__c}"/>
+                    </td>
+                    <aura:set attribute="else">
+                        <td style="border:1px solid black;width:30%;text-align:center;height:50px">{!v.currentReviewScreening.Application_Taken_Forward_to_Next_Stage__c}</td>
+                    </aura:set>
+                </aura:if> 
+            </tr>
+        </table>
+        </lightning:recordEditForm>
+        <br/><br/><br/>
+        <!-- Button Section Starts -->
+        <div style="padding-left:45%">
+            <aura:if isTrue="{!v.isEditable}">
+                <lightning:button variant="neutral" label="Save" onclick="{!c.saveReviewScreening}"/>
+                <lightning:button variant="neutral" label="Submit" onclick="{!c.submitReviewScreening}"/>
+            </aura:if>
+        </div>
+        <!-- Button Section Ends -->
+    </div>
+    
+</aura:component>

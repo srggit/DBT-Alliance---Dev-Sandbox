@@ -1,0 +1,53 @@
+<apex:page sidebar="false" showHeader="false" controller="PeerReviewerApprovalVFController" id="pg">
+    
+    <html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+        <head>
+            <apex:slds />
+        </head>
+        <body>
+            <apex:form id="frm">
+                {!submitErrorMessage }
+                <apex:actionFunction name="changeAction" reRender="frm"/>
+                <div class="slds-grid slds-wrap">
+                  <div class="slds-col slds-size_1-of-1 slds-large-size_2-of-12"></div>
+                  <div class="slds-col slds-size_1-of-1 slds-large-size_8-of-12 slds-p-around_xx-large" style="text-align: center;">
+                      <br/><br/><br/><br/><br/><br/><br/><br/><br/>
+                      <apex:image url="{!$Resource.IA_Login_Logo}" style="width:20%"/>
+                        <br/><br/>
+                        <div class="slds-grid slds-wrap" style="font-style: italic;">
+                            <apex:outputPanel layout="none" rendered="{!isAccepted}">
+                            <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+                                <b style="font-size: 18px;font-family: auto;">Thank you</b><br/>
+                                We have received your response for grant review.
+                            </div>
+                            </apex:outputPanel>
+                            <apex:outputPanel layout="none" rendered="{! !isAccepted}">
+                            <div class="slds-col slds-size_1-of-1 slds-large-size_12-of-12">
+                                <div class="slds-form-element">
+                                  <div class="slds-form-element__control">
+                                    <div class="slds-checkbox">
+                                        <apex:inputCheckbox value="{!accept }" id="chk" onchange="changeAction();"/>
+                                      <label class="slds-checkbox__label" for="pg:frm:chk">
+                                        <span class="slds-checkbox_faux"></span>
+                                        <span class="slds-form-element__label">I accept the review request of grant application.</span>
+                                      </label>
+                                    </div>
+                                  </div>
+                                </div>
+                            </div>
+                            </apex:outputPanel>
+                        </div>
+                        <br/><br/>
+                        <apex:outputPanel layout="none" rendered="{! !isAccepted}">
+                            
+                            <apex:commandButton styleClass="slds-button slds-button_brand" value="Yes" action="{!acceptTerms}" disabled="{! !accept }" reRender="frm"/>
+                            <apex:commandButton styleClass="slds-button slds-button_destructive" value="No" action="{!declined}" disabled="{! !accept }" reRender="frm" />
+                        </apex:outputPanel>
+                    
+                  </div>
+                  <div class="slds-col slds-size_1-of-1 slds-large-size_2-of-12"></div>
+                </div>
+            </apex:form>
+        </body>
+    </html>
+</apex:page>

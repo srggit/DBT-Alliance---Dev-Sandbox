@@ -1,0 +1,7 @@
+<apex:page >
+    <head></head>
+    
+    <body>
+        Available scheme
+    </body>
+</apex:page>
