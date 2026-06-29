@@ -27,8 +27,16 @@ global without sharing class ResetPasswordAPI {
             Contact con = contacts[0];
             
             con.Password__c = req.newPassword;
-            
+            String passwordHash =
+                EncodingUtil.convertToHex(
+                    Crypto.generateDigest(
+                        'SHA-256',
+                        Blob.valueOf(req.newPassword)
+                    )
+                );
+            con.Password_Hash__c = passwordHash;
             update con;
+
             System.debug('Contact Password Updated Successfully !!');
             
             response.success = true;
@@ -42,9 +50,7 @@ global without sharing class ResetPasswordAPI {
             response.message = ex.getMessage();
             
             return response;
-        }
-        
-        
+        }        
     } 
     
     global class ResetRequest{

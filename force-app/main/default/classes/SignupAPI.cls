@@ -12,7 +12,7 @@ global without sharing class SignupAPI {
             System.debug('req data received : ' + req);
 
             List<Contact> existingContacts = [
-                SELECT Id 
+                SELECT Id, Email
                 FROM Contact
                 WHERE Email = :req.email
                 LIMIT 1
@@ -24,7 +24,6 @@ global without sharing class SignupAPI {
                 return response;
             }
 	
-            /*
             String passwordHash =
                 EncodingUtil.convertToHex(
                     Crypto.generateDigest(
@@ -32,17 +31,15 @@ global without sharing class SignupAPI {
                         Blob.valueOf(req.password)
                     )
                 );
-			*/
             
             Contact con = new Contact();
-
             con.FirstName = req.firstName;
             con.LastName = req.lastName;
             con.Email = req.email;
             con.Password__c = req.password;
+            con.Password_Hash__c = passwordHash;
             con.BirthDate = req.dob;
             con.Firebase_UID__c = req.uid;
-
             insert con;
 
             response.success = true;

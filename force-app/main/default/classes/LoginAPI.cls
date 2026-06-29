@@ -14,28 +14,15 @@ global without sharing class LoginAPI {
 			System.debug('req : ' + req);
             
             System.debug('Current User = ' + UserInfo.getUserName());
-            /*
-            System.debug('Current Profile = ' + [
-                SELECT Profile.Name
-                FROM User
-                WHERE Id = :UserInfo.getUserId()
-            ].Profile.Name);
-            */
-            
-            List<Account> lstAcc = [select id from account];
-            
+            System.debug('User Id => ' + UserInfo.getUserId());
+            System.debug('User Type => ' + UserInfo.getUserType());
+			            
             List<Contact> contacts = [
-                SELECT Id, FirstName, LastName, Email, Password__c
+                SELECT Id, FirstName, LastName, Email, Password__c, Password_Hash__c
                 FROM Contact
                 WHERE Email = :req.email
               	LIMIT 1
             ]; 
-            
-            System.debug('User Id => ' + UserInfo.getUserId());
-            System.debug('User Name => ' + UserInfo.getUserName());
-            System.debug('User Type => ' + UserInfo.getUserType());
-			
-            System.debug('lstAcc : ' + lstAcc);
             System.debug('contacts : ' + contacts);
 
             if(contacts.isEmpty()) {
@@ -46,17 +33,15 @@ global without sharing class LoginAPI {
             }
 
             Contact con = contacts[0];
-			
-            /*
+	
             String incomingHash =
                 EncodingUtil.convertToHex(
                     Crypto.generateDigest(
                         'SHA-256',
                         Blob.valueOf(req.password)
-                    )
-                );
-			*/
-            if(con.Password__c != req.password) {
+                    )                );
+		
+            if(con.Password_Hash__c != incomingHash) {
 
                 response.success = false;
                 response.message = 'Invalid Password';
