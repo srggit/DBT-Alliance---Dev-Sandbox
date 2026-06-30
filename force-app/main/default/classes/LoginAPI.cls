@@ -39,8 +39,11 @@ global without sharing class LoginAPI {
                     Crypto.generateDigest(
                         'SHA-256',
                         Blob.valueOf(req.password)
-                    )                );
-		
+                    ));
+            
+            System.debug('incomingHash : ' + incomingHash);
+            System.debug('con.Password_Hash__c : ' + con.Password_Hash__c);
+            
             if(con.Password_Hash__c != incomingHash) {
 
                 response.success = false;

@@ -9,11 +9,7 @@ global class RegistrationAPI {
         try {
 			System.debug('RestContext.request.requestBody.toString() : ' + RestContext.request.requestBody.toString());
             RegisterRequest req = (RegisterRequest) JSON.deserialize(RestContext.request.requestBody.toString(), RegisterRequest.class);
-            System.debug('req data received : ' + req);
-            System.debug('conact email : ' + req.email);
-	        Set<String> emails = new Set<String>();
-            emails.add(req.email);
-            System.debug('emails====>'+emails);
+
             List<Contact> existingContacts = [
                 SELECT Id, Email
                 FROM Contact
