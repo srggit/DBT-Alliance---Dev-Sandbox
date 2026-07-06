@@ -1,0 +1,286 @@
+<template>
+    <div class="slds-p-around_medium slds-is-relative action-container">
+
+        <template if:true={isLoading}>
+            <lightning-spinner alternative-text="Loading" size="medium"></lightning-spinner>
+        </template>
+
+        <template if:true={schemeDetails}>
+            <!-- Scheme Info (editable) -->
+            <div class="slds-box slds-theme_default slds-m-bottom_medium">
+                <h2 class="slds-text-heading_large slds-m-bottom_small">
+                    Clone {schemeDetails.Name}
+                </h2>
+                <div class="slds-grid slds-wrap slds-gutters">
+                    <div class="slds-col slds-size_1-of-2">
+                        <lightning-record-picker label="Scheme Item" object-api-name="Scheme_Items__c"
+                            value={parentFormData.Scheme_Items__c} onchange={handleSchemeItemChange}
+                            class="slds-m-bottom_large">
+                        </lightning-record-picker>
+
+                        <!-- Dates start blank on a clone -->
+                        <lightning-input type="date" label="Scheme Start Date" data-field="Scheme_Start_Date__c"
+                            value={parentFormData.Scheme_Start_Date__c} onchange={handleParentFieldChange}
+                            class="slds-m-bottom_small">
+                        </lightning-input>
+
+                        <lightning-input type="date" label="Second Stage Start Date"
+                            data-field="Second_Stage_Start_Date__c" value={parentFormData.Second_Stage_Start_Date__c}
+                            onchange={handleParentFieldChange} class="slds-m-bottom_small">
+                        </lightning-input>
+
+                        <lightning-combobox label="Scheme Visibility" placeholder="Select Scheme Visibility"
+                            value={parentFormData.Scheme_Visibility__c} options={publishStatusOptions}
+                            onchange={handlePublishStatusChange} class="slds-m-bottom_small">
+                        </lightning-combobox>
+
+                        <!-- NEW -->
+                        <lightning-input type="number" label="Team Size Limits" data-field="Team_Size_Limits__c"
+                            value={parentFormData.Team_Size_Limits__c} onchange={handleParentFieldChange} step="1"
+                            class="slds-m-bottom_small">
+                        </lightning-input>
+
+                        <!-- NEW -->
+                        <lightning-input type="number" label="Experience Required (In Years)"
+                            data-field="Experience_Required__c" value={parentFormData.Experience_Required__c}
+                            onchange={handleParentFieldChange} step="1" class="slds-m-bottom_small">
+                        </lightning-input>
+                    </div>
+                    <div class="slds-col slds-size_1-of-2">
+                        <lightning-record-picker label="Year" object-api-name="Year__c" value={parentFormData.Year__c}
+                            onchange={handleYearChange} class="slds-m-bottom_large">
+                        </lightning-record-picker>
+
+                        <lightning-input type="date" label="Scheme End Date" data-field="Scheme_End_Date__c"
+                            value={parentFormData.Scheme_End_Date__c} onchange={handleParentFieldChange}
+                            class="slds-m-bottom_small">
+                        </lightning-input>
+
+                        <lightning-input type="date" label="Second Stage End Date" data-field="Second_Stage_End_Date__c"
+                            value={parentFormData.Second_Stage_End_Date__c} onchange={handleParentFieldChange}
+                            class="slds-m-bottom_x-large">
+                        </lightning-input>
+
+                        <lightning-input type="checkbox" label="Is Active" data-field="Is_Active__c"
+                            checked={parentFormData.Is_Active__c} onchange={handleParentFieldChange}
+                            class="slds-m-bottom_x-large">
+                        </lightning-input>
+
+                        <!-- NEW -->
+                        <lightning-input type="number" label="Budget Cap" data-field="Budget_Cap__c"
+                            value={parentFormData.Budget_Cap__c} onchange={handleParentFieldChange} formatter="currency"
+                            step="0.01" class="slds-m-bottom_small">
+                        </lightning-input>
+
+                        <!-- NEW -->
+                        <lightning-combobox label="Application Stages" placeholder="Select Application Stage"
+                            value={parentFormData.Application_Stages__c} options={applicationStagesOptions}
+                            onchange={handleApplicationStagesChange} class="slds-m-bottom_small">
+                        </lightning-combobox>
+                    </div>
+
+                    <!-- NEW: multi-select picklist, given full width for usability -->
+                    <div class="slds-col slds-size_1-of-1">
+                        <lightning-dual-listbox label="Required Degree" source-label="Available"
+                            selected-label="Selected" options={requiredDegreeOptions}
+                            value={parentFormData.Required_Degree__c} onchange={handleRequiredDegreeChange}
+                            class="slds-m-top_small">
+                        </lightning-dual-listbox>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <lightning-tabset variant="scoped">
+                <lightning-tab label={checkListTabLabel}>
+                    <table class="slds-table slds-table_bordered slds-table_cell-buffer slds-table_fixed-layout">
+                        <thead>
+                            <tr class="slds-line-height_reset">
+                                <th style="width:3rem">
+                                    <lightning-input type="checkbox" variant="label-hidden" checked={selectAllCheckList}
+                                        onchange={handleSelectAllCheckList}>
+                                    </lightning-input>
+                                </th>
+                                <th>Name</th>
+                                <th>Questions</th>
+                                <th>Stage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template for:each={checkListRecords} for:item="item">
+                                <tr key={item.Id}>
+                                    <td>
+                                        <lightning-input type="checkbox" data-id={item.Id} checked={item.selected}
+                                            onchange={handleCheckListRowToggle}>
+                                        </lightning-input>
+                                    </td>
+                                    <td>{item.Name}</td>
+                                    <td class="display-name">
+                                        {item.Display_Question__c}
+                                    </td>
+                                    <td>
+                                        <lightning-combobox variant="label-hidden" label="Stage"
+                                            placeholder="Select Stage" value={item.Stage__c}
+                                            options={checkListStageOptions} data-id={item.Id}
+                                            onchange={handleCheckListStageChange}>
+                                        </lightning-combobox>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                    <template if:true={noCheckListRecords}>
+                        <p class="slds-text-color_weak slds-p-around_small">No records found.</p>
+                    </template>
+                </lightning-tab>
+
+                <lightning-tab label={rulesTabLabel}>
+                    <table class="slds-table slds-table_bordered slds-table_cell-buffer slds-table_fixed-layout">
+                        <thead>
+                            <tr class="slds-line-height_reset">
+                                <th style="width:3rem">
+                                    <lightning-input type="checkbox" variant="label-hidden" checked={selectAllRules}
+                                        onchange={handleSelectAllRules}>
+                                    </lightning-input>
+                                </th>
+                                <th>Name</th>
+                                <th>Validation Type</th>
+                                <th>Stage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template for:each={rulesRecords} for:item="item">
+                                <tr key={item.Id}>
+                                    <td>
+                                        <lightning-input type="checkbox" data-id={item.Id} checked={item.selected}
+                                            onchange={handleRulesRowToggle}>
+                                        </lightning-input>
+                                    </td>
+                                    <td>{item.Name}</td>
+                                    <td>
+                                        <lightning-combobox variant="label-hidden" label="Validation Type"
+                                            placeholder="Select Validation Type" value={item.Validation_Type__c}
+                                            options={rulesValidationTypeOptions} data-id={item.Id}
+                                            onchange={handleRulesValidationTypeChange}>
+                                        </lightning-combobox>
+                                    </td>
+                                    <td>
+                                        <lightning-combobox variant="label-hidden" label="Stage"
+                                            placeholder="Select Stage" value={item.Stage__c} options={rulesStageOptions}
+                                            data-id={item.Id} onchange={handleRulesStageChange}>
+                                        </lightning-combobox>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                    <template if:true={noRulesRecords}>
+                        <p class="slds-text-color_weak slds-p-around_small">No records found.</p>
+                    </template>
+                </lightning-tab>
+
+                <lightning-tab label={questionItemTabLabel}>
+                    <template if:true={noSchemeItemSelected}>
+                        <p class="slds-text-color_weak slds-p-around_small">
+                            Select a Scheme Item above to see its available Scheme Questionnaires.
+                        </p>
+                    </template>
+                    <template if:false={noSchemeItemSelected}>
+                        <div class="question-table-wrapper">
+                            <table class="slds-table slds-table_bordered slds-table_cell-buffer question-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width:50px">
+                                            <lightning-input type="checkbox" variant="label-hidden"
+                                                checked={selectAllQuestionItems}
+                                                onchange={handleSelectAllQuestionItems}>
+                                            </lightning-input>
+                                        </th>
+                                        <th style="min-width:220px">Question</th>
+                                        <th style="width:150px">Stage</th>
+                                        <th style="width:110px">Type</th>
+                                        <th style="width:110px">Max Character</th>
+                                        <th style="width:110px">Min Character</th>
+                                        <th style="width:100px">Mandatory</th>
+                                        <th style="width:90px">Is Active</th>
+                                        <th style="width:140px">Attachments</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template for:each={questionItemRecords} for:item="item">
+                                        <tr key={item.Id}>
+                                            <td>
+                                                <lightning-input type="checkbox" data-id={item.Id}
+                                                    checked={item.selected} onchange={handleQuestionItemRowToggle}>
+                                                </lightning-input>
+                                            </td>
+                                            <td>
+                                                <lightning-textarea variant="label-hidden" data-id={item.Id}
+                                                    data-field="Question__c" value={item.Question__c}
+                                                    onchange={handleQuestionItemFieldChange}>
+                                                </lightning-textarea>
+                                            </td>
+                                            <td>
+                                                <lightning-combobox variant="label-hidden" value={item.Stage__c}
+                                                    options={questionItemStageOptions} data-id={item.Id}
+                                                    placeholder="Select Stage" onchange={handleQuestionItemStageChange}>
+                                                </lightning-combobox>
+                                            </td>
+                                            <td>
+                                                <lightning-combobox variant="label-hidden" value={item.Type__c}
+                                                    options={questionItemTypeOptions} data-id={item.Id}
+                                                    placeholder="Select Type" onchange={handleQuestionItemTypeChange}>
+                                                </lightning-combobox>
+                                            </td>
+                                            <td>
+                                                <lightning-input type="number" variant="label-hidden" data-id={item.Id}
+                                                    data-field="Max_Character__c" value={item.Max_Character__c}
+                                                    placeholder="Enter Max.Char"
+                                                    onchange={handleQuestionItemFieldChange}>
+                                                </lightning-input>
+                                            </td>
+                                            <td>
+                                                <lightning-input type="number" variant="label-hidden" data-id={item.Id}
+                                                    data-field="Min_Character__c" value={item.Min_Character__c}
+                                                    placeholder="Enter Min.Char"
+                                                    onchange={handleQuestionItemFieldChange}>
+                                                </lightning-input>
+                                            </td>
+                                            <td>
+                                                <lightning-input type="checkbox" data-id={item.Id}
+                                                    data-field="Mandatory__c" checked={item.Mandatory__c}
+                                                    onchange={handleQuestionItemFieldChange}>
+                                                </lightning-input>
+                                            </td>
+                                            <td>
+                                                <lightning-input type="checkbox" data-id={item.Id}
+                                                    data-field="Is_Active__c" checked={item.Is_Active__c}
+                                                    onchange={handleQuestionItemFieldChange}>
+                                                </lightning-input>
+                                            </td>
+                                            <td>
+                                                <lightning-combobox variant="label-hidden" value={item.Attachments__c}
+                                                    options={questionItemAttachmentsOptions} data-id={item.Id}
+                                                    placeholder="Select Attachments"
+                                                    onchange={handleQuestionItemAttachmentsChange}>
+                                                </lightning-combobox>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </template>
+                </lightning-tab>
+            </lightning-tabset>
+        </template>
+
+        <!-- Footer buttons -->
+        <div class="slds-m-top_medium slds-text-align_right slds-border_top slds-p-top_small">
+            <lightning-button label="Cancel" onclick={handleCancel} class="slds-m-right_small">
+            </lightning-button>
+            <lightning-button variant="brand" label="Save" onclick={handleSave} disabled={isSaving}>
+            </lightning-button>
+        </div>
+    </div>
+</template>

@@ -1,0 +1,51 @@
+:host {
+    display: block;
+}
+
+.slds-modal__header {
+    text-align: left;
+    border-bottom: 1px solid #e5e5e5;
+    padding: 1rem 1.5rem;
+    position: relative;
+}
+
+.slds-modal__close {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+}
+
+.slds-modal__title {
+    font-weight: 700;
+}
+
+.modal-body {
+    position: relative;
+    min-height: 12rem;
+    max-height: 28rem;
+    overflow: auto;
+    background: #ffffff;
+}
+
+.loading-container {
+    min-height: 12rem;
+}
+
+.saving-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.65);
+    z-index: 1;
+}
+
+.slds-modal__footer {
+    border-top: 1px solid #e5e5e5;
+    padding: 0.75rem 1rem;
+    text-align: right;
+    background: #f3f3f3;
+}
+
+.member-row-disabled {
+    background-color: #f3f3f3;
+    color: #706e6b;
+}

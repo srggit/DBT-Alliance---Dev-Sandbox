@@ -1,0 +1,28 @@
+:host {
+    display: block;
+    overflow: visible;
+}
+
+/* Do not use overflow:auto here — it clips lightning-combobox dropdowns. */
+.configure-panel,
+.configure-table-wrap {
+    overflow: visible;
+}
+
+.configure-table-wrap {
+    /* Space for open picklist menus above the footer buttons. */
+    padding-bottom: 12rem;
+}
+
+.configure-table,
+.configure-table tbody,
+.configure-table tr,
+.configure-table td {
+    overflow: visible;
+}
+
+.configure-footer {
+    position: relative;
+    z-index: 0;
+    background: #ffffff;
+}

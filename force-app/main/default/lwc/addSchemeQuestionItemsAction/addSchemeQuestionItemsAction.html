@@ -1,0 +1,133 @@
+<template>
+    <div class="slds-p-around_medium slds-is-relative action-container">
+
+        <template if:true={isLoading}>
+            <lightning-spinner alternative-text="Loading" size="medium"></lightning-spinner>
+        </template>
+
+        <template if:true={schemeInfo}>
+            <div class="slds-box slds-theme_default slds-m-bottom_medium">
+                <h2 class="slds-text-heading_large slds-m-bottom_x-small">
+                    Add Scheme Question Items
+                </h2>
+                <p class="slds-text-body_small slds-text-color_weak">
+                    Yearly Scheme: {schemeInfo.Name} &nbsp;|&nbsp;
+                    Scheme Item: {schemeInfo.Scheme_Items__r.Name}
+                </p>
+            </div>
+
+            <template if:true={noSchemeItem}>
+                <p class="slds-text-color_weak slds-p-around_small">
+                    This Yearly Scheme has no Scheme Item selected, so there are no Scheme Questionnaires to show.
+                </p>
+            </template>
+
+            <template if:false={noSchemeItem}>
+                <div class="question-table-wrapper">
+                    <table class="slds-table slds-table_bordered slds-table_cell-buffer question-table">
+                        <thead>
+                            <tr>
+                                <th style="width:50px">
+                                    <lightning-input type="checkbox" variant="label-hidden"
+                                        checked={selectAllQuestionItems} onchange={handleSelectAllQuestionItems}>
+                                    </lightning-input>
+                                </th>
+                                <th style="min-width:220px">Question</th>
+                                <th style="width:150px">Stage</th>
+                                <th style="width:110px">Type</th>
+                                <th style="width:110px">Max Character</th>
+                                <th style="width:110px">Min Character</th>
+                                <th style="width:100px">Mandatory</th>
+                                <th style="width:90px">Is Active</th>
+                                <th style="width:140px">Attachments</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template for:each={questionItemRecords} for:item="item">
+                                <tr key={item.Id} class="question-row">
+                                    <td>
+                                        <lightning-input type="checkbox" data-id={item.Id} checked={item.selected}
+                                            disabled={item.alreadyAdded} onchange={handleRowToggle}>
+                                        </lightning-input>
+                                    </td>
+                                    <td>
+                                        <lightning-textarea variant="label-hidden" data-id={item.Id}
+                                            data-field="Question__c" value={item.Question__c}
+                                            disabled={item.alreadyAdded} onchange={handleFieldChange}>
+                                        </lightning-textarea>
+
+                                        <!-- Friendly inline notice for rows already saved -->
+                                        <template if:true={item.alreadyAdded}>
+                                            <div
+                                                class="slds-text-body_small slds-text-color_success slds-m-top_xx-small">
+                                                <lightning-icon icon-name="utility:success" size="xx-small"
+                                                    class="slds-m-right_xx-small">
+                                                </lightning-icon>
+                                                {item.addedMessage}
+                                            </div>
+                                        </template>
+                                    </td>
+                                    <td>
+                                        <lightning-combobox variant="label-hidden" value={item.Stage__c}
+                                            options={stageOptions} data-id={item.Id} disabled={item.alreadyAdded}
+                                            onchange={handleStageChange}>
+                                        </lightning-combobox>
+                                    </td>
+                                    <td>
+                                        <lightning-combobox variant="label-hidden" value={item.Type__c}
+                                            options={typeOptions} data-id={item.Id} disabled={item.alreadyAdded}
+                                            onchange={handleTypeChange}>
+                                        </lightning-combobox>
+                                    </td>
+                                    <td>
+                                        <lightning-input type="number" variant="label-hidden" data-id={item.Id}
+                                            data-field="Max_Character__c" value={item.Max_Character__c}
+                                            disabled={item.alreadyAdded} onchange={handleFieldChange}>
+                                        </lightning-input>
+                                    </td>
+                                    <td>
+                                        <lightning-input type="number" variant="label-hidden" data-id={item.Id}
+                                            data-field="Min_Character__c" value={item.Min_Character__c}
+                                            disabled={item.alreadyAdded} onchange={handleFieldChange}>
+                                        </lightning-input>
+                                    </td>
+                                    <td>
+                                        <lightning-input type="checkbox" data-id={item.Id} data-field="Mandatory__c"
+                                            checked={item.Mandatory__c} disabled={item.alreadyAdded}
+                                            onchange={handleFieldChange}>
+                                        </lightning-input>
+                                    </td>
+                                    <td>
+                                        <lightning-input type="checkbox" data-id={item.Id} data-field="Is_Active__c"
+                                            checked={item.Is_Active__c} disabled={item.alreadyAdded}
+                                            onchange={handleFieldChange}>
+                                        </lightning-input>
+                                    </td>
+                                    <td>
+                                        <lightning-combobox variant="label-hidden" value={item.Attachments__c}
+                                            options={questionItemAttachmentsOptions} data-id={item.Id}
+                                            placeholder="Select Attachments" disabled={item.alreadyAdded}
+                                            onchange={handleQuestionItemAttachmentsChange}>
+                                        </lightning-combobox>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+                <template if:true={noQuestionItemRecords}>
+                    <p class="slds-text-color_weak slds-p-around_small">
+                        No Scheme Questionnaires found for this Scheme Item.
+                    </p>
+                </template>
+            </template>
+        </template>
+
+        <div class="slds-m-top_medium slds-text-align_right slds-border_top slds-p-top_small">
+            <lightning-button label="Cancel" onclick={handleCancel} class="slds-m-right_small">
+            </lightning-button>
+            <lightning-button variant="brand" label="Save" onclick={handleSave} disabled={isSaving}>
+            </lightning-button>
+        </div>
+    </div>
+</template>

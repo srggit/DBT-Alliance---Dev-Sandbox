@@ -1,0 +1,213 @@
+<!-- sldsValidatorIgnore -->
+<template>
+    <lightning-card title={cardTitle} icon-name="standard:document">
+
+        <template lwc:if={isLoading}>
+            <div class="slds-p-around_medium slds-is-relative" style="min-height: 6rem;">
+                <lightning-spinner alternative-text="Loading documents" size="medium"></lightning-spinner>
+            </div>
+        </template>
+
+        <template lwc:elseif={error}>
+            <div class="slds-p-around_medium slds-text-color_error">
+                Unable to load documents. Please contact your administrator.
+            </div>
+        </template>
+
+        <template lwc:elseif={hasDocuments}>
+
+            <!-- Step 1: Select Document Masters -->
+            <template lwc:if={isSelectionStep}>
+                <hr class="slds-m-vertical_small">
+
+                <div class="slds-p-horizontal_small slds-p-bottom_small">
+                    <div class="slds-grid slds-grid_vertical-align-center slds-m-bottom_small">
+                        <div class="slds-col slds-size_1-of-2">
+                            <lightning-input type="search" label="Search documents" variant="label-hidden"
+                                placeholder="Search by name or document master id" value={searchKey}
+                                onchange={handleSearchChange}>
+                            </lightning-input>
+                        </div>
+                        <div class="slds-col slds-size_1-of-2 slds-text-align_right">
+                            <p class="slds-text-body_small slds-text-color_weak">
+                                {selectionSummary}
+                            </p>
+                        </div>
+                    </div>
+
+                    <template lwc:if={hasFilteredDocuments}>
+                        <table class="slds-table slds-table_cell-buffer slds-table_bordered slds-table_fixed-layout">
+                            <thead>
+                                <tr class="slds-line-height_reset">
+                                    <th scope="col" style="width: 3rem;">
+                                        <lightning-input type="checkbox" label="Select all documents"
+                                            variant="label-hidden" checked={isAllSelected} onchange={handleSelectAll}>
+                                        </lightning-input>
+                                    </th>
+                                    <th scope="col">
+                                        <div class="slds-truncate" title="Document Name">Document Name</div>
+                                    </th>
+                                    <th scope="col">
+                                        <div class="slds-truncate" title="Document Master Id">Document Master Id</div>
+                                    </th>
+                                    <th scope="col">
+                                        <div class="slds-truncate" title="Scheme Items">Scheme Items</div>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template for:each={filteredDocuments} for:item="document">
+                                    <tr key={document.id} class="slds-hint-parent">
+                                        <td>
+                                            <lightning-input type="checkbox" label="Select document"
+                                                variant="label-hidden" data-id={document.id} checked={document.selected}
+                                                onchange={handleDocumentSelect}>
+                                            </lightning-input>
+                                        </td>
+                                        <td>
+                                            <div class="slds-truncate" title={document.name}>{document.name}</div>
+                                        </td>
+                                        <td>
+                                            <div class="slds-truncate" title={document.documentMastersId}>
+                                                {document.documentMastersId}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="slds-truncate" title={document.schemeItemName}>
+                                                {document.schemeItemName}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </template>
+                    <template lwc:else>
+                        <div class="slds-p-around_medium slds-text-align_center slds-text-color_weak">
+                            No documents match your search.
+                        </div>
+                    </template>
+                </div>
+
+
+                <div class="slds-p-right_small slds-grid slds-grid_align-end slds-gutters_x-small">
+                    <hr class="slds-m-vertical_small">
+
+                    <div class="slds-col">
+                        <lightning-button label="Cancel" onclick={handleCancel}>
+                        </lightning-button>
+                    </div>
+                    <div class="slds-col">
+                        <lightning-button variant="brand" label="Next" onclick={handleNext} disabled={isNextDisabled}>
+                        </lightning-button>
+                    </div>
+                </div>
+            </template>
+
+            <!-- Step 2: Configure Documents__c drafts in table -->
+            <template lwc:elseif={isConfigureStep}>
+                <hr class="slds-m-vertical_small">
+
+                <div class="slds-p-horizontal_small configure-panel">
+                    <div class="slds-m-bottom_small slds-text-align_right">
+                        <p class="slds-text-body_small slds-text-color_weak">
+                            {configureSummary}
+                        </p>
+                    </div>
+
+                    <div class="configure-table-wrap">
+                        <table class="slds-table slds-table_cell-buffer slds-table_bordered configure-table">
+                            <thead>
+                                <tr class="slds-line-height_reset">
+                                    <th scope="col">
+                                        <div class="slds-truncate" title="Document Name">Document Name</div>
+                                    </th>
+                                    <th scope="col" style="width: 8rem;">
+                                        <div class="slds-truncate" title="Stage">Stage</div>
+                                    </th>
+                                    <th scope="col" style="width: 11rem;">
+                                        <div class="slds-truncate" title="Roles">Roles
+                                        </div>
+                                    </th>
+                                    <th scope="col" style="width: 6rem;">
+                                        <div class="slds-truncate" title="Is Required">Is Required</div>
+                                    </th>
+                                    <th scope="col" style="width: 6rem;">
+                                        <div class="slds-truncate" title="Is Active">Is Active</div>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template for:each={drafts} for:item="draft">
+                                    <tr key={draft.key} class="slds-hint-parent">
+                                        <td>
+                                            <div class="slds-truncate" title={draft.documentName}>
+                                                {draft.documentName}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <lightning-combobox label="Stage" variant="label-hidden" data-id={draft.key}
+                                                data-field="stage" value={draft.stage} options={stageOptions}
+                                                onchange={handleDraftFieldChange} placeholder="Select">
+                                            </lightning-combobox>
+                                        </td>
+                                        <td>
+                                            <lightning-combobox label="Mandatory for Roles" variant="label-hidden"
+                                                data-id={draft.key} data-field="mandatoryForRoles"
+                                                value={draft.mandatoryForRoles} options={roleOptions}
+                                                onchange={handleDraftFieldChange} placeholder="Select">
+                                            </lightning-combobox>
+                                        </td>
+                                        <td>
+                                            <lightning-input type="checkbox" label="Is Required" variant="label-hidden"
+                                                data-id={draft.key} data-field="isRequired" checked={draft.isRequired}
+                                                onchange={handleDraftFieldChange}>
+                                            </lightning-input>
+                                        </td>
+                                        <td>
+                                            <lightning-input type="checkbox" label="Is Active" variant="label-hidden"
+                                                data-id={draft.key} data-field="isActive" checked={draft.isActive}
+                                                onchange={handleDraftFieldChange}>
+                                            </lightning-input>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <hr class="slds-m-vertical_small">
+
+                <div class="configure-footer slds-p-right_small slds-grid slds-grid_align-end slds-gutters_x-small">
+
+                    <div class="slds-col">
+                        <lightning-button label="Back" onclick={handleBack} disabled={isSaving}>
+                        </lightning-button>
+                    </div>
+                    <div class="slds-col">
+                        <lightning-button label="Cancel" onclick={handleCancel} disabled={isSaving}>
+                        </lightning-button>
+                    </div>
+                    <div class="slds-col">
+                        <lightning-button variant="brand" label="Save Documents" onclick={handleSaveDocuments}
+                            disabled={isSaveDisabled}>
+                        </lightning-button>
+                    </div>
+                </div>
+
+                <template lwc:if={isSaving}>
+                    <div class="slds-is-relative" style="min-height: 3rem;">
+                        <lightning-spinner alternative-text="Saving documents" size="small"></lightning-spinner>
+                    </div>
+                </template>
+            </template>
+        </template>
+
+        <template lwc:else>
+            <div class="slds-p-around_medium">
+                No documents found for this Yearly Scheme's Scheme Items.
+            </div>
+        </template>
+    </lightning-card>
+</template>

@@ -1,0 +1,120 @@
+<!-- sldsValidatorIgnore -->
+<template>
+    <lightning-card title="Grants Managers" icon-name="standard:user">
+
+        <template lwc:if={isLoading}>
+            <div class="slds-p-around_medium slds-is-relative" style="min-height: 6rem;">
+                <lightning-spinner alternative-text="Loading Grants Manager users" size="medium"></lightning-spinner>
+            </div>
+        </template>
+
+        <template lwc:elseif={error}>
+            <div class="slds-p-around_medium slds-text-color_error">
+                Unable to load Grants Manager users. Please contact your administrator.
+            </div>
+        </template>
+
+        <template lwc:elseif={hasUsers}>
+            <hr class="slds-m-vertical_small">
+
+            <div class="slds-p-horizontal_small slds-p-bottom_small">
+                <div class="slds-grid slds-grid_vertical-align-center slds-m-bottom_small">
+                    <div class="slds-col slds-size_1-of-2">
+                        <lightning-input type="search" label="Search users" variant="label-hidden"
+                            placeholder="Search by name, email, or username" value={searchKey}
+                            onchange={handleSearchChange}>
+                        </lightning-input>
+                    </div>
+                    <div class="slds-col slds-size_1-of-2 slds-text-align_right">
+                        <p class="slds-text-body_small slds-text-color_weak">
+                            {selectionSummary}
+                        </p>
+                    </div>
+                </div>
+
+                <template lwc:if={hasFilteredUsers}>
+                    <table class="slds-table slds-table_cell-buffer slds-table_bordered slds-table_fixed-layout">
+                        <thead>
+                            <tr class="slds-line-height_reset">
+                                <th scope="col" style="width: 3rem;"></th>
+                                <th scope="col">
+                                    <div class="slds-truncate" title="Name">Name</div>
+                                </th>
+                                <th scope="col">
+                                    <div class="slds-truncate" title="Email">Email</div>
+                                </th>
+                                <th scope="col">
+                                    <div class="slds-truncate" title="Username">Username</div>
+                                </th>
+                                <th scope="col">
+                                    <div class="slds-truncate" title="Role">Role</div>
+                                </th>
+                                <th scope="col">
+                                    <div class="slds-truncate" title="Is Active">Is Active</div>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template for:each={filteredUsers} for:item="user">
+                                <tr key={user.id} class={user.rowClass}>
+                                    <td>
+                                        <lightning-input type="checkbox" label="Select user" variant="label-hidden"
+                                            data-id={user.id} checked={user.selected} disabled={user.isAlreadyAdded}
+                                            onchange={handleUserSelect}>
+                                        </lightning-input>
+                                    </td>
+                                    <td>
+                                        <div class="slds-truncate" title={user.name}>{user.name}</div>
+                                    </td>
+                                    <td>
+                                        <div class="slds-truncate" title={user.email}>{user.email}</div>
+                                    </td>
+                                    <td>
+                                        <div class="slds-truncate" title={user.username}>{user.username}</div>
+                                    </td>
+                                    <td>
+                                        <div class="slds-truncate" title={user.role}>{user.role}</div>
+                                    </td>
+                                    <td>
+                                        <div class="slds-truncate" title={user.activeLabel}>{user.activeLabel}</div>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </template>
+                <template lwc:else>
+                    <div class="slds-p-around_medium slds-text-align_center slds-text-color_weak">
+                        No users match your search.
+                    </div>
+                </template>
+            </div>
+
+            <hr class="slds-m-vertical_small">
+            <div class="slds-p-right_small slds-grid slds-grid_align-end slds-gutters_x-small">
+
+                <div class="slds-col">
+                    <lightning-button label="Cancel" onclick={handleCancel} disabled={isSaving}>
+                    </lightning-button>
+                </div>
+                <div class="slds-col">
+                    <lightning-button variant="brand" label="Add Members" onclick={handleAddMembers}
+                        disabled={isAddDisabled}>
+                    </lightning-button>
+                </div>
+            </div>
+
+            <template lwc:if={isSaving}>
+                <div class="slds-is-relative" style="min-height: 3rem;">
+                    <lightning-spinner alternative-text="Adding members" size="small"></lightning-spinner>
+                </div>
+            </template>
+        </template>
+
+        <template lwc:else>
+            <div class="slds-p-around_medium">
+                No active users found with the Grants Manager role.
+            </div>
+        </template>
+    </lightning-card>
+</template>

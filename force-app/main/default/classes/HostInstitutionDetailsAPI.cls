@@ -53,7 +53,7 @@ global without sharing class HostInstitutionDetailsAPI {
         public String postalCode;
 		public String telephoneNumber;
 		public String email;          
-        public Boolean notForProfitInstituition;
+        public String notForProfitInstituition;
     }
 
     global class HostInstitutionResponse {

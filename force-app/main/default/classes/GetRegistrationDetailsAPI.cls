@@ -29,36 +29,46 @@ global without sharing class GetRegistrationDetailsAPI {
                 LIMIT 1
             ];
             System.debug('## Contact Found : ' + existingContact);
+
+            if(existingContact.isEmpty()){
+                response.success = false;
+                response.message = 'Contact record not found.';
+                response.contactDetailsWrapper = null;
+                return response;
+            }
             
             Contact con = existingContact[0];
+            ContactDetailsWrapper contactDetailsWrapper = new ContactDetailsWrapper();
+
+            contactDetailsWrapper.contactId = con.Id;
+            contactDetailsWrapper.title = con.Title;
+            contactDetailsWrapper.firstName = con.FirstName;
+            contactDetailsWrapper.lastName = con.LastName;
+            contactDetailsWrapper.gender = con.Gender__c;
+            contactDetailsWrapper.dob = con.BirthDate;
+            contactDetailsWrapper.nationality = con.Nationality__c;
+            
+            contactDetailsWrapper.currentPosition = con.Position__c;
+            contactDetailsWrapper.department = con.Department;
+            
+            contactDetailsWrapper.city = con.MailingCity;
+            contactDetailsWrapper.district = con.MailingState;
+            contactDetailsWrapper.state = con.MailingState;
+            contactDetailsWrapper.country = con.MailingCountry;
+            contactDetailsWrapper.postalCode = con.MailingPostalCode;
+
+            contactDetailsWrapper.mobileNuber = con.Phone;
+            contactDetailsWrapper.email = con.Email;
+            
+            contactDetailsWrapper.uid = con.Firebase_UID__c;
+            
+            // contactDetailsWrapper.qualifyingDegree = con.Qualifying_Degree__c;
+            // contactDetailsWrapper.qualifyingDegreeVivaDate = con.Qualifying_Degree_Viva_Date__c;
                         
             response.success = true;
             response.message = 'Contact record found.';
-            response.contactId = con.Id;
-			
-            response.title = con.Title;
-            response.title = con.Title;
-            response.firstName = con.FirstName;
-            response.lastName = con.LastName;
-            response.gender = con.Gender__c;
-            response.dob = con.BirthDate;
-            response.nationality = con.Nationality__c;
-            
-            //con.AccountId = ;
-            response.currentPosition = con.Position__c;
-            response.department = con.Department;
-            
-            response.city = con.MailingCity;
-            //con. = req.district;
-            response.state = con.MailingState;
-            response.country = con.MailingCountry;
-            response.postalCode = con.MailingPostalCode;
-            
-            response.mobileNuber = con.Phone;
-            response.email = con.Email;
-            
-            response.uid = con.Firebase_UID__c;
-            
+            response.contactDetailsWrapper = contactDetailsWrapper;
+
         } catch (QueryException e) {
             response.success = false;
             response.message = 'Contact record not found.';
@@ -74,8 +84,11 @@ global without sharing class GetRegistrationDetailsAPI {
     global class ResponseWrapper {
         public Boolean success;
         public String message;
+        public ContactDetailsWrapper contactDetailsWrapper;
+    }
+
+    global class ContactDetailsWrapper{
         public String contactId;
-        
         public String title;
         public String firstName;
         public String lastName;

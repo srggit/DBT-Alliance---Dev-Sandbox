@@ -1,0 +1,9 @@
+.action-container {
+    width: 100%;
+    min-height: 60vh;
+}
+
+.question-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}

@@ -1,0 +1,77 @@
+/* Wrapper */
+.question-table-wrapper {
+    overflow-x: auto;
+    border: 1px solid #d8dde6;
+    border-radius: 6px;
+    margin-top: .5rem;
+}
+
+/* Table */
+.question-table {
+    width: 100%;
+    min-width: 900px;
+    border-collapse: collapse;
+    table-layout: auto;
+}
+
+/* Header */
+.question-table thead th {
+    background: #f3f3f3;
+    font-weight: 700;
+    color: #3e3e3c;
+    white-space: nowrap;
+    padding: .7rem;
+}
+
+/* Cells */
+.question-table td {
+    vertical-align: middle;
+    padding: .6rem;
+}
+
+/* Zebra rows */
+.question-table tbody tr:nth-child(even) {
+    background: #fafafa;
+}
+
+/* Hover */
+.question-table tbody tr:hover {
+    background: #f4f6f9;
+}
+
+/* Display Name */
+.display-name {
+    min-width: 260px;
+    max-width: 350px;
+    white-space: normal;
+    word-break: break-word;
+}
+
+/* Questionnaire */
+.question-table td:nth-child(2) {
+    min-width: 120px;
+}
+
+/* Mandatory */
+.question-table td:nth-child(4),
+.question-table th:nth-child(4) {
+    text-align: center;
+    width: 90px;
+}
+
+/* Type */
+.question-table td:nth-child(5),
+.question-table th:nth-child(5) {
+    width: 120px;
+}
+
+/* Stage */
+.question-table td:nth-child(6),
+.question-table th:nth-child(6) {
+    width: 190px;
+}
+
+/* Combobox */
+.question-table lightning-combobox {
+    width: 170px;
+}
