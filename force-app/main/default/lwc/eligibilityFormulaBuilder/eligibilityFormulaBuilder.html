@@ -1,0 +1,89 @@
+<template>
+    <lightning-card title="Eligibility Formula Builder" icon-name="utility:formula">
+
+        <hr class="slds-m-vertical_medium">
+
+        <div class="slds-p-around_medium">
+
+            <lightning-layout multiple-rows>
+
+                <lightning-layout-item size="3" padding="around-small">
+                    <lightning-combobox label="Validation Type" value={selectedValidationType}
+                        options={validationTypeOptions} onchange={handleValidationTypeChange}>
+                    </lightning-combobox>
+                </lightning-layout-item>
+
+                <lightning-layout-item size="3" padding="around-small">
+                    <lightning-combobox label="Eligibility Type" value={selectedEligibilityType}
+                        options={eligibilityTypeOptions} onchange={handleEligibilityTypeChange}>
+                    </lightning-combobox>
+                </lightning-layout-item>
+
+            </lightning-layout>
+
+            <div class="formula-editor-section slds-var-m-top_medium">
+                <label class="slds-form-element__label" for="formula-editor">Formula Editor</label>
+                <p class="slds-text-body_small slds-text-color_weak slds-var-m-bottom_x-small">
+                    Click in the editor, place your cursor, then insert fields and operators in order:
+                    Field → Operator → Value.
+                </p>
+                <p class={editorStateClass}>{editorStateMessage}</p>
+                <textarea id="formula-editor" data-id="formula-editor" class="slds-textarea formula-editor"
+                    placeholder="Example: Yearly_Schemes__c.Experience_Required__c = 4 AND (Yearly_Schemes__c.Is_Active__c = true)"
+                    oninput={handleFormulaInput} onclick={handleFormulaSelectionChange}
+                    onkeyup={handleFormulaSelectionChange} onselect={handleFormulaSelectionChange}>
+                </textarea>
+            </div>
+
+            <div class="insert-toolbar slds-var-m-top_medium">
+                <h3 class="slds-text-heading_small slds-var-m-bottom_x-small">Insert at Cursor</h3>
+
+                <lightning-layout multiple-rows vertical-align="end">
+
+                    <lightning-layout-item size="3" padding="around-small">
+                        <lightning-combobox label="Object" value={objectName} options={objectOptions}
+                            placeholder="Select Object" onchange={handleObjectChange}>
+                        </lightning-combobox>
+                    </lightning-layout-item>
+                    <!-- 
+                    <lightning-layout-item size="2" padding="around-small">
+                        <lightning-button label="Insert Object" onclick={handleInsertObject}>
+                        </lightning-button>
+                    </lightning-layout-item> -->
+
+                    <lightning-layout-item size="3" padding="around-small">
+                        <lightning-combobox label="Field" value={fieldName} options={fieldOptions}
+                            placeholder="Select Field" disabled={isFieldPicklistDisabled} onchange={handleFieldChange}>
+                        </lightning-combobox>
+                    </lightning-layout-item>
+
+                    <lightning-layout-item size="2" padding="around-small">
+                        <lightning-button label="Insert Field" onclick={handleInsertField}
+                            disabled={isInsertFieldDisabled}>
+                        </lightning-button>
+                    </lightning-layout-item>
+
+                </lightning-layout>
+
+                <div class="operator-toolbar slds-var-m-top_small">
+                    <span class="slds-text-title_caps slds-var-m-right_small">Operators</span>
+                    <template for:each={operatorTokensWithState} for:item="operator">
+                        <lightning-button key={operator.label} label={operator.label} data-token={operator.token}
+                            disabled={operator.disabled} onclick={handleInsertOperator} class="operator-button">
+                        </lightning-button>
+                    </template>
+                </div>
+            </div>
+
+            <hr class="slds-m-vertical_medium">
+
+            <div class="button-group">
+                <lightning-button variant="brand" label="Save" onclick={saveEligibilityCriteria}>
+                </lightning-button>
+            </div>
+
+        </div>
+
+    </lightning-card>
+
+</template>

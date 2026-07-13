@@ -29,19 +29,24 @@ global without sharing class ProfileInfoAPI {
             
             con.FirstName = req.firstName;
             con.LastName = req.lastName;
-            //con.Email = req.email;
-            con.BirthDate = req.dob;
-            con.Nationality__c = req.nationality;
-            con.Gender__c = req.gender;
-            
-            con.Position__c = req.currentPosition;
-            con.Department = req.department;
+            con.Email = req.email;
             con.Phone = req.mobileNuber;
-            
-            con.MailingCity = req.city;
-            con.MailingState = req.state;
-            con.MailingCountry = req.country;
-            con.MailingPostalCode = req.postalCode;
+            con.BirthDate = req.dob;
+
+            con.AccountId = req.organisation_institution; // Account Id
+            con.Department = req.department;
+            con.Position__c = req.designationRole;
+
+            con.Qualifying_Degree__c = req.qualifyingDegree;
+            con.Qualifying_Degree_Viva_Date__c = req.qualifyingDegreeVivaDate;
+            con.Research_Experience_After_Viva_Date_Yrs__c = req.durationOfResearchExperienceAfterQualifyingVivaDate_Years;
+            con.Research_Experience_After_Viva_Date_Mont__c = req.durationOfResearchExperienceAfterQualifyingVivaDate_Months;
+
+            con.Non_Research_Career_Break_From__c = req.nonResearchCareerBreak_From;
+            con.Non_Research_Career_Break_To__c = req.nonResearchCareerBreak_To;
+            con.Non_Research_Career_Break_Explanation__c = req.nonReserchCareerBreak_Explaination;
+
+            con.ORCID_ID__c = req.orcidID;
             
             update con;
             
@@ -64,23 +69,21 @@ global without sharing class ProfileInfoAPI {
         public String firstName;
         public String lastName;
         public String email;
-        public Date dob;
-        
-        public String nationality;
-        public String gender;
-        public String currentOrg;	// Account
-        public String currentPosition;
-        public String department;
-        public String city;
-        public String district;
-        public String state;
-        public String country;
-        public String postalCode;
         public String mobileNuber;
+        public Date dob;
+
         public String qualifyingDegree;
         public Date qualifyingDegreeVivaDate;
-        public String durationOfResearchExperienceAfterQualifyingDegreeVivaDate;
-        public String nonResearchCareerBreak;
+
+        public String organisation_institution;
+        public String department;
+        public String designationRole;
+        public Integer durationOfResearchExperienceAfterQualifyingVivaDate_Years;
+        public Integer durationOfResearchExperienceAfterQualifyingVivaDate_Months;
+        public Date nonResearchCareerBreak_From;
+        public Date nonResearchCareerBreak_To;
+        public String nonReserchCareerBreak_Explaination;     
+        public String orcidID;
     }
     
     global class ProfileResponse{

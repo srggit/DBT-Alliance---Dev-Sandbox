@@ -1,3 +1,5 @@
+// Create Account API
+
 @RestResource(urlMapping='/register')
 global class RegistrationAPI {
 
@@ -20,7 +22,7 @@ global class RegistrationAPI {
             
             if(!existingContacts.isEmpty()){
                 response.success = false;
-                response.message = 'Contact already exits with this credentials';
+                response.message = 'Contact already exits with this Email';
                 response.contactId = existingContacts[0].Id;
                 
                 return response;
@@ -37,25 +39,20 @@ global class RegistrationAPI {
             con.BirthDate = req.dob;
             con.Nationality__c = req.nationality;
             
-            con.AccountId = req.accountId;
-            con.Position__c = req.currentPosition;
-            con.Department = req.department;
-            
             con.MailingCity = req.city;
             //con. = req.district;
             con.MailingState = req.state;
             con.MailingCountry = req.country;
             con.MailingPostalCode = req.postalCode;
             
-            con.Phone = req.mobileNuber;
-            con.MobilePhone = req.mobileNuber;
+            con.Phone = req.telephoneNumber;
+            con.MobilePhone = req.telephoneNumber;
             con.Email = req.email;
             con.Password__c = req.password;
             con.Password_Hash__c = passwordHash;
             
             con.Firebase_UID__c = req.uid;
-            con.Qualifying_Degree__c = req.qualifyingDegree;
-            con.Other_Degree__c = req.otherDegree;
+
             insert con;
 
             response.success = true;
@@ -80,32 +77,17 @@ global class RegistrationAPI {
         public Date dob;
         public String nationality;
         
-        public String currentOrg;	// Account
-        public String currentPosition;
-        public String department;
         public String city;
         public String district;
         public String state;
         public String country;
         public String postalCode;
         
-        public String mobileNuber;
+        public String telephoneNumber;
         public String email;
         public String password;      
         
         public String uid;
-        
-        public String qualifyingDegree;
-        public String otherDegree;
-        public Date qualifyingDegreeVivaDate;
-        
-        public String accountId;
-        
-        // Doubts here to store the data
-        /*
-        public String durationOfResearchExperienceAfterQualifyingDegreeVivaDate;
-        public String nonResearchCareerBreak;
-		*/
     }
 
     global class RegisterResponse {
