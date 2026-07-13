@@ -1,0 +1,125 @@
+.button-group {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+.formula-editor-section {
+    display: block;
+}
+
+.formula-editor {
+    min-height: 140px;
+    font-family: monospace;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    resize: vertical;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.editor-state-hint {
+    font-size: 0.8125rem;
+}
+
+.editor-state-hint_warning {
+    color: #8c4b02;
+    font-weight: 600;
+}
+
+.insert-toolbar {
+    border: 1px solid #e5e5e5;
+    border-radius: 0.25rem;
+    padding: 0.75rem;
+    background: #fafafa;
+}
+
+.operator-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.operator-button {
+    margin-right: 0.25rem;
+}
+
+.eligibility-modal {
+    max-width: 40rem;
+}
+
+.eligibility-summary {
+    border-radius: 0.25rem;
+    padding: 0.75rem 1rem;
+    background: #f3f3f3;
+}
+
+.eligibility-summary_pass {
+    background: #ecfdf3;
+    color: #194e31;
+}
+
+.eligibility-summary_fail {
+    background: #fef1ee;
+    color: #8a1f11;
+}
+
+.criteria-results-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.criteria-row {
+    border: 1px solid #e5e5e5;
+    border-radius: 0.25rem;
+    margin-bottom: 0.75rem;
+    padding: 0.75rem 1rem;
+}
+
+.criteria-row_pass {
+    border-color: #2e844a;
+    background: #f6fff9;
+}
+
+.criteria-row_fail {
+    border-color: #ba0517;
+    background: #fff8f7;
+}
+
+.criteria-row-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+
+.criteria-row-text {
+    flex: 1;
+}
+
+.criteria-label {
+    font-weight: 600;
+    margin: 0 0 0.25rem;
+}
+
+.criteria-message {
+    margin: 0;
+    color: #444;
+    font-size: 0.875rem;
+}
+
+.criteria-status {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.criteria-icon_pass {
+    --slds-c-icon-color-foreground-default: #2e844a;
+}
+
+.criteria-icon_fail {
+    --slds-c-icon-color-foreground-default: #ba0517;
+}

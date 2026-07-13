@@ -170,8 +170,7 @@ global without sharing class SchemeAndSchemeItemsAPI {
         lineItem.firstPageUrl = item.First_Page_URL__c;
         lineItem.yearlyScheme = buildYearlySchemeWrapper(yearlyScheme);
 
-        // Compare contact profile against yearly scheme degree and experience requirements.
-        EligibilityWrapper eligibility = evaluateEligibility(contact, yearlyScheme);
+        EligibilityWrapper eligibility = buildEligibilityResult(contact, yearlyScheme);
         lineItem.eligibility = eligibility;
         lineItem.actions = buildActions(item.Id, yearlyScheme, eligibility);
 
@@ -259,18 +258,9 @@ global without sharing class SchemeAndSchemeItemsAPI {
         return values;
     }
 
-    /**
-     * Step 4: Evaluate whether the contact is eligible for a given yearly scheme.
-     *
-     * Rules:
-     *  - Degree: contact Qualifying_Degree__c must appear in the scheme Required_Degree__c list.
-     *            If the scheme has no required degrees configured, the degree check is skipped.
-     *  - Experience: contact research experience (in years) must be >= scheme Experience_Required__c.
-     *                If the scheme has no experience requirement configured, the check is skipped.
-     */
-    private static EligibilityWrapper evaluateEligibility(Contact contact, Yearly_Schemes__c yearlyScheme) {
+    private static EligibilityWrapper buildEligibilityResult(Contact contact, Yearly_Schemes__c yearlyScheme) {
         EligibilityWrapper wrapper = new EligibilityWrapper();
-        List<String> failureReasons = new List<String>();
+        wrapper.criteriaResults = new List<CriteriaResultWrapper>();
 
         if (yearlyScheme == null) {
             wrapper.isEligible = false;
@@ -278,7 +268,40 @@ global without sharing class SchemeAndSchemeItemsAPI {
             return wrapper;
         }
 
-        // --- Degree eligibility ---
+        EligibilityEvaluationService.EligibilityEvaluationResult evaluationResult =
+            EligibilityEvaluationService.evaluateYearlyScheme(contact.Id, yearlyScheme.Id);
+
+        wrapper.isEligible = evaluationResult.isEligible;
+        wrapper.eligibilityMessage = evaluationResult.overallMessage;
+
+        if (evaluationResult.criteriaResults != null) {
+            for (EligibilityEvaluationService.CriteriaResult criteriaResult : evaluationResult.criteriaResults) {
+                CriteriaResultWrapper criteriaWrapper = new CriteriaResultWrapper();
+                criteriaWrapper.criteriaId = criteriaResult.criteriaId;
+                criteriaWrapper.criteriaLabel = criteriaResult.criteriaLabel;
+                criteriaWrapper.passed = criteriaResult.passed;
+                criteriaWrapper.message = criteriaResult.message;
+                criteriaWrapper.formula = criteriaResult.formula;
+                criteriaWrapper.validationType = criteriaResult.validationType;
+                criteriaWrapper.eligibilityType = criteriaResult.eligibilityType;
+                wrapper.criteriaResults.add(criteriaWrapper);
+            }
+        }
+
+        if (evaluationResult.hasConfiguredCriteria != true) {
+            return buildLegacyEligibilityFallback(contact, yearlyScheme, wrapper);
+        }
+
+        return wrapper;
+    }
+
+    private static EligibilityWrapper buildLegacyEligibilityFallback(
+        Contact contact,
+        Yearly_Schemes__c yearlyScheme,
+        EligibilityWrapper wrapper
+    ) {
+        List<String> failureReasons = new List<String>();
+
         Set<String> schemeRequiredDegrees = splitMultiSelect(yearlyScheme.Required_Degree__c);
 
         if (!schemeRequiredDegrees.isEmpty()) {
@@ -292,7 +315,6 @@ global without sharing class SchemeAndSchemeItemsAPI {
             }
         }
 
-        // --- Experience eligibility ---
         if (yearlyScheme.Experience_Required__c != null) {
             Decimal contactExperienceYears = getContactExperienceInYears(contact);
 
@@ -410,6 +432,17 @@ global without sharing class SchemeAndSchemeItemsAPI {
     global class EligibilityWrapper {
         public Boolean isEligible;
         public String eligibilityMessage;
+        public List<CriteriaResultWrapper> criteriaResults;
+    }
+
+    global class CriteriaResultWrapper {
+        public String criteriaId;
+        public String criteriaLabel;
+        public Boolean passed;
+        public String message;
+        public String formula;
+        public String validationType;
+        public String eligibilityType;
     }
 
     global class ActionsWrapper {
