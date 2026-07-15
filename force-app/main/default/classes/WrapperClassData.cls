@@ -33,15 +33,24 @@ global with sharing class WrapperClassData {
         public String supervisor;
         public String thesisDissertationTitle;
         public Date yearOfAward;
+        public Date likelyDateOfCompletion;
+        public String pursuingHigherDegree;
+        public String researchSummaryDuringHighestDegree;
+        public String specifyOtherDegree;
+        public String specifyThePursuingDegree;
+        public String specifyTheUniversity;
+        public String titleOfThesisDissertation;
+        public String university;
     }
 
     global class EmploymentDetailsWrapper {
         public String employmentId;
         public String organisation;
         public String position;
-        public String startDate;
-        public String endDate;
+        public Date startDate;
+        public Date endDate;
         public String description;
+        public Boolean isCurrentlyWorking;
     }
 
     global class AchievementsDetailsWrapper {
@@ -49,12 +58,23 @@ global with sharing class WrapperClassData {
         public String name;
         public String anyOtherAchievements;
         public String applicantProposalAssociation;
+        public String contact;
+        public String achievementTitle;
+        public String organization;
+        public String year;
     }
 
     global class PublicationsDetailsWrapper {
         public String publicationId;
         public String name;
         public String applicantProposalAssociation;
+        public Decimal srNo;
+        public String title;
+        public String journalName;
+        public String authorNames;
+        public String applicantRole;
+        public Decimal numberOfCitationsAtPresent;
+        public String pmidDoiUrl;
     }
 
     global class PatentsDetailsWrapper {
@@ -63,7 +83,7 @@ global with sharing class WrapperClassData {
         public String applicantProposalAssociation;
         public String contact;
         public String title;
-        public String investors;
+        public String inventors;
         public String patentNumber;
         public String grantingAgencyCountry;
         public Date filing_granted_date;

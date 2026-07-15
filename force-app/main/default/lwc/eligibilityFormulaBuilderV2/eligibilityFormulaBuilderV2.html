@@ -26,6 +26,20 @@
                     </lightning-combobox>
                 </lightning-layout-item>
 
+                <lightning-layout-item size="6" padding="around-small">
+                    <lightning-input label="Pass Message" value={passMessage}
+                        placeholder="Optional. Example: Age Verification - Passed"
+                        onchange={handlePassMessageChange}>
+                    </lightning-input>
+                </lightning-layout-item>
+
+                <lightning-layout-item size="6" padding="around-small">
+                    <lightning-input label="Fail Message" value={failMessage}
+                        placeholder="Optional. Tokens: {label}, {field}, {operator}, {expected}, {actual}"
+                        onchange={handleFailMessageChange}>
+                    </lightning-input>
+                </lightning-layout-item>
+
             </lightning-layout>
 
             <div class="formula-editor-section slds-var-m-top_medium">
@@ -91,7 +105,7 @@
                 <lightning-button variant="brand" label="Save" onclick={saveEligibilityCriteria}>
                 </lightning-button>
             </div>
-
+            
         </div>
 
     </lightning-card>

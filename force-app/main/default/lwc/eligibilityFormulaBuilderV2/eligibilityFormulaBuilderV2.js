@@ -29,6 +29,8 @@ export default class EligibilityFormulaBuilderV2 extends LightningElement {
     selectedValidationType = '';
     selectedEligibilityType = '';
     criteriaLabel = '';
+    passMessage = '';
+    failMessage = '';
 
     validationTypeOptions = [];
     eligibilityTypeOptions = [];
@@ -319,6 +321,14 @@ export default class EligibilityFormulaBuilderV2 extends LightningElement {
         this.criteriaLabel = event.detail.value;
     }
 
+    handlePassMessageChange(event) {
+        this.passMessage = event.detail.value;
+    }
+
+    handleFailMessageChange(event) {
+        this.failMessage = event.detail.value;
+    }
+
     handleInsertObject() {
         if (!this.objectName) {
             this.showToast('Error', 'Select an Object to insert.', 'error');
@@ -497,6 +507,8 @@ export default class EligibilityFormulaBuilderV2 extends LightningElement {
     resetForm() {
         this.formulaText = '';
         this.criteriaLabel = '';
+        this.passMessage = '';
+        this.failMessage = '';
         this.objectName = '';
         this.fieldName = '';
         this.fieldOptions = [];
@@ -581,7 +593,9 @@ export default class EligibilityFormulaBuilderV2 extends LightningElement {
                 logicalOperator: '',
                 validationType: this.selectedValidationType,
                 eligibilityType: this.selectedEligibilityType,
-                formula: this.formulaText.trim()
+                formula: this.formulaText.trim(),
+                passMessage: this.passMessage?.trim() || '',
+                failMessage: this.failMessage?.trim() || ''
             }];
 
             const response = await saveEligibilityCriteriaApex({

@@ -16,9 +16,9 @@ global without sharing class SchemeAndSchemeItemsAPI {
 
         try {
 
-            // Step 1: Fetch the applicant contact — eligibility is evaluated against their profile fields.
+            // Validate applicant contact from request parameter.
             List<Contact> contacts = [
-                SELECT Id, Name, Email, Qualifying_Degree__c, Research_Experience_After_Viva_Date_Yrs__c, Research_Experience_After_Viva_Date_Mont__c
+                SELECT Id
                 FROM Contact
                 WHERE Id = :contactId
                 LIMIT 1
@@ -31,6 +31,7 @@ global without sharing class SchemeAndSchemeItemsAPI {
             }
 
             Contact contact = contacts[0];
+            Id applicantContactId = contact.Id;
 
             List<Year__c> years = [
                 SELECT Id, Name, Is_Active__c, Is_Current_Year__c, Year_Start_Date__c, Year_End_Date__c
@@ -107,6 +108,13 @@ global without sharing class SchemeAndSchemeItemsAPI {
             }
             // For Future: There can be multiple Yearly Schemes for a Scheme Item, so we need to handle that.
 
+            Set<Id> yearlySchemeIds = new Set<Id>();
+            for (Yearly_Schemes__c yearlySchemeRecord : yearlySchemeByItemId.values()) {
+                yearlySchemeIds.add(yearlySchemeRecord.Id);
+            }
+
+            Map<Id, EligibilityEvaluationService.EligibilityEvaluationResult> eligibilityByYearlySchemeId =
+                EligibilityEvaluationService.evaluateYearlySchemes(applicantContactId, yearlySchemeIds);
 
             List<SchemeDataWrapper> schemeDataList = new List<SchemeDataWrapper>();
             for (Scheme__c scheme : schemes) {
@@ -125,9 +133,12 @@ global without sharing class SchemeAndSchemeItemsAPI {
                 schemeData.schemeLineItems = new List<SchemeLineItemWrapper>();
 
                 for (Scheme_Items__c item : items) {
-                    // Step 5: Evaluate eligibility per line item against the contact and its yearly scheme criteria.
                     schemeData.schemeLineItems.add(
-                        buildLineItemWrapper(item, yearlySchemeByItemId.get(item.Id), contact)
+                        buildLineItemWrapper(
+                            item,
+                            yearlySchemeByItemId.get(item.Id),
+                            eligibilityByYearlySchemeId
+                        )
                     );
                 }
 
@@ -159,7 +170,7 @@ global without sharing class SchemeAndSchemeItemsAPI {
     private static SchemeLineItemWrapper buildLineItemWrapper(
         Scheme_Items__c item,
         Yearly_Schemes__c yearlyScheme,
-        Contact contact
+        Map<Id, EligibilityEvaluationService.EligibilityEvaluationResult> eligibilityByYearlySchemeId
     ) {
         SchemeLineItemWrapper lineItem = new SchemeLineItemWrapper();
         lineItem.schemeItemId = item.Id;
@@ -170,7 +181,10 @@ global without sharing class SchemeAndSchemeItemsAPI {
         lineItem.firstPageUrl = item.First_Page_URL__c;
         lineItem.yearlyScheme = buildYearlySchemeWrapper(yearlyScheme);
 
-        EligibilityWrapper eligibility = buildEligibilityResult(contact, yearlyScheme);
+        EligibilityEvaluationService.EligibilityEvaluationResult evaluationResult = yearlyScheme != null
+            ? eligibilityByYearlySchemeId.get(yearlyScheme.Id)
+            : null;
+        EligibilityWrapper eligibility = buildEligibilityResult(yearlyScheme, evaluationResult);
         lineItem.eligibility = eligibility;
         lineItem.actions = buildActions(item.Id, yearlyScheme, eligibility);
 
@@ -208,11 +222,11 @@ global without sharing class SchemeAndSchemeItemsAPI {
     ) {
         ActionsWrapper actions = new ActionsWrapper();
         Boolean canInteract = yearlyScheme != null && yearlyScheme.Is_Active__c;
-        Boolean isEligible = eligibility != null && eligibility.isEligible;
+        Boolean isEligible = eligibility != null && eligibility.isEligible == true;
+        Boolean canApplyFromEligibility = eligibility != null && eligibility.canApply == true;
 
         actions.showEligibilityCheck = canInteract;
-        // Apply is allowed only when the scheme is active and the contact passes eligibility checks.
-        actions.canApply = canInteract && isEligible;
+        actions.canApply = canInteract && canApplyFromEligibility && isEligible;
 
         if (yearlyScheme != null) {
             actions.eligibilityUrl = '/eligibility/' + yearlyScheme.Id;
@@ -222,56 +236,32 @@ global without sharing class SchemeAndSchemeItemsAPI {
         return actions;
     }
 
-    /**
-     * Step 2: Normalize the contact's research experience into total years (years + months).
-     * Contact stores experience as separate year and month fields; scheme stores required experience in years.
-     */
-    private static Decimal getContactExperienceInYears(Contact contact) {
-        Decimal experienceYears = contact.Research_Experience_After_Viva_Date_Yrs__c != null
-            ? contact.Research_Experience_After_Viva_Date_Yrs__c
-            : 0;
-        Decimal experienceMonths = contact.Research_Experience_After_Viva_Date_Mont__c != null
-            ? contact.Research_Experience_After_Viva_Date_Mont__c
-            : 0;
-
-        return experienceYears + (experienceMonths / 12);
-    }
-
-    /**
-     * Step 3: Parse a multi-select picklist value (semicolon-delimited) into a normalized set.
-     * Required_Degree__c on Yearly_Schemes__c is configured as a multi-select picklist.
-     */
-    private static Set<String> splitMultiSelect(String multiSelectValue) {
-        Set<String> values = new Set<String>();
-
-        if (String.isBlank(multiSelectValue)) {
-            return values;
-        }
-
-        for (String valuePart : multiSelectValue.split(';')) {
-            String trimmedValue = valuePart.trim();
-            if (String.isNotBlank(trimmedValue)) {
-                values.add(trimmedValue);
-            }
-        }
-
-        return values;
-    }
-
-    private static EligibilityWrapper buildEligibilityResult(Contact contact, Yearly_Schemes__c yearlyScheme) {
+    private static EligibilityWrapper buildEligibilityResult(
+        Yearly_Schemes__c yearlyScheme,
+        EligibilityEvaluationService.EligibilityEvaluationResult evaluationResult
+    ) {
         EligibilityWrapper wrapper = new EligibilityWrapper();
         wrapper.criteriaResults = new List<CriteriaResultWrapper>();
 
         if (yearlyScheme == null) {
             wrapper.isEligible = false;
+            wrapper.canApply = false;
+            wrapper.hasConfiguredCriteria = false;
             wrapper.eligibilityMessage = 'No active yearly scheme found for this scheme item.';
             return wrapper;
         }
 
-        EligibilityEvaluationService.EligibilityEvaluationResult evaluationResult =
-            EligibilityEvaluationService.evaluateYearlyScheme(contact.Id, yearlyScheme.Id);
+        if (evaluationResult == null) {
+            wrapper.isEligible = true;
+            wrapper.canApply = yearlyScheme.Is_Active__c == true;
+            wrapper.hasConfiguredCriteria = false;
+            wrapper.eligibilityMessage = 'No eligibility criteria configured for this scheme.';
+            return wrapper;
+        }
 
-        wrapper.isEligible = evaluationResult.isEligible;
+        wrapper.isEligible = evaluationResult.isEligible == true;
+        wrapper.canApply = evaluationResult.canApply == true && yearlyScheme.Is_Active__c == true;
+        wrapper.hasConfiguredCriteria = evaluationResult.hasConfiguredCriteria == true;
         wrapper.eligibilityMessage = evaluationResult.overallMessage;
 
         if (evaluationResult.criteriaResults != null) {
@@ -279,7 +269,8 @@ global without sharing class SchemeAndSchemeItemsAPI {
                 CriteriaResultWrapper criteriaWrapper = new CriteriaResultWrapper();
                 criteriaWrapper.criteriaId = criteriaResult.criteriaId;
                 criteriaWrapper.criteriaLabel = criteriaResult.criteriaLabel;
-                criteriaWrapper.passed = criteriaResult.passed;
+                criteriaWrapper.passed = criteriaResult.passed == true;
+                criteriaWrapper.status = criteriaResult.status;
                 criteriaWrapper.message = criteriaResult.message;
                 criteriaWrapper.formula = criteriaResult.formula;
                 criteriaWrapper.validationType = criteriaResult.validationType;
@@ -288,62 +279,7 @@ global without sharing class SchemeAndSchemeItemsAPI {
             }
         }
 
-        if (evaluationResult.hasConfiguredCriteria != true) {
-            return buildLegacyEligibilityFallback(contact, yearlyScheme, wrapper);
-        }
-
         return wrapper;
-    }
-
-    private static EligibilityWrapper buildLegacyEligibilityFallback(
-        Contact contact,
-        Yearly_Schemes__c yearlyScheme,
-        EligibilityWrapper wrapper
-    ) {
-        List<String> failureReasons = new List<String>();
-
-        Set<String> schemeRequiredDegrees = splitMultiSelect(yearlyScheme.Required_Degree__c);
-
-        if (!schemeRequiredDegrees.isEmpty()) {
-            if (String.isBlank(contact.Qualifying_Degree__c)) {
-                failureReasons.add('Qualifying degree is not provided on your profile.');
-            } else if (!schemeRequiredDegrees.contains(contact.Qualifying_Degree__c)) {
-                failureReasons.add(
-                    'Your qualifying degree (' + contact.Qualifying_Degree__c +
-                    ') does not meet the scheme requirement (' + yearlyScheme.Required_Degree__c + ').'
-                );
-            }
-        }
-
-        if (yearlyScheme.Experience_Required__c != null) {
-            Decimal contactExperienceYears = getContactExperienceInYears(contact);
-
-            if (contactExperienceYears < yearlyScheme.Experience_Required__c) {
-                failureReasons.add(
-                    'Minimum ' + yearlyScheme.Experience_Required__c.intValue() +
-                    ' year(s) of research experience after qualifying viva is required. ' +
-                    'Your current experience is ' + formatExperienceLabel(contactExperienceYears) + '.'
-                );
-            }
-        }
-
-        wrapper.isEligible = failureReasons.isEmpty();
-        wrapper.eligibilityMessage = wrapper.isEligible
-            ? 'You are eligible to apply for this scheme.'
-            : String.join(failureReasons, ' ');
-
-        return wrapper;
-    }
-
-    private static String formatExperienceLabel(Decimal experienceYears) {
-        Integer wholeYears = experienceYears.intValue();
-        Integer remainingMonths = ((experienceYears - wholeYears) * 12).intValue();
-
-        if (remainingMonths == 0) {
-            return wholeYears + ' year(s)';
-        }
-
-        return wholeYears + ' year(s) and ' + remainingMonths + ' month(s)';
     }
 
     private static String formatDuration(Decimal duration) {
@@ -431,6 +367,8 @@ global without sharing class SchemeAndSchemeItemsAPI {
 
     global class EligibilityWrapper {
         public Boolean isEligible;
+        public Boolean canApply;
+        public Boolean hasConfiguredCriteria;
         public String eligibilityMessage;
         public List<CriteriaResultWrapper> criteriaResults;
     }
@@ -439,6 +377,7 @@ global without sharing class SchemeAndSchemeItemsAPI {
         public String criteriaId;
         public String criteriaLabel;
         public Boolean passed;
+        public String status;
         public String message;
         public String formula;
         public String validationType;

@@ -22,19 +22,26 @@ global without sharing class GetProfileAndCVDetails {
             List<Contact> contacts = [
                 SELECT Id, Title, Title__c, FirstName, LastName, Phone, Email, BirthDate, Position__c, Department, MailingCity, 
                 MailingState, MailingCountry, MailingPostalCode, AccountId, Account.Name, Qualifying_Degree__c, Qualifying_Degree_Viva_Date__c, Research_Experience_After_Viva_Date_Yrs__c, Research_Experience_After_Viva_Date_Mont__c, Non_Research_Career_Break_From__c, Non_Research_Career_Break_To__c, Non_Research_Career_Break_Explanation__c, ORCID_ID__c,
-                    (SELECT Id, Qualification__c, Subject__c, Country__c, Institution__c, Department_School_Division__c,  Supervisor__c, Title_of_thesis_Dissertation__c, End_Date__c
+
+                    (SELECT Id, Applicant_Proposal_Association__c, Contact__c, Country__c, CreatedById, CreatedDate, CurrencyIsoCode, Department_School_Division__c, End_Date__c, Institution__c, IsDeleted, Likely_date_of_completion__c, Name, OwnerId, Pursuing_Higher_Degree__c, Qualification__c, Research_Summary_During_Highest_Degree__c, Specify_Other_Degree__c, Specify_the_pursuing_degree__c, Specify_the_University__c, Start_Date__c, Subject__c, Supervisor__c, Title_of_thesis_Dissertation__c, University__c 
                     FROM Education_Details__r ORDER BY End_Date__c DESC),
-                    (SELECT Id, Name, Start_Year__c, End_Year_Present__c, Organisation__c, Position__c
+                    
+                    (SELECT Id, Applicant_Proposal_Association__c, Contact__c, End_Date__c, I_am_currently_working_here__c, Name, Organisation__c, Position__c, Reporting_To__c, Roles_Responsibilities__c, Start_Date__c 
                     FROM Employment_Details__r ORDER BY End_Year_Present__c DESC),
-                    (SELECT Id, Name, Any_Other_Achievements__c, Applicant_Proposal_Association__c
-                    FROM Achievements__r),                    
+
+                    (SELECT Id, Achievement_Title__c, Any_Other_Achievements__c, Applicant_Proposal_Association__c, Contact__c, CreatedById, CreatedDate, Description__c, Name, Organization__c, Year__c 
+                    FROM Achievements__r ORDER BY Achievement_Title__c ASC),          
+
                     (SELECT Id, Name, Applicant_Proposal_Association__c, Sr_No__c, Title__c, Journal_Name__c, Author_Names__c, Applicant_Role__c, Number_of_citations_at_present__c, PMID_DOI_URL__c 
                     FROM Publications__r ORDER BY Name ASC),
-                    (SELECT Id, Name, Applicant_Proposal_Association__c, Contact__c, Title__c, Investors__c, Patent_Number__c, Granting_Agency_Country__c, Filing_Granted_Date__c, Status__c
+
+                    (SELECT Id, Name, Applicant_Proposal_Association__c, Contact__c, Title__c, Inventors__c, Patent_Number__c, Granting_Agency_Country__c, Filing_Granted_Date__c, Status__c
                     FROM Patents__r ORDER BY Name ASC),
+
                     (SELECT Id, Name, Contact__c, Applicant_Proposal_Association__c, Title__c, Role_Of_Applicant__c, Duration_In_Months__c, Funding_Agency__c, Start_Date__c, End_Date__c, Total_Award_Amount__c, Currency__c, Type__c, Other_Currency__c, Abstracts_of_ongoing_grants_fellowship__c
                     FROM Existing_Grants__r ORDER BY Name ASC)
-                FROM Contact 
+
+                FROM Contact
                 WHERE (Email = :email OR Id = :contactId)
                 LIMIT 1
             ];
@@ -84,6 +91,14 @@ global without sharing class GetProfileAndCVDetails {
                 educationDetailsWrapper.institution = edu.Institution__c;
                 educationDetailsWrapper.yearOfAward = edu.End_Date__c;
                 educationDetailsWrapper.thesisDissertationTitle = edu.Title_of_thesis_Dissertation__c;
+                educationDetailsWrapper.likelyDateOfCompletion = edu.Likely_date_of_completion__c;
+                educationDetailsWrapper.pursuingHigherDegree = edu.Pursuing_Higher_Degree__c;
+                educationDetailsWrapper.researchSummaryDuringHighestDegree = edu.Research_Summary_During_Highest_Degree__c;
+                educationDetailsWrapper.specifyOtherDegree = edu.Specify_Other_Degree__c;
+                educationDetailsWrapper.specifyThePursuingDegree = edu.Specify_the_pursuing_degree__c;
+                educationDetailsWrapper.specifyTheUniversity = edu.Specify_the_University__c;
+                educationDetailsWrapper.titleOfThesisDissertation = edu.Title_of_thesis_Dissertation__c;
+                educationDetailsWrapper.university = edu.University__c;
                 educationDetailsWrapperList.add(educationDetailsWrapper);
             }
 
@@ -92,8 +107,11 @@ global without sharing class GetProfileAndCVDetails {
                 employmentDetailsWrapper.employmentId = emp.Id;
                 employmentDetailsWrapper.organisation = emp.Organisation__c;
                 employmentDetailsWrapper.position = emp.Position__c;
-                employmentDetailsWrapper.startDate = emp.Start_Year__c;
-                employmentDetailsWrapper.endDate = emp.End_Year_Present__c;
+                employmentDetailsWrapper.description = emp.Roles_Responsibilities__c;
+                employmentDetailsWrapper.isCurrentlyWorking = emp.I_am_currently_working_here__c;
+                employmentDetailsWrapper.endDate = emp.End_Date__c;
+                employmentDetailsWrapper.startDate = emp.Start_Date__c;
+
                 employmentDetailsWrapperList.add(employmentDetailsWrapper);
             }
 
@@ -103,6 +121,9 @@ global without sharing class GetProfileAndCVDetails {
                 achievementsDetailsWrapper.name = ach.Name;
                 achievementsDetailsWrapper.anyOtherAchievements = ach.Any_Other_Achievements__c;
                 achievementsDetailsWrapper.applicantProposalAssociation = ach.Applicant_Proposal_Association__c;
+                achievementsDetailsWrapper.achievementTitle = ach.Achievement_Title__c;
+                achievementsDetailsWrapper.organization = ach.Organization__c;
+                achievementsDetailsWrapper.year = ach.Year__c;
                 achievementsDetailsWrapperList.add(achievementsDetailsWrapper);
             }
 
@@ -111,6 +132,14 @@ global without sharing class GetProfileAndCVDetails {
                 publicationsDetailsWrapper.publicationId = pub.Id;
                 publicationsDetailsWrapper.name = pub.Name;
                 publicationsDetailsWrapper.applicantProposalAssociation = pub.Applicant_Proposal_Association__c;
+                publicationsDetailsWrapper.srNo = pub.Sr_No__c;
+                publicationsDetailsWrapper.title = pub.Title__c;    
+                publicationsDetailsWrapper.journalName = pub.Journal_Name__c;
+                publicationsDetailsWrapper.authorNames = pub.Author_Names__c;
+                publicationsDetailsWrapper.applicantRole = pub.Applicant_Role__c;
+                publicationsDetailsWrapper.numberOfCitationsAtPresent = pub.Number_of_citations_at_present__c;
+                publicationsDetailsWrapper.pmidDoiUrl = pub.PMID_DOI_URL__c;
+
                 publicationsDetailsWrapperList.add(publicationsDetailsWrapper);
             }
 
@@ -121,7 +150,7 @@ global without sharing class GetProfileAndCVDetails {
                 patentsDetailsWrapper.applicantProposalAssociation = pat.Applicant_Proposal_Association__c;
                 patentsDetailsWrapper.contact = pat.Contact__c;
                 patentsDetailsWrapper.title = pat.Title__c;
-                patentsDetailsWrapper.investors = pat.Investors__c;
+                patentsDetailsWrapper.inventors = pat.Inventors__c;
                 patentsDetailsWrapper.patentNumber = pat.Patent_Number__c;
                 patentsDetailsWrapper.grantingAgencyCountry = pat.Granting_Agency_Country__c;
                 patentsDetailsWrapper.filing_granted_date = pat.Filing_Granted_Date__c;

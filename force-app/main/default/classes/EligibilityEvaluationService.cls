@@ -21,18 +21,40 @@ public without sharing class EligibilityEvaluationService {
         }
 
         try {
-            return evaluateYearlySchemeInternal(contactId, yearlySchemeId);
+            Map<Id, EligibilityEvaluationResult> resultsBySchemeId = evaluateYearlySchemes(
+                contactId,
+                new Set<Id>{ yearlySchemeId }
+            );
+            EligibilityEvaluationResult evaluationResult = resultsBySchemeId.get(yearlySchemeId);
+
+            if (evaluationResult == null) {
+                throw new AuraHandledException('Unable to evaluate eligibility for this scheme.');
+            }
+
+            return evaluationResult;
         } catch (AuraHandledException handledException) {
             throw handledException;
+        } catch (EligibilityEvaluationException evaluationException) {
+            throw new AuraHandledException(evaluationException.getMessage());
         } catch (Exception ex) {
             throw new AuraHandledException('Eligibility check failed: ' + ex.getMessage());
         }
     }
 
-    private static EligibilityEvaluationResult evaluateYearlySchemeInternal(
+    public static Map<Id, EligibilityEvaluationResult> evaluateYearlySchemes(
         Id contactId,
-        Id yearlySchemeId
+        Set<Id> yearlySchemeIds
     ) {
+        Map<Id, EligibilityEvaluationResult> resultsBySchemeId = new Map<Id, EligibilityEvaluationResult>();
+
+        if (contactId == null || yearlySchemeIds == null || yearlySchemeIds.isEmpty()) {
+            return resultsBySchemeId;
+        }
+
+        for (Id yearlySchemeId : yearlySchemeIds) {
+            resultsBySchemeId.put(yearlySchemeId, createUnconfiguredResult());
+        }
+
         List<Eligibility_Criteria__c> criteriaRecords = [
             SELECT
                 Id,
@@ -41,6 +63,9 @@ public without sharing class EligibilityEvaluationService {
                 Validation_Type__c,
                 Eligibility_Type__c,
                 Formula__c,
+                Pass_Message__c,
+                Fail_Message__c,
+                Yearly_Scheme__c,
                 (
                     SELECT
                         Id,
@@ -54,23 +79,52 @@ public without sharing class EligibilityEvaluationService {
                     ORDER BY Sequence__c ASC
                 )
             FROM Eligibility_Criteria__c
-            WHERE Yearly_Scheme__c = :yearlySchemeId
+            WHERE Yearly_Scheme__c IN :yearlySchemeIds
+            AND Is_Active__c = true
             ORDER BY Sequence__c ASC NULLS LAST, CreatedDate ASC
         ];
 
+        if (criteriaRecords.isEmpty()) {
+            return resultsBySchemeId;
+        }
+
+        Map<Id, List<Eligibility_Criteria__c>> criteriaBySchemeId = new Map<Id, List<Eligibility_Criteria__c>>();
+
+        for (Eligibility_Criteria__c criteriaRecord : criteriaRecords) {
+            if (!criteriaBySchemeId.containsKey(criteriaRecord.Yearly_Scheme__c)) {
+                criteriaBySchemeId.put(
+                    criteriaRecord.Yearly_Scheme__c,
+                    new List<Eligibility_Criteria__c>()
+                );
+            }
+
+            criteriaBySchemeId.get(criteriaRecord.Yearly_Scheme__c).add(criteriaRecord);
+        }
+
+        Contact contactRecord = queryContact(contactId, criteriaRecords);
+
+        for (Id yearlySchemeId : yearlySchemeIds) {
+            List<Eligibility_Criteria__c> schemeCriteria = criteriaBySchemeId.get(yearlySchemeId);
+
+            if (schemeCriteria != null && !schemeCriteria.isEmpty()) {
+                resultsBySchemeId.put(
+                    yearlySchemeId,
+                    evaluateCriteriaRecords(schemeCriteria, contactRecord)
+                );
+            }
+        }
+
+        return resultsBySchemeId;
+    }
+
+    private static EligibilityEvaluationResult evaluateCriteriaRecords(
+        List<Eligibility_Criteria__c> criteriaRecords,
+        Contact contactRecord
+    ) {
         EligibilityEvaluationResult evaluationResult = new EligibilityEvaluationResult();
         evaluationResult.criteriaResults = new List<CriteriaResult>();
         evaluationResult.isEligible = true;
-
-        if (criteriaRecords.isEmpty()) {
-            evaluationResult.hasConfiguredCriteria = false;
-            evaluationResult.overallMessage = 'No eligibility criteria configured for this scheme.';
-            evaluationResult.canApply = true;
-            return evaluationResult;
-        }
-
         evaluationResult.hasConfiguredCriteria = true;
-        Contact contactRecord = queryContact(contactId, criteriaRecords);
         List<String> failureMessages = new List<String>();
 
         for (Eligibility_Criteria__c criteriaRecord : criteriaRecords) {
@@ -95,6 +149,16 @@ public without sharing class EligibilityEvaluationService {
         return evaluateYearlyScheme(contactRecord.Id, yearlySchemeId);
     }
 
+    private static EligibilityEvaluationResult createUnconfiguredResult() {
+        EligibilityEvaluationResult evaluationResult = new EligibilityEvaluationResult();
+        evaluationResult.isEligible = true;
+        evaluationResult.canApply = true;
+        evaluationResult.hasConfiguredCriteria = false;
+        evaluationResult.overallMessage = 'No eligibility criteria configured for this scheme.';
+        evaluationResult.criteriaResults = new List<CriteriaResult>();
+        return evaluationResult;
+    }
+
     private static CriteriaResult evaluateCriteria(
         Eligibility_Criteria__c criteriaRecord,
         Contact contactRecord
@@ -112,6 +176,7 @@ public without sharing class EligibilityEvaluationService {
 
         if (conditions.isEmpty()) {
             criteriaResult.passed = false;
+            criteriaResult.status = 'Failed';
             criteriaResult.message = 'No valid conditions found for ' + criteriaResult.criteriaLabel + '.';
             return criteriaResult;
         }
@@ -134,15 +199,91 @@ public without sharing class EligibilityEvaluationService {
         }
 
         criteriaResult.passed = combinedResult == true;
+        criteriaResult.status = criteriaResult.passed ? 'Passed' : 'Failed';
         criteriaResult.message = criteriaResult.passed
-            ? criteriaResult.criteriaLabel + ' requirement met.'
-            : buildFailureMessage(
-                criteriaResult.criteriaLabel,
-                contactRecord,
-                conditions
-            );
+            ? resolvePassMessage(criteriaRecord, criteriaResult.criteriaLabel)
+            : resolveFailMessage(criteriaRecord, criteriaResult.criteriaLabel, contactRecord, conditions);
 
         return criteriaResult;
+    }
+
+    private static String resolvePassMessage(
+        Eligibility_Criteria__c criteriaRecord,
+        String criteriaLabel
+    ) {
+        if (String.isNotBlank(criteriaRecord.Pass_Message__c)) {
+            return applyMessageTokens(
+                criteriaRecord.Pass_Message__c,
+                criteriaLabel,
+                null,
+                null,
+                null,
+                null
+            );
+        }
+
+        return criteriaLabel + ' - Passed';
+    }
+
+    private static String resolveFailMessage(
+        Eligibility_Criteria__c criteriaRecord,
+        String criteriaLabel,
+        Contact contactRecord,
+        List<EligibilityFormulaParser.ParsedCondition> conditions
+    ) {
+        String fieldLabel;
+        String operatorToken;
+        String expectedValue;
+        String actualValue;
+
+        for (EligibilityFormulaParser.ParsedCondition condition : conditions) {
+            if (evaluateCondition(condition, contactRecord)) {
+                continue;
+            }
+
+            fieldLabel = getFieldLabel(condition.fieldApiName);
+            operatorToken = condition.operatorToken;
+            expectedValue = condition.expectedValue;
+            actualValue = formatValue(
+                contactRecord.get(condition.fieldApiName),
+                condition.fieldApiName
+            );
+            break;
+        }
+
+        if (String.isNotBlank(criteriaRecord.Fail_Message__c)) {
+            return applyMessageTokens(
+                criteriaRecord.Fail_Message__c,
+                criteriaLabel,
+                fieldLabel,
+                operatorToken,
+                expectedValue,
+                actualValue
+            );
+        }
+
+        return buildFailureMessage(criteriaLabel, contactRecord, conditions);
+    }
+
+    private static String applyMessageTokens(
+        String template,
+        String criteriaLabel,
+        String fieldLabel,
+        String operatorToken,
+        String expectedValue,
+        String actualValue
+    ) {
+        String resolvedMessage = template;
+        resolvedMessage = resolvedMessage.replace('{label}', blankToEmpty(criteriaLabel));
+        resolvedMessage = resolvedMessage.replace('{field}', blankToEmpty(fieldLabel));
+        resolvedMessage = resolvedMessage.replace('{operator}', blankToEmpty(operatorToken));
+        resolvedMessage = resolvedMessage.replace('{expected}', blankToEmpty(expectedValue));
+        resolvedMessage = resolvedMessage.replace('{actual}', blankToEmpty(actualValue));
+        return resolvedMessage;
+    }
+
+    private static String blankToEmpty(String value) {
+        return value == null ? '' : value;
     }
 
     private static List<EligibilityFormulaParser.ParsedCondition> buildConditions(
@@ -263,10 +404,10 @@ public without sharing class EligibilityEvaluationService {
         }
 
         if (detailMessages.isEmpty()) {
-            return criteriaLabel + ' requirement not met.';
+            return criteriaLabel + ' - Failed';
         }
 
-        return criteriaLabel + ' requirement not met. ' + String.join(detailMessages, ' ');
+        return criteriaLabel + ' - Failed. ' + String.join(detailMessages, ' ');
     }
 
     private static Contact queryContact(Id contactId, List<Eligibility_Criteria__c> criteriaRecords) {
@@ -290,7 +431,7 @@ public without sharing class EligibilityEvaluationService {
         List<Contact> contacts = Database.query(contactQuery);
 
         if (contacts.isEmpty()) {
-            throw new AuraHandledException(
+            throw new EligibilityEvaluationException(
                 'Contact record not found or not accessible: ' + contactId
             );
         }
@@ -416,6 +557,8 @@ public without sharing class EligibilityEvaluationService {
         @AuraEnabled
         public Boolean passed;
         @AuraEnabled
+        public String status;
+        @AuraEnabled
         public String message;
         @AuraEnabled
         public String formula;
@@ -423,5 +566,8 @@ public without sharing class EligibilityEvaluationService {
         public String validationType;
         @AuraEnabled
         public String eligibilityType;
+    }
+
+    public class EligibilityEvaluationException extends Exception {
     }
 }

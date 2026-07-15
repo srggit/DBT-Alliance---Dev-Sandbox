@@ -88,13 +88,16 @@ public with sharing class EligibilityFormulaBuilderV2 {
                 );
 
                 Eligibility_Criteria__c criteria = new Eligibility_Criteria__c();
-                // criteria.Name = String.isNotBlank(condition.ruleName)
-                //     ? condition.ruleName.trim()
-                //     : 'Eligibility Criteria ' + nextSequence;
+                criteria.Name = String.isNotBlank(condition.ruleName)
+                    ? condition.ruleName.trim()
+                    : 'Eligibility Criteria ' + nextSequence;
                 criteria.Sequence__c = condition.sequence != null ? condition.sequence : nextSequence;
                 criteria.Validation_Type__c = condition.validationType;
                 criteria.Eligibility_Type__c = condition.eligibilityType;
+                criteria.Is_Active__c = true;
                 criteria.Formula__c = condition.formula.trim();
+                criteria.Pass_Message__c = condition.passMessage;
+                criteria.Fail_Message__c = condition.failMessage;
                 criteria.Yearly_Scheme__c = yearlySchemeId;
                 criteriaList.add(criteria);
                 nextSequence++;
@@ -203,5 +206,7 @@ public with sharing class EligibilityFormulaBuilderV2 {
         @AuraEnabled public String validationType;
         @AuraEnabled public String eligibilityType;
         @AuraEnabled public String formula;
+        @AuraEnabled public String passMessage;
+        @AuraEnabled public String failMessage;
     }
 }
