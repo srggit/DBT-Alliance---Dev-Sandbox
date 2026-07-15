@@ -122,7 +122,10 @@ export default class AddSchemeQuestionItemsAction extends LightningElement {
                         Is_Active__c: existing.Is_Active__c,
                         Stage__c: existing.Stage__c,
                         CurrencyIsoCode: existing.CurrencyIsoCode,
-                        Attachments__c: existing.Attachments__c
+                        Attachments__c: existing.Attachments__c,
+                        Section__c: existing.Section__c,
+                        SL_No__c: existing.SL_No__c,
+                        Picklist_Values__c: existing.Picklist_Values__c
                     };
                 }
 
@@ -142,7 +145,10 @@ export default class AddSchemeQuestionItemsAction extends LightningElement {
                     Is_Active__c: q.Is_Active__c || false,
                     Stage__c: q.Stage__c || '',
                     CurrencyIsoCode: '',
-                    Attachments__c: ''
+                    Attachments__c: '',
+                    Section__c: q.Section__c || '',
+                    SL_No__c: q.SL_No__c != null ? q.SL_No__c : null,
+                    Picklist_Values__c: q.Picklist_Values__c || ''
                 };
             });
 
@@ -239,7 +245,10 @@ export default class AddSchemeQuestionItemsAction extends LightningElement {
                 Is_Active__c: r.Is_Active__c,
                 Stage__c: r.Stage__c,
                 CurrencyIsoCode: r.CurrencyIsoCode,
-                Attachments__c: r.Attachments__c
+                Attachments__c: r.Attachments__c,
+                Section__c: r.Section__c,
+                SL_No__c: r.SL_No__c,
+                Picklist_Values__c: r.Picklist_Values__c
             }));
 
         if (!payload.length) {

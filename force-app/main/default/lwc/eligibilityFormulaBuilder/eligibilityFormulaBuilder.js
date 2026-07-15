@@ -9,6 +9,21 @@ import saveEligibilityCriteriaApex from '@salesforce/apex/EligibilityController.
 import getFieldMasterData from '@salesforce/apex/EligibilityController.getFieldMasterData';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 
+const TOKEN_TYPES = {
+
+    FIELD: 'FIELD',
+
+    VALUE: 'VALUE',
+
+    COMPARISON: 'COMPARISON',
+
+    LOGICAL: 'LOGICAL',
+
+    LPAREN: 'LPAREN',
+
+    RPAREN: 'RPAREN'
+
+};
 
 export default class EligibilityFormulaBuilder extends LightningElement {
 
@@ -50,6 +65,8 @@ export default class EligibilityFormulaBuilder extends LightningElement {
         { label: '(', token: '(' },
         { label: ')', token: ')' }
     ];
+
+
 
     @wire(CurrentPageReference)
     resolveRecordId(currentPageReference) {
@@ -541,6 +558,115 @@ export default class EligibilityFormulaBuilder extends LightningElement {
                 variant
             })
         );
+    }
+
+    tokenize(formula) {
+
+        const tokens = [];
+
+        const regex =
+            /\(|\)|>=|<=|!=|=|>|<|\bAND\b|\bOR\b|'[^']*'|\d+(\.\d+)?|true|false|[A-Za-z_][A-Za-z0-9_]*\.[A-Za-z_][A-Za-z0-9_]*/gi;
+
+        let match;
+
+        while ((match = regex.exec(formula)) !== null) {
+
+            const token = match[0];
+
+            if (token === '(') {
+
+                tokens.push({
+                    type: TOKEN_TYPES.LPAREN,
+                    value: token
+                });
+
+                continue;
+            }
+
+            if (token === ')') {
+
+                tokens.push({
+                    type: TOKEN_TYPES.RPAREN,
+                    value: token
+                });
+
+                continue;
+            }
+
+            if (token === 'AND' || token === 'OR') {
+
+                tokens.push({
+                    type: TOKEN_TYPES.LOGICAL,
+                    value: token
+                });
+
+                continue;
+            }
+
+            if (['=', '!=', '>', '<', '>=', '<='].includes(token)) {
+
+                tokens.push({
+                    type: TOKEN_TYPES.COMPARISON,
+                    value: token
+                });
+
+                continue;
+            }
+
+            if (token.includes('.')) {
+
+                tokens.push({
+                    type: TOKEN_TYPES.FIELD,
+                    value: token
+                });
+
+                continue;
+            }
+
+            tokens.push({
+
+                type: TOKEN_TYPES.VALUE,
+
+                value: token.replace(/'/g, '')
+
+            });
+
+        }
+
+        return tokens;
+
+    }
+
+    createConditionNode(field, operator, value) {
+
+        return {
+
+            type: 'CONDITION',
+
+            objectName: field.split('.')[0],
+
+            fieldName: field.split('.')[1],
+
+            operator: operator,
+
+            value: value
+
+        };
+
+    }
+
+    createGroupNode(operator) {
+
+        return {
+
+            type: 'GROUP',
+
+            operator: operator,
+
+            children: []
+
+        };
+
     }
 
 }

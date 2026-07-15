@@ -13,7 +13,21 @@ global without sharing class GlobalPicklistValues {
         
         Schema.DescribeFieldResult institutionCategoriesFieldResult = Account.Institution_Categories__c.getDescribe();
 		response.institutionalCategoriesValues = getSafePicklistValues(institutionCategoriesFieldResult);
-        
+
+        Schema.DescribeFieldResult titleFieldResult = Contact.Title__c.getDescribe();
+        response.titleFieldResultValues = getSafePicklistValues(titleFieldResult);
+
+        Schema.DescribeFieldResult rolesFieldResult = Proposal_Participant_Association__c.Roles__c.getDescribe();
+        response.rolesValues = getSafePicklistValues(rolesFieldResult);
+
+
+        Map<String, String> accountMap = new Map<String, String>();
+        for (Account acc : [ SELECT Id, Name FROM Account Where Organization_Status__c='Listed'
+                             ORDER BY Name]) {
+            accountMap.put(acc.Id, acc.Name);
+        }
+        response.accounts = accountMap;
+
         return response;
     }
     
@@ -46,6 +60,9 @@ global without sharing class GlobalPicklistValues {
     global class ResponseWrapper {
         public FieldResult nationalityValues;
         public FieldResult institutionalCategoriesValues;
+        public FieldResult titleFieldResultValues;
+        public FieldResult rolesValues;
+        public Map<String, String> accounts;
     }
     
     global class FieldResult {

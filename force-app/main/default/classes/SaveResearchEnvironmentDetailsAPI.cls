@@ -17,7 +17,21 @@ global without sharing class SaveResearchEnvironmentDetailsAPI {
                 Describe_WOHI_Plan_and_Sponsor_s__c = req.describeWOHIPlanAndSponsor,
                 Status_at_the_Host_Institution__c = req.statusAtHostInstitution,
                 Start_Date_of_Host_Appointment__c = req.startDateOfAppointmentAtHostInstitution,
-                Current_Position_At_Host_Institution__c = req.currentPositionAtHostInstitution
+                Current_Position_At_Host_Institution__c = req.currentPositionAtHostInstitution,
+                Have_you_identified_Sponsor_at_Host_Inst__c = req.haveYouIdentifiedSponserAtHostInstitution,
+                Sponsor_Name__c = req.nameOfSponser,
+                Sponsor_Designation__c = req.sponserDesignation,
+                Sponsor_Department__c = req.sponserDepartment,
+                Sponsor_Organisation__c = req.sponserOrganisation,
+                Have_you_identified_mentor_on_your_appli__c = req.haveYouIdentifiedMentorOnYourApplication,
+                Mentor_Name__c = req.nameOfMentor,
+                Mentor_Designation__c = req.mentorDesignation,
+                Mentor_Department__c = req.mentorDepartment,
+                Mentor_Organisation__c = req.mentorOrganisation,
+                Mentor_City__c = req.mentorCity,
+                Mentor_Country__c = req.mentorCountry,
+                What_guidance_do_you_expect_to_receive__c = req.guidanceReceivedFromMentorAndBenefits,  
+                If_identified_External_Sponsor_s_for_Wo__c = req.identifiedExternalSponserForWohiBreifDetails    
             );
             update proposalHostInformation;
 
@@ -46,6 +60,20 @@ global without sharing class SaveResearchEnvironmentDetailsAPI {
         public String statusAtHostInstitution;
         public Date startDateOfAppointmentAtHostInstitution;
         public String currentPositionAtHostInstitution;
+        public String haveYouIdentifiedSponserAtHostInstitution;
+        public string nameOfSponser;
+        public string sponserDesignation;
+        public string sponserDepartment;
+        public string sponserOrganisation;
+        public string haveYouIdentifiedMentorOnYourApplication;
+        public string nameOfMentor;
+        public string mentorDesignation;
+        public string mentorDepartment;
+        public string mentorOrganisation;
+        public string mentorCity;
+        public string mentorCountry;
+        public string guidanceReceivedFromMentorAndBenefits;
+        public string identifiedExternalSponserForWohiBreifDetails;
     }
 
     global class ResponseWrapper {

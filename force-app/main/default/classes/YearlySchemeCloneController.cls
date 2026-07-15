@@ -27,7 +27,7 @@ public with sharing class YearlySchemeCloneController {
         if (schemeItemId == null) {
             return new List<Scheme_Questionnaire__c>();
         }
-        return [SELECT Id, Name, Display_Name__c, Is_Active__c,Max_Limit__c,Min_Limit__c,Stage__c,Type__c,Mandatory__c FROM Scheme_Questionnaire__c WHERE Scheme_Items__c = :schemeItemId ORDER BY Name];
+        return [SELECT Id, Name, Display_Name__c, Is_Active__c,Max_Limit__c,Min_Limit__c,Stage__c,Type__c,Mandatory__c,SL_No__c,Section__c,Picklist_Values__c FROM Scheme_Questionnaire__c WHERE Scheme_Items__c = :schemeItemId ORDER BY Name];
     }
 
     @AuraEnabled
@@ -42,7 +42,7 @@ public with sharing class YearlySchemeCloneController {
                      'FROM Eligibility_Rules__c ' +
                      'WHERE Yearly_Scheme__c = :recordId ORDER BY CreatedDate DESC';
         } else if (objectApiName == 'Scheme_Question_Items__c') {
-            query = 'SELECT Id, Name, Stage__c, CurrencyIsoCode, Is_Active__c, Mandatory__c, Max_Character__c, Min_Character__c, Question__c, Type__c,Attachments__c, ' +
+            query = 'SELECT Id, Name, Stage__c, CurrencyIsoCode, Is_Active__c, Mandatory__c, Max_Character__c, Min_Character__c, Question__c, Type__c,Attachments__c,SL_No__c,Section__c,Picklist_Values__c,' +
                      'Scheme_Questionnaire__c, Scheme_Questionnaire__r.Name, Scheme_Questionnaire__r.Display_Name__c, ' +
                      'FROM Scheme_Question_Items__c ' +
                      'WHERE Yearly_Scheme__c = :recordId ORDER BY CreatedDate DESC';
@@ -179,6 +179,9 @@ public with sharing class YearlySchemeCloneController {
                     rec.Min_Character__c = src.Min_Character__c;
                     rec.Is_Active__c = src.Is_Active__c;
                     rec.Attachments__c = src.Attachments__c;
+                    rec.Section__c = src.Section__c;                 
+                    rec.SL_No__c = src.SL_No__c;                      
+                    rec.Picklist_Values__c = src.Picklist_Values__c; 
                     rec.Yearly_Scheme__c = cloned.Id;
                     newRecords.add(rec);
                 }

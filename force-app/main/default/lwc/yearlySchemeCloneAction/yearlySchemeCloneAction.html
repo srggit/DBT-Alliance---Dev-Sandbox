@@ -187,7 +187,7 @@
                     </template>
                     <template if:false={noSchemeItemSelected}>
                         <div class="question-table-wrapper">
-                            <table class="slds-table slds-table_bordered slds-table_cell-buffer question-table">
+                            <table class="slds-table slds-table_bordered slds-table_cell-buffer question-table">                                
                                 <thead>
                                     <tr>
                                         <th style="width:50px">
@@ -196,14 +196,17 @@
                                                 onchange={handleSelectAllQuestionItems}>
                                             </lightning-input>
                                         </th>
+                                        <th style="width:80px">SL No</th>
                                         <th style="min-width:220px">Question</th>
+                                        <th style="width:200px">Section</th>
                                         <th style="width:150px">Stage</th>
-                                        <th style="width:110px">Type</th>
+                                        <th style="width:100px">Type</th>
+                                        <th style="min-width:200px">Picklist Values</th>
                                         <th style="width:110px">Max Character</th>
                                         <th style="width:110px">Min Character</th>
                                         <th style="width:100px">Mandatory</th>
                                         <th style="width:90px">Is Active</th>
-                                        <th style="width:140px">Attachments</th>
+                                        <th style="width:100px">Attachments</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -215,10 +218,23 @@
                                                 </lightning-input>
                                             </td>
                                             <td>
+                                                <lightning-input type="number" variant="label-hidden" data-id={item.Id}
+                                                    data-field="SL_No__c" value={item.SL_No__c}
+                                                    placeholder="Enter SL No" onchange={handleQuestionItemFieldChange}>
+                                                </lightning-input>
+                                            </td>
+                                            <td>
                                                 <lightning-textarea variant="label-hidden" data-id={item.Id}
                                                     data-field="Question__c" value={item.Question__c}
                                                     onchange={handleQuestionItemFieldChange}>
                                                 </lightning-textarea>
+                                            </td>
+                                            <td>
+                                                <lightning-input type="text" variant="label-hidden" data-id={item.Id}
+                                                    data-field="Section__c" value={item.Section__c}
+                                                    placeholder="Enter Section"
+                                                    onchange={handleQuestionItemFieldChange}>
+                                                </lightning-input>
                                             </td>
                                             <td>
                                                 <lightning-combobox variant="label-hidden" value={item.Stage__c}
@@ -231,6 +247,13 @@
                                                     options={questionItemTypeOptions} data-id={item.Id}
                                                     placeholder="Select Type" onchange={handleQuestionItemTypeChange}>
                                                 </lightning-combobox>
+                                            </td>
+                                            <td>
+                                                <lightning-textarea variant="label-hidden" data-id={item.Id}
+                                                    data-field="Picklist_Values__c" value={item.Picklist_Values__c}
+                                                    placeholder="Enter Picklist Values"
+                                                    onchange={handleQuestionItemFieldChange}>
+                                                </lightning-textarea>
                                             </td>
                                             <td>
                                                 <lightning-input type="number" variant="label-hidden" data-id={item.Id}
@@ -265,6 +288,7 @@
                                                     onchange={handleQuestionItemAttachmentsChange}>
                                                 </lightning-combobox>
                                             </td>
+
                                         </tr>
                                     </template>
                                 </tbody>

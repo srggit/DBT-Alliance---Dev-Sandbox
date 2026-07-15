@@ -22,6 +22,20 @@ global without sharing class createProposalAPI {
                 proposal.Significance_of_the_proposed_work__c = req.signinficanceOfProposedWork;
                 proposal.Research_References__c = req.researchReferences;
                 proposal.Yearly_Scheme__c = req.yearlySchemeId;
+                proposal.Have_you_identified_Sponsor_at_Host_Inst__c = req.haveYouIdentifiedSponserAtHostInstitution;
+                proposal.Sponsor_Name__c = req.nameOfSponser;
+                proposal.Sponsor_Designation__c = req.sponserDesignation;
+                proposal.Sponsor_Department__c = req.sponserDepartment;
+                proposal.Sponsor_Organisation__c = req.sponserOrganisation;
+                proposal.Have_you_identified_mentor_on_your_appli__c = req.haveYouIdentifiedMentorOnYourApplication;
+                proposal.Mentor_Name__c = req.nameOfMentor;
+                proposal.Mentor_Designation__c = req.mentorDesignation;
+                proposal.Mentor_Department__c = req.mentorDepartment;
+                proposal.Mentor_Organisation__c = req.mentorOrganisation;
+                proposal.Mentor_City__c = req.mentorCity;
+                proposal.Mentor_Country__c = req.mentorCountry;
+                proposal.What_guidance_do_you_expect_to_receive__c = req.guidanceReceivedFromMentorAndBenefits;
+                proposal.If_identified_External_Sponsor_s_for_Wo__c = req.identifiedExternalSponserForWohiBreifDetails;   
                 insert proposal;
 
                 Applicant_Proposal_Association__c association = new Applicant_Proposal_Association__c(
@@ -43,7 +57,21 @@ global without sharing class createProposalAPI {
                     Keywords__c = req.keywords,
                     Significance_of_the_proposed_work__c = req.signinficanceOfProposedWork,
                     Research_References__c = req.researchReferences,
-                    Yearly_Scheme__c = req.yearlySchemeId
+                    Yearly_Scheme__c = req.yearlySchemeId,
+                    Have_you_identified_Sponsor_at_Host_Inst__c = req.haveYouIdentifiedSponserAtHostInstitution,
+                    Sponsor_Name__c = req.nameOfSponser,
+                    Sponsor_Designation__c = req.sponserDesignation,
+                    Sponsor_Department__c = req.sponserDepartment,
+                    Sponsor_Organisation__c = req.sponserOrganisation,
+                    Have_you_identified_mentor_on_your_appli__c = req.haveYouIdentifiedMentorOnYourApplication,
+                    Mentor_Name__c = req.nameOfMentor,
+                    Mentor_Designation__c = req.mentorDesignation,
+                    Mentor_Department__c = req.mentorDepartment,
+                    Mentor_Organisation__c = req.mentorOrganisation,
+                    Mentor_City__c = req.mentorCity,
+                    Mentor_Country__c = req.mentorCountry,
+                    What_guidance_do_you_expect_to_receive__c = req.guidanceReceivedFromMentorAndBenefits,  
+                    If_identified_External_Sponsor_s_for_Wo__c = req.identifiedExternalSponserForWohiBreifDetails   
                 );
                 update proposal;
 
@@ -93,6 +121,20 @@ global without sharing class createProposalAPI {
         public String researchReferences;
         public String contactId;
         public String yearlySchemeId;
+        public String haveYouIdentifiedSponserAtHostInstitution;
+        public string nameOfSponser;
+        public string sponserDesignation;
+        public string sponserDepartment;
+        public string sponserOrganisation;
+        public string haveYouIdentifiedMentorOnYourApplication;
+        public string nameOfMentor;
+        public string mentorDesignation;
+        public string mentorDepartment;
+        public string mentorOrganisation;
+        public string mentorCity;
+        public string mentorCountry;
+        public string guidanceReceivedFromMentorAndBenefits;
+        public string identifiedExternalSponserForWohiBreifDetails;
     }
 
     global class ResponseWrapper {

@@ -51,7 +51,6 @@ private class EligibilityEvaluationServiceTest {
         insert testSchemeItem;
 
         Yearly_Schemes__c testYearlyScheme = new Yearly_Schemes__c(
-            Name = 'Test Yearly Scheme',
             Year__c = testYear.Id,
             Scheme_Items__c = testSchemeItem.Id,
             Is_Active__c = true
