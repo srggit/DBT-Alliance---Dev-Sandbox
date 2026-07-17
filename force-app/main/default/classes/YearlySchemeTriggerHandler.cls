@@ -60,4 +60,30 @@ public class YearlySchemeTriggerHandler {
             }
         }
     }
+
+    public static void updateProposalIds(Map<Id, Yearly_Schemes__c> newMap, Map<Id, Yearly_Schemes__c> oldMap){
+
+        Set<Id> yearlySchemeIds = new Set<Id>();
+
+        for(Id ysId : newMap.keySet()){
+
+            Yearly_Schemes__c newRec = newMap.get(ysId);
+            Yearly_Schemes__c oldRec = oldMap.get(ysId);
+
+            if (
+                newRec.Is_Active__c && oldRec.Is_Active__c &&
+                newRec.Approval_Status__c == 'Approved' && oldRec.Approval_Status__c == 'Approved' &&
+                oldRec.Application_Stages__c == 'Prelims' && newRec.Application_Stages__c == 'Full') {
+
+                yearlySchemeIds.add(ysId);
+            }
+        }
+
+        if(yearlySchemeIds.isEmpty()){
+            return;
+        }
+
+        ProposalTriggerHandler.updateProposalIdsToFull(yearlySchemeIds);
+
+    }
 }

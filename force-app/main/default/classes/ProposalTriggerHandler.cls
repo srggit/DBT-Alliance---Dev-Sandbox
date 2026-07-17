@@ -44,4 +44,50 @@ public without sharing class ProposalTriggerHandler {
             update updates;
         }
     }
+
+    // Method to update proposal ids to full when yearly scheme is updated to full
+    public static void updateProposalIdsToFull(Set<Id> yearlySchemeIds){
+
+        List<Proposal__c> proposals = [
+            SELECT Id,
+                   Proposal_Id__c, Proposal_Status__c, Application_Stages__c, Yearly_Scheme__c
+            FROM Proposal__c
+            WHERE Yearly_Scheme__c IN :yearlySchemeIds
+            AND Proposal_Status__c = 'Draft'
+            AND Application_Stages__c = 'Prelims'
+        ];
+    
+        List<Proposal__c> updates = new List<Proposal__c>();
+    
+        for(Proposal__c proposal : proposals){
+    
+            if(String.isBlank(proposal.Proposal_Id__c)){
+                continue;
+            }
+
+            if(proposal.Application_Stages__c == 'Full'){
+                continue;
+            }
+
+            if(proposal.Proposal_Id__c.contains('/F/')){
+                continue;
+            }
+
+            proposal.Old_Proposal_Id__c = proposal.Proposal_Id__c;
+            proposal.Application_Stages__c = 'Full';
+    
+            if(proposal.Proposal_Id__c.contains('/P/')){
+    
+                proposal.Proposal_Id__c =  proposal.Proposal_Id__c.replace('/P/', '/F/');
+    
+                updates.add(proposal);
+            }
+    
+        }
+    
+        if(!updates.isEmpty()){
+            update updates;
+        }
+    
+    }
 }

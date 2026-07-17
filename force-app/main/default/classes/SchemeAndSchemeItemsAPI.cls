@@ -113,6 +113,29 @@ global without sharing class SchemeAndSchemeItemsAPI {
                 yearlySchemeIds.add(yearlySchemeRecord.Id);
             }
 
+            // Map yearly scheme Id -> proposal status for schemes the contact has already applied to.
+            Map<Id, String> proposalStatusByYearlySchemeId = new Map<Id, String>();
+            Map<Id, Id> proposalIdByYearlySchemeId = new Map<Id, Id>();
+            Map<Id, Id> apaIdByYearlySchemeId = new Map<Id, Id>();
+
+            if (!yearlySchemeIds.isEmpty()) {
+                for (Applicant_Proposal_Association__c apaRecord : [
+                    SELECT Id, Yearly_Scheme__c, Proposal__r.Proposal_Status__c,
+                           Proposal__c
+                    FROM Applicant_Proposal_Association__c
+                    WHERE Contact__c = :contactId
+                    AND Yearly_Scheme__c IN :yearlySchemeIds
+                ]) {
+                    if (apaRecord.Yearly_Scheme__c != null) {
+                        proposalStatusByYearlySchemeId.put(apaRecord.Yearly_Scheme__c, apaRecord.Proposal__r.Proposal_Status__c);
+                        proposalIdByYearlySchemeId.put(apaRecord.Yearly_Scheme__c, apaRecord.Proposal__c);
+                        apaIdByYearlySchemeId.put(apaRecord.Yearly_Scheme__c, apaRecord.Id);
+                    }
+                }
+            }
+
+            System.debug('proposalStatusByYearlySchemeId: ' + proposalStatusByYearlySchemeId);
+
             Map<Id, EligibilityEvaluationService.EligibilityEvaluationResult> eligibilityByYearlySchemeId =
                 EligibilityEvaluationService.evaluateYearlySchemes(applicantContactId, yearlySchemeIds);
 
@@ -137,7 +160,10 @@ global without sharing class SchemeAndSchemeItemsAPI {
                         buildLineItemWrapper(
                             item,
                             yearlySchemeByItemId.get(item.Id),
-                            eligibilityByYearlySchemeId
+                            eligibilityByYearlySchemeId,
+                            proposalStatusByYearlySchemeId,
+                            proposalIdByYearlySchemeId,
+                            apaIdByYearlySchemeId
                         )
                     );
                 }
@@ -170,7 +196,10 @@ global without sharing class SchemeAndSchemeItemsAPI {
     private static SchemeLineItemWrapper buildLineItemWrapper(
         Scheme_Items__c item,
         Yearly_Schemes__c yearlyScheme,
-        Map<Id, EligibilityEvaluationService.EligibilityEvaluationResult> eligibilityByYearlySchemeId
+        Map<Id, EligibilityEvaluationService.EligibilityEvaluationResult> eligibilityByYearlySchemeId,
+        Map<Id, String> proposalStatusByYearlySchemeId,
+        Map<Id, Id> proposalIdByYearlySchemeId,
+        Map<Id, Id> apaIdByYearlySchemeId
     ) {
         SchemeLineItemWrapper lineItem = new SchemeLineItemWrapper();
         lineItem.schemeItemId = item.Id;
@@ -179,7 +208,7 @@ global without sharing class SchemeAndSchemeItemsAPI {
         lineItem.durationLabel = formatDuration(item.Duration__c);
         lineItem.isActive = item.Is_Active__c;
         lineItem.firstPageUrl = item.First_Page_URL__c;
-        lineItem.yearlyScheme = buildYearlySchemeWrapper(yearlyScheme);
+        lineItem.yearlyScheme = buildYearlySchemeWrapper(yearlyScheme, proposalStatusByYearlySchemeId, proposalIdByYearlySchemeId, apaIdByYearlySchemeId);
 
         EligibilityEvaluationService.EligibilityEvaluationResult evaluationResult = yearlyScheme != null
             ? eligibilityByYearlySchemeId.get(yearlyScheme.Id)
@@ -191,7 +220,12 @@ global without sharing class SchemeAndSchemeItemsAPI {
         return lineItem;
     }
 
-    private static YearlySchemeWrapper buildYearlySchemeWrapper(Yearly_Schemes__c yearlyScheme) {
+    private static YearlySchemeWrapper buildYearlySchemeWrapper(
+        Yearly_Schemes__c yearlyScheme,
+        Map<Id, String> proposalStatusByYearlySchemeId,
+        Map<Id, Id> proposalIdByYearlySchemeId,
+        Map<Id, Id> apaIdByYearlySchemeId
+    ) {
         if (yearlyScheme == null) {
             return null;
         }
@@ -212,6 +246,12 @@ global without sharing class SchemeAndSchemeItemsAPI {
         wrapper.experienceRequired = yearlyScheme.Experience_Required__c;
         wrapper.requiredDegree = yearlyScheme.Required_Degree__c;
         wrapper.teamSizeLimits = yearlyScheme.Team_Size_Limits__c;
+
+        Boolean hasApplied = proposalStatusByYearlySchemeId != null && proposalStatusByYearlySchemeId.containsKey(yearlyScheme.Id);
+        wrapper.appliedStatus = hasApplied;
+        wrapper.proposalStatus = hasApplied ? proposalStatusByYearlySchemeId.get(yearlyScheme.Id) : null;
+        wrapper.proposalId = proposalIdByYearlySchemeId.get(yearlyScheme.Id);
+        wrapper.apaId = apaIdByYearlySchemeId.get(yearlyScheme.Id);
         return wrapper;
     }
 
@@ -307,6 +347,7 @@ global without sharing class SchemeAndSchemeItemsAPI {
     global class ResponseWrapper {
         public Boolean success;
         public String message;
+
         public DataWrapper data;
     }
 
@@ -363,6 +404,10 @@ global without sharing class SchemeAndSchemeItemsAPI {
         public Decimal experienceRequired;
         public String requiredDegree;
         public Decimal teamSizeLimits;
+        public Boolean appliedStatus;
+        public String proposalStatus;
+        public String proposalId;
+        public String apaId;
     }
 
     global class EligibilityWrapper {

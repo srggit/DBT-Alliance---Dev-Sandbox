@@ -1,35 +1,80 @@
 public with sharing class EligibilityFormulaBuilderV2 {
 
     // TODO: Remove after testing — hardcoded contact for Check Eligibility
-    private static final Id TEST_CONTACT_ID = '003C300000qEWm0IAG';
+    private static final Id TEST_CONTACT_ID = '003C300000qEWm0IAG';    
 
+    // @AuraEnabled(cacheable=true)
+    // public static List<ObjectFieldMaster> getFieldMasterData() {
+    //     Map<String, ObjectFieldMaster> objectFieldMasterByApiName = new Map<String, ObjectFieldMaster>();
+
+    //     for (Field_Master_MDT__mdt record : [
+    //         SELECT Object__c, Object_Label__c, Values__c
+    //         FROM Field_Master_MDT__mdt
+    //         WHERE Object__c != null
+    //         ORDER BY Object_Label__c, Object__c
+    //     ]) {
+    //         if (!objectFieldMasterByApiName.containsKey(record.Object__c)) {
+    //             ObjectFieldMaster master = new ObjectFieldMaster();
+    //             master.objectApiName = record.Object__c;
+    //             master.objectLabel = String.isNotBlank(record.Object_Label__c)
+    //                 ? record.Object_Label__c
+    //                 : record.Object__c;
+    //             master.fieldOptions = new Map<String, String>();
+    //             objectFieldMasterByApiName.put(record.Object__c, master);
+    //         }
+
+    //         objectFieldMasterByApiName
+    //             .get(record.Object__c)
+    //             .fieldOptions
+    //             .putAll(parseFieldValues(record.Values__c));
+    //     }
+
+    //     return new List<ObjectFieldMaster>(objectFieldMasterByApiName.values());
+    // }
     @AuraEnabled(cacheable=true)
     public static List<ObjectFieldMaster> getFieldMasterData() {
-        Map<String, ObjectFieldMaster> objectFieldMasterByApiName = new Map<String, ObjectFieldMaster>();
 
-        for (Field_Master_MDT__mdt record : [
-            SELECT Object__c, Object_Label__c, Values__c
-            FROM Field_Master_MDT__mdt
-            WHERE Object__c != null
-            ORDER BY Object_Label__c, Object__c
+        Map<Id, ObjectFieldMaster> objectMasterMap = new Map<Id, ObjectFieldMaster>();
+
+        // Get all active objects
+        for (Object_Master__c obj : [
+            SELECT Id,
+                Name,
+                Object_Api_Name__c
+            FROM Object_Master__c
+            WHERE Status__c = 'Active'
+            ORDER BY Name
         ]) {
-            if (!objectFieldMasterByApiName.containsKey(record.Object__c)) {
-                ObjectFieldMaster master = new ObjectFieldMaster();
-                master.objectApiName = record.Object__c;
-                master.objectLabel = String.isNotBlank(record.Object_Label__c)
-                    ? record.Object_Label__c
-                    : record.Object__c;
-                master.fieldOptions = new Map<String, String>();
-                objectFieldMasterByApiName.put(record.Object__c, master);
-            }
 
-            objectFieldMasterByApiName
-                .get(record.Object__c)
-                .fieldOptions
-                .putAll(parseFieldValues(record.Values__c));
+            ObjectFieldMaster wrapper = new ObjectFieldMaster();
+            wrapper.objectApiName = obj.Object_Api_Name__c;
+            wrapper.objectLabel = obj.Name;
+            wrapper.fieldOptions = new Map<String, String>();
+
+            objectMasterMap.put(obj.Id, wrapper);
         }
 
-        return new List<ObjectFieldMaster>(objectFieldMasterByApiName.values());
+        // Get all active fields
+        for (Fields_Master__c field : [
+            SELECT Object_Master__c,
+                Field_Label_Name__c,
+                Field_Api_Name__c
+            FROM Fields_Master__c
+            WHERE Status__c = 'Active'
+            ORDER BY Field_Label_Name__c
+        ]) {
+
+            if (objectMasterMap.containsKey(field.Object_Master__c)) {
+
+                objectMasterMap.get(field.Object_Master__c)
+                    .fieldOptions.put(
+                        field.Field_Label_Name__c,
+                        field.Field_Api_Name__c
+                    );
+            }
+        }
+
+        return new List<ObjectFieldMaster>(objectMasterMap.values());
     }
 
     @AuraEnabled
@@ -99,6 +144,7 @@ public with sharing class EligibilityFormulaBuilderV2 {
                 criteria.Pass_Message__c = condition.passMessage;
                 criteria.Fail_Message__c = condition.failMessage;
                 criteria.Yearly_Scheme__c = yearlySchemeId;
+                criteria.Stage__c = condition.stage;
                 criteriaList.add(criteria);
                 nextSequence++;
             }
@@ -151,35 +197,35 @@ public with sharing class EligibilityFormulaBuilderV2 {
         return Integer.valueOf(aggregateResults[0].get('maxSequence')) + 1;
     }
 
-    private static Map<String, String> parseFieldValues(String rawValues) {
-        Map<String, String> parsedValues = new Map<String, String>();
+    // private static Map<String, String> parseFieldValues(String rawValues) {
+    //     Map<String, String> parsedValues = new Map<String, String>();
 
-        if (String.isBlank(rawValues)) {
-            return parsedValues;
-        }
+    //     if (String.isBlank(rawValues)) {
+    //         return parsedValues;
+    //     }
 
-        try {
-            Map<String, Object> valuesByLabel = (Map<String, Object>) JSON.deserializeUntyped(
-                rawValues.trim()
-            );
+    //     try {
+    //         Map<String, Object> valuesByLabel = (Map<String, Object>) JSON.deserializeUntyped(
+    //             rawValues.trim()
+    //         );
 
-            for (String label : valuesByLabel.keySet()) {
-                Object fieldApiName = valuesByLabel.get(label);
-                if (fieldApiName != null && String.isBlank(String.valueOf(fieldApiName)) == false) {
-                    parsedValues.put(label, String.valueOf(fieldApiName));
-                }
-            }
-        } catch (Exception ex) {
-            for (String valuePart : rawValues.split('[,;]+')) {
-                String trimmedValue = valuePart.trim();
-                if (String.isNotBlank(trimmedValue)) {
-                    parsedValues.put(trimmedValue, trimmedValue);
-                }
-            }
-        }
+    //         for (String label : valuesByLabel.keySet()) {
+    //             Object fieldApiName = valuesByLabel.get(label);
+    //             if (fieldApiName != null && String.isBlank(String.valueOf(fieldApiName)) == false) {
+    //                 parsedValues.put(label, String.valueOf(fieldApiName));
+    //             }
+    //         }
+    //     } catch (Exception ex) {
+    //         for (String valuePart : rawValues.split('[,;]+')) {
+    //             String trimmedValue = valuePart.trim();
+    //             if (String.isNotBlank(trimmedValue)) {
+    //                 parsedValues.put(trimmedValue, trimmedValue);
+    //             }
+    //         }
+    //     }
 
-        return parsedValues;
-    }
+    //     return parsedValues;
+    // }
 
     private static List<ConditionWrapper> parseConditionWrappers(String wrapperDataJson) {
         ConditionWrapper[] wrappers = (ConditionWrapper[]) JSON.deserialize(
@@ -208,5 +254,6 @@ public with sharing class EligibilityFormulaBuilderV2 {
         @AuraEnabled public String formula;
         @AuraEnabled public String passMessage;
         @AuraEnabled public String failMessage;
+        @AuraEnabled public String stage;
     }
 }

@@ -4,7 +4,7 @@ import { getObjectInfo, getPicklistValues } from 'lightning/uiObjectInfoApi';
 import ELIGIBILITY_CRITERIA_OBJECT from '@salesforce/schema/Eligibility_Criteria__c';
 import VALIDATION_TYPE_FIELD from '@salesforce/schema/Eligibility_Criteria__c.Validation_Type__c';
 import ELIGIBILITY_TYPE_FIELD from '@salesforce/schema/Eligibility_Criteria__c.Eligibility_Type__c';
-
+import STAGE_FIELD from '@salesforce/schema/Eligibility_Criteria__c.Stage__c';
 import saveEligibilityCriteriaApex from '@salesforce/apex/EligibilityFormulaBuilderV2.saveEligibilityCriteria';
 import checkEligibilityApex from '@salesforce/apex/EligibilityFormulaBuilderV2.checkEligibility';
 import getFieldMasterData from '@salesforce/apex/EligibilityFormulaBuilderV2.getFieldMasterData';
@@ -39,6 +39,8 @@ export default class EligibilityFormulaBuilderV2 extends LightningElement {
     isCheckingEligibility = false;
     eligibilitySummary = null;
     criteriaResults = [];
+    selectedStage = '';
+    stageOptions = [];
 
     @api recordId;
 
@@ -103,6 +105,9 @@ export default class EligibilityFormulaBuilderV2 extends LightningElement {
             );
         }
     }
+    handleStageChange(event) {
+        this.selectedStage = event.detail.value;
+    }
 
     @wire(getPicklistValues, {
         recordTypeId: '$defaultRecordTypeId',
@@ -135,6 +140,24 @@ export default class EligibilityFormulaBuilderV2 extends LightningElement {
             if (!this.selectedEligibilityType && this.eligibilityTypeOptions.length) {
                 this.selectedEligibilityType = this.eligibilityTypeOptions[0].value;
             }
+        }
+    }
+    @wire(getPicklistValues, {
+        recordTypeId: '$defaultRecordTypeId',
+        fieldApiName: STAGE_FIELD
+    })
+    wiredStagePicklist({ data, error }) {
+        if (data) {
+            this.stageOptions = data.values.map(item => ({
+                label: item.label,
+                value: item.value
+            }));
+
+            if (!this.selectedStage && this.stageOptions.length) {
+                this.selectedStage = this.stageOptions[0].value;
+            }
+        } else if (error) {
+            console.error(error);
         }
     }
 
@@ -595,6 +618,7 @@ export default class EligibilityFormulaBuilderV2 extends LightningElement {
                 eligibilityType: this.selectedEligibilityType,
                 formula: this.formulaText.trim(),
                 passMessage: this.passMessage?.trim() || '',
+                stage: this.selectedStage,
                 failMessage: this.failMessage?.trim() || ''
             }];
 

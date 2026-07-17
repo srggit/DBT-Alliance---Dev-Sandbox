@@ -2,6 +2,7 @@ trigger ProposalTrigger on Proposal__c(before insert, before update, after inser
 	if (Trigger.isAfter) {
         if (Trigger.isUpdate) {
             FieldHistoryTrackerUtil.trackChanges(Trigger.new, Trigger.oldMap);
+            NotificationHandler.createNotifications('Proposal__c', Trigger.new);
         }
     }
      if (Trigger.isAfter && Trigger.isInsert) {

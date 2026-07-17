@@ -18,12 +18,14 @@ global without sharing class getApplicantCVDetailsP3 {
         ProposalWrapper proposalWrapper = new ProposalWrapper();
         List<EducationDetailsWrapper> educationDetailsWrapperList = new List<EducationDetailsWrapper>();
         List<PatentsDetailsWrapper> patentsDetailsWrapperList = new List<PatentsDetailsWrapper>();
+        List<EmploymentDetailsWrapper> employmentDetailsWrapperList = new List<EmploymentDetailsWrapper>();
 
         try{
 
             Proposal__c proposal;
             List<Education_Details__c> educationRecords = new List<Education_Details__c>();
             List<Patents__c> patentRecords = new List<Patents__c>();
+            List<Employment_Details__c> employmentRecords = new List<Employment_Details__c>();
 
             // Prefer apaId: Proposal + Education + Patents in one query via APA
             if(String.isNotBlank(apaId)){
@@ -37,12 +39,13 @@ global without sharing class getApplicantCVDetailsP3 {
                         Proposal__r.Have_you_identified_Sponsor_at_Host_Inst__c, Proposal__r.Sponsor_Name__c,Proposal__r.Sponsor_Designation__c, Proposal__r.Sponsor_Department__c,Proposal__r.Sponsor_Organisation__c, Proposal__r.Have_you_identified_mentor_on_your_appli__c,
                         Proposal__r.Mentor_Name__c, Proposal__r.Mentor_Designation__c, Proposal__r.Mentor_Department__c, Proposal__r.Mentor_Organisation__c, Proposal__r.Mentor_City__c, Proposal__r.Mentor_Country__c, Proposal__r.What_guidance_do_you_expect_to_receive__c, Proposal__r.If_identified_External_Sponsor_s_for_Wo__c,
                         (SELECT Id, Qualification__c, Subject__c, Country__c, Institution__c,
-                            Department_School_Division__c, Supervisor__c, Title_of_thesis_Dissertation__c, End_Date__c
+                            Department_School_Division__c, Supervisor__c, Title_of_thesis_Dissertation__c, End_Date__c, Pursuing_Higher_Degree__c, Start_Date__c
                          FROM Education_Details__r
                          ORDER BY End_Date__c DESC),
                         (SELECT Id, Title__c, Inventors__c, Patent_Number__c, Granting_Agency_Country__c, Filing_Granted_Date__c
                          FROM Patents__r
-                         ORDER BY Name ASC)
+                         ORDER BY Name ASC),
+                         (SELECT Id, Organisation__c, Position__c, Roles_Responsibilities__c, I_am_currently_working_here__c, End_Date__c, Start_Date__c, Reporting_To__c FROM Employment_Details__r ORDER BY End_Date__c DESC)
                     FROM Applicant_Proposal_Association__c
                     WHERE Id = :apaId
                     LIMIT 1
@@ -65,15 +68,17 @@ global without sharing class getApplicantCVDetailsP3 {
                 proposal = apa.Proposal__r;
                 educationRecords = apa.Education_Details__r;
                 patentRecords = apa.Patents__r;
+                employmentRecords = apa.Employment_Details__r;
 
                 System.debug('educationRecords: ' + educationRecords);
-                System.debug('patentRecords: ' + patentRecords);    
+                System.debug('patentRecords: ' + patentRecords);
+                System.debug('employmentRecords: ' + employmentRecords);
                 System.debug('educationRecords.isEmpty(): ' + educationRecords.isEmpty());
                 System.debug('patentRecords.isEmpty(): ' + patentRecords.isEmpty());
 
-                // If APA has no education/patents, fall back to Contact
-                if(educationRecords.isEmpty() || patentRecords.isEmpty()){
-                    System.debug('educationRecords is empty or patentRecords is empty');
+                // If APA has no education/patents/employment, fall back to Contact
+                if(educationRecords.isEmpty() || patentRecords.isEmpty() || employmentRecords.isEmpty()){
+                    System.debug('educationRecords is empty or patentRecords is empty or employmentRecords is empty');
 
                     String fallbackContactId;
 
@@ -90,6 +95,9 @@ global without sharing class getApplicantCVDetailsP3 {
                             }
                             if(patentRecords.isEmpty()){
                                 patentRecords = contactWithCv.Patents__r;
+                            }
+                            if(employmentRecords.isEmpty()){
+                                employmentRecords = contactWithCv.Employment_Details__r;
                             }
                         }
                     }
@@ -137,6 +145,7 @@ global without sharing class getApplicantCVDetailsP3 {
                     if(contactWithCv != null){
                         educationRecords = contactWithCv.Education_Details__r;
                         patentRecords = contactWithCv.Patents__r;
+                        employmentRecords = contactWithCv.Employment_Details__r;
                     }
                 }
             }
@@ -151,7 +160,9 @@ global without sharing class getApplicantCVDetailsP3 {
                 educationDetailsWrapper.department = educationDetail.Department_School_Division__c;
                 educationDetailsWrapper.supervisor = educationDetail.Supervisor__c;
                 educationDetailsWrapper.thesisDissertationTitle = educationDetail.Title_of_thesis_Dissertation__c;
-                educationDetailsWrapper.yearOfAward = educationDetail.End_Date__c;
+                educationDetailsWrapper.endDate = educationDetail.End_Date__c;
+                educationDetailsWrapper.pursuingHigherDegree = educationDetail.Pursuing_Higher_Degree__c;
+                educationDetailsWrapper.startDate = educationDetail.Start_Date__c;
                 educationDetailsWrapperList.add(educationDetailsWrapper);
             }
 
@@ -164,6 +175,19 @@ global without sharing class getApplicantCVDetailsP3 {
                 patentsDetailsWrapper.grantingAgencyCountry = patent.Granting_Agency_Country__c;
                 patentsDetailsWrapper.filingGrantedDate = patent.Filing_Granted_Date__c;
                 patentsDetailsWrapperList.add(patentsDetailsWrapper);
+            }
+
+            for(Employment_Details__c employmentDetail : employmentRecords){
+                EmploymentDetailsWrapper employmentDetailsWrapper = new EmploymentDetailsWrapper();
+                employmentDetailsWrapper.employmentId = employmentDetail.Id;
+                employmentDetailsWrapper.organisation = employmentDetail.Organisation__c;
+                employmentDetailsWrapper.position = employmentDetail.Position__c;
+                employmentDetailsWrapper.description = employmentDetail.Roles_Responsibilities__c;
+                employmentDetailsWrapper.isCurrentlyWorking = employmentDetail.I_am_currently_working_here__c;
+                employmentDetailsWrapper.endDate = employmentDetail.End_Date__c;
+                employmentDetailsWrapper.startDate = employmentDetail.Start_Date__c;
+                employmentDetailsWrapper.reportingTo = employmentDetail.Reporting_To__c;
+                employmentDetailsWrapperList.add(employmentDetailsWrapper);
             }
 
             proposalWrapper.proposalId = proposal.Id;
@@ -190,6 +214,7 @@ global without sharing class getApplicantCVDetailsP3 {
             response.proposalDetails = proposalWrapper;
             response.educationDetailsList = educationDetailsWrapperList;
             response.patentsDetailsList = patentsDetailsWrapperList;
+            response.employmentDetailsList = employmentDetailsWrapperList;
             response.success = true;
             response.message = 'Proposal details fetched successfully';
             return response;
@@ -205,12 +230,13 @@ global without sharing class getApplicantCVDetailsP3 {
         List<Contact> contacts = [
             SELECT Id,
                 (SELECT Id, Qualification__c, Subject__c, Country__c, Institution__c,
-                    Department_School_Division__c, Supervisor__c, Title_of_thesis_Dissertation__c, End_Date__c
+                    Department_School_Division__c, Supervisor__c, Title_of_thesis_Dissertation__c, End_Date__c, Pursuing_Higher_Degree__c, Start_Date__c
                  FROM Education_Details__r
                  ORDER BY End_Date__c DESC),
                 (SELECT Id, Title__c, Inventors__c, Patent_Number__c, Granting_Agency_Country__c, Filing_Granted_Date__c
                  FROM Patents__r
-                 ORDER BY Name ASC)
+                 ORDER BY Name ASC),
+                 (SELECT Id, Organisation__c, Position__c, Roles_Responsibilities__c, I_am_currently_working_here__c, End_Date__c, Start_Date__c, Reporting_To__c FROM Employment_Details__r ORDER BY End_Date__c DESC)
             FROM Contact
             WHERE Id = :contactId
             LIMIT 1
@@ -224,6 +250,7 @@ global without sharing class getApplicantCVDetailsP3 {
         public ProposalWrapper proposalDetails;
         public List<EducationDetailsWrapper> educationDetailsList;
         public List<PatentsDetailsWrapper> patentsDetailsList;
+        public List<EmploymentDetailsWrapper> employmentDetailsList;
     }
 
     global class ProposalWrapper {
@@ -257,7 +284,9 @@ global without sharing class getApplicantCVDetailsP3 {
         public String department;
         public String supervisor;
         public String thesisDissertationTitle;
-        public Date yearOfAward;
+        public String pursuingHigherDegree;
+        public Date endDate;
+        public Date startDate;
     }
 
     global class PatentsDetailsWrapper {
@@ -267,6 +296,17 @@ global without sharing class getApplicantCVDetailsP3 {
         public String patentNumber;
         public String grantingAgencyCountry;
         public Date filingGrantedDate;
+    }
+
+    global class EmploymentDetailsWrapper {
+        public String employmentId;
+        public String organisation;
+        public String position;
+        public String description;
+        public Boolean isCurrentlyWorking;
+        public Date endDate;
+        public Date startDate;
+        public String reportingTo;
     }
 
 }

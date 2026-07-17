@@ -7,7 +7,7 @@
 
             <lightning-layout multiple-rows>
 
-                <lightning-layout-item size="4" padding="around-small">
+                <lightning-layout-item size="3" padding="around-small">
                     <lightning-input label="Criteria Label" value={criteriaLabel}
                         placeholder="e.g. Age Verification, Required Degree"
                         onchange={handleCriteriaLabelChange} required>
@@ -25,6 +25,15 @@
                         options={eligibilityTypeOptions} onchange={handleEligibilityTypeChange}>
                     </lightning-combobox>
                 </lightning-layout-item>
+                <lightning-layout-item size="3" padding="around-small">
+                    <lightning-combobox
+                        label="Application Stages"
+                        value={selectedStage}
+                        options={stageOptions}
+                        onchange={handleStageChange}>
+                    </lightning-combobox>
+                </lightning-layout-item>
+                
 
                 <lightning-layout-item size="6" padding="around-small">
                     <lightning-input label="Pass Message" value={passMessage}

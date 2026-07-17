@@ -3,7 +3,6 @@
  * POST REST API to create OR update a Proposal, together with its:
  *   - Applicant_Proposal_Association__c (the Applicant tied to the Proposal)
  *   - Applicant_Host_Association__c     (0..N Hosts for that Proposal/Applicant)
- *   - Proposal_Participant_Association__c (0..N Participants for that Proposal)
  * all in a single request / single transaction.
  *
  * The Proposal's RecordTypeId is NOT passed in directly. Instead it is
@@ -18,15 +17,14 @@
  * Update SCHEME_ITEMS_OBJECT references below if the actual API name differs.
  *
  * Endpoint:
- *   POST /services/apexrest/proposalDetails
+ *   POST /services/apexrest/proposalDetailsBasic
  *
  * CREATE vs UPDATE:
  *   - Pass no "proposalId" (or blank) -> creates a new Proposal__c.
  *   - Pass an existing "proposalId" -> updates that Proposal__c.
- *   - Same pattern applies per-record for applicantProposalAssociationId,
- *     hostAssociationId (inside each host), and participantAssociationId
- *     (inside each participant) -> if provided, that specific record is
- *     updated; if blank, a new one is created.
+ *   - Same pattern applies per-record for applicantProposalAssociationId
+ *     and hostAssociationId (inside each host) -> if provided, that
+ *     specific record is updated; if blank, a new one is created.
  *
  * Sample Request Body:
  * {
@@ -39,14 +37,7 @@
  *       "hostAssociationId": "a0X...",      // omit/blank to create new
  *       "hostAccountId": "001...",
  *       "isNonProfit": "Yes",
- *     //  "roles": "Mentor"
- *     }
- *   ],
- *   "participants": [
- *     {
- *       "participantAssociationId": "a0V...", // omit/blank to create new
- *       "participantContactId": "003...",
- *       "roles": "Mentor"
+ *       //"roles": "Mentor"
  *     }
  *   ]
  * }
@@ -57,12 +48,11 @@
  *   "message": "Proposal created successfully.",
  *   "proposalId": "a0Y...",
  *   "applicantProposalAssociationId": "a0Z...",
- *   "hostAssociationIds": ["a0X...", "a0X..."],
- *   "participantAssociationIds": ["a0V..."]
+ *   "hostAssociationIds": ["a0X...", "a0X..."]
  * }
  */
-@RestResource(urlMapping='/proposalDetails')
-global without sharing class ProposalDetailsAPI {
+@RestResource(urlMapping='/proposalDetailsBasic')
+global without sharing class ProposalDetailsBasicAPI {
 
     // Scheme Item Name -> Proposal__c Record Type Developer Name
     private static final Map<String, String> SCHEME_ITEM_TO_RECORD_TYPE = new Map<String, String>{
@@ -138,38 +128,13 @@ global without sharing class ProposalDetailsAPI {
                     aha.Host__c = h.hostAccountId;
                     aha.Proposal__c = proposal.Id;
                     aha.Is_the_Host_Instituition_not_for_profit__c = h.isNonProfit;
-                    //aha.Roles__c = h.roles;
+                   // aha.Roles__c = h.roles;
                     hostRecords.add(aha);
                 }
                 if (!hostRecords.isEmpty()) {
                     upsert hostRecords;
                     for (Applicant_Host_Association__c r : hostRecords) {
                         hostAssociationIds.add(r.Id);
-                    }
-                }
-            }
-
-            // 4. Create/Update Proposal_Participant_Association__c records
-            List<Id> participantAssociationIds = new List<Id>();
-            if (req.participants != null && !req.participants.isEmpty()) {
-                List<Proposal_Participant_Association__c> participantRecords = new List<Proposal_Participant_Association__c>();
-                for (ParticipantInput p : req.participants) {
-                    if (String.isBlank(p.participantContactId)) {
-                        continue; // skip incomplete entries
-                    }
-                    Proposal_Participant_Association__c ppa = new Proposal_Participant_Association__c();
-                    if (String.isNotBlank(p.participantAssociationId)) {
-                        ppa.Id = p.participantAssociationId;
-                    }
-                    ppa.Participant__c = p.participantContactId;
-                    ppa.Proposal__c = proposal.Id;
-                    ppa.Roles__c = p.roles;
-                    participantRecords.add(ppa);
-                }
-                if (!participantRecords.isEmpty()) {
-                    upsert participantRecords;
-                    for (Proposal_Participant_Association__c r : participantRecords) {
-                        participantAssociationIds.add(r.Id);
                     }
                 }
             }
@@ -181,7 +146,6 @@ global without sharing class ProposalDetailsAPI {
             response.proposalId = proposal.Id;
             response.applicantProposalAssociationId = apa.Id;
             response.hostAssociationIds = hostAssociationIds;
-            response.participantAssociationIds = participantAssociationIds;
 
         } catch (Exception ex) {
             Database.rollback(sp);
@@ -256,20 +220,13 @@ global without sharing class ProposalDetailsAPI {
         public String contactId;
         public String applicantProposalAssociationId;
         public List<HostInput> hosts;
-        public List<ParticipantInput> participants;
     }
 
     global class HostInput {
         public String hostAssociationId;
         public String hostAccountId;
         public String isNonProfit;
-      //  public String roles;
-    }
-
-    global class ParticipantInput {
-        public String participantAssociationId;
-        public String participantContactId;
-        public String roles;
+       // public String roles;
     }
 
     // ---------- Response Wrapper ----------
@@ -280,6 +237,5 @@ global without sharing class ProposalDetailsAPI {
         public String proposalId;
         public String applicantProposalAssociationId;
         public List<Id> hostAssociationIds;
-        public List<Id> participantAssociationIds;
     }
 }
