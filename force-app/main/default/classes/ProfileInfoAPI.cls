@@ -12,7 +12,7 @@ global without sharing class ProfileInfoAPI {
             
             List<Contact> contacts = [
                 SELECT Id, FirstName, LastName, Email, BirthDate, Nationality__c, Gender__c, Position__c, Department, Phone, MailingCity, 
-                MailingState, MailingCountry, MailingPostalCode
+                MailingState, MailingCountry, MailingPostalCode, Google_Scholar_Profile__c
                 FROM Contact 
                 WHERE Email = :req.email
                 LIMIT 1
@@ -47,7 +47,7 @@ global without sharing class ProfileInfoAPI {
             con.Non_Research_Career_Break_Explanation__c = req.nonReserchCareerBreak_Explaination;
 
             con.ORCID_ID__c = req.orcidID;
-            
+            con.Google_Scholar_Profile__c = req.googleScholarProfileLink;
             update con;
             
             response.success = true;
@@ -84,6 +84,7 @@ global without sharing class ProfileInfoAPI {
         public Date nonResearchCareerBreak_To;
         public String nonReserchCareerBreak_Explaination;     
         public String orcidID;
+        public String googleScholarProfileLink;
     }
     
     global class ProfileResponse{

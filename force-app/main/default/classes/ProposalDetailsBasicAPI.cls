@@ -32,6 +32,7 @@
  *   "yearlySchemeId": "a0W...",
  *   "contactId": "003...",
  *   "applicantProposalAssociationId": "a0Z...", // omit/blank to create new
+ *   "proposalInBasicBiomedicalResearch": true,
  *   "hosts": [
  *     {
  *       "hostAssociationId": "a0X...",      // omit/blank to create new
@@ -47,6 +48,7 @@
  *   "success": true,
  *   "message": "Proposal created successfully.",
  *   "proposalId": "a0Y...",
+ *   "proposalInBasicBiomedicalResearch": true,
  *   "applicantProposalAssociationId": "a0Z...",
  *   "hostAssociationIds": ["a0X...", "a0X..."]
  * }
@@ -100,6 +102,7 @@ global without sharing class ProposalDetailsBasicAPI {
             }
             proposal.RecordTypeId = resolvedRecordTypeId;
             proposal.Yearly_Scheme__c = req.yearlySchemeId;
+            proposal.Proposal_In_Basic_Biomedical_Research__c = req.proposalInBasicBiomedicalResearch == null ? false : req.proposalInBasicBiomedicalResearch;
             upsert proposal;
 
             // 2. Create/Update Applicant_Proposal_Association__c
@@ -219,6 +222,7 @@ global without sharing class ProposalDetailsBasicAPI {
         public String yearlySchemeId;
         public String contactId;
         public String applicantProposalAssociationId;
+        public Boolean proposalInBasicBiomedicalResearch;
         public List<HostInput> hosts;
     }
 

@@ -12,7 +12,7 @@ global without sharing class ApplicantHostInfoBasicService {
 
             if (String.isNotBlank(proposalId)) {
                 // Approach 1: proposalId provided
-                populateByProposal(proposalId, response);
+                populateByProposal(proposalId,contactId, response);
 
             } else {
                 // Approach 2: no proposalId -> verify the Applicant (Contact) exists first
@@ -69,7 +69,20 @@ global without sharing class ApplicantHostInfoBasicService {
 
     // ---------- Case 1: proposalId provided ----------
 
-    private static void populateByProposal(String proposalId, ApplicantHostWrapper response) {
+    private static void populateByProposal(String proposalId, String contactId, ApplicantHostWrapper response) {
+
+        // Fetch the Proposal's checkbox value
+        List<Proposal__c> proposals = [SELECT Id, Proposal_In_Basic_Biomedical_Research__c FROM Proposal__c WHERE Id = :proposalId LIMIT 1];
+        Boolean proposalInBasicBiomedicalResearch = proposals.isEmpty() ? false : proposals[0].Proposal_In_Basic_Biomedical_Research__c;
+
+        // Fetch the Applicant Proposal Association for this Proposal
+        List<Applicant_Proposal_Association__c> apas = [
+            SELECT Id, Contact__c,Proposal__c
+            FROM Applicant_Proposal_Association__c
+            WHERE Proposal__c = :proposalId And Contact__c = : contactId  
+            LIMIT 1];
+        Id applicantProposalAssociationId = apas.isEmpty() ? null : apas[0].Id;
+
 
         List<Applicant_Host_Association__c> associations = [
             SELECT Id, Name, Applicant__c, Host__c, Proposal__c,
@@ -100,6 +113,7 @@ global without sharing class ApplicantHostInfoBasicService {
             aw.associationId = assoc.Id;
             aw.associationName = assoc.Name;
             aw.proposalId = assoc.Proposal__c;
+            aw.proposalInBasicBiomedicalResearch = proposalInBasicBiomedicalResearch;
             aw.isNonProfit = assoc.Is_the_Host_Instituition_not_for_profit__c;
             aw.ownerId = assoc.OwnerId;
 
@@ -114,6 +128,7 @@ global without sharing class ApplicantHostInfoBasicService {
         response.success = true;
         response.message = 'Proposal host details fetched successfully.';
         response.proposalId = proposalId;
+        response.applicantProposalAssociationId = applicantProposalAssociationId;
         response.associations = associationWrappers;
     }
 
@@ -144,6 +159,7 @@ global without sharing class ApplicantHostInfoBasicService {
         global String message;
         global Id proposalId;
         global Id applicantId;
+        global Id applicantProposalAssociationId;
         global List<AssociationWrapper> associations;
         global List<HostWrapper> hosts;
     }
@@ -152,6 +168,7 @@ global without sharing class ApplicantHostInfoBasicService {
         global Id associationId;
         global String associationName;
         global Id proposalId;
+        global Boolean proposalInBasicBiomedicalResearch;
         global String isNonProfit;
         global Id ownerId;
         global HostWrapper host;

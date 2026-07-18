@@ -34,6 +34,7 @@
  *   "yearlySchemeId": "a0W...",
  *   "contactId": "003...",
  *   "applicantProposalAssociationId": "a0Z...", // omit/blank to create new
+ *   "proposalInBasicBiomedicalResearch": true,
  *   "hosts": [
  *     {
  *       "hostAssociationId": "a0X...",      // omit/blank to create new
@@ -57,6 +58,7 @@
  *   "message": "Proposal created successfully.",
  *   "proposalId": "a0Y...",
  *   "applicantProposalAssociationId": "a0Z...",
+ *   "proposalInBasicBiomedicalResearch": true,
  *   "hostAssociationIds": ["a0X...", "a0X..."],
  *   "participantAssociationIds": ["a0V..."]
  * }
@@ -109,7 +111,8 @@ global without sharing class ProposalDetailsAPI {
                 proposal.Id = req.proposalId;
             }
             proposal.RecordTypeId = resolvedRecordTypeId;
-            proposal.Yearly_Scheme__c = req.yearlySchemeId;
+            proposal.Yearly_Scheme__c = req.yearlySchemeId;  
+            proposal.Proposal_In_Basic_Biomedical_Research__c = req.proposalInBasicBiomedicalResearch == null ? false : req.proposalInBasicBiomedicalResearch;         
             upsert proposal;
 
             // 2. Create/Update Applicant_Proposal_Association__c
@@ -119,6 +122,7 @@ global without sharing class ProposalDetailsAPI {
             }
             apa.Contact__c = req.contactId;
             apa.Proposal__c = proposal.Id;
+            apa.Is_Coordinator__c = true;
             apa.Yearly_Scheme__c = req.yearlySchemeId;
             upsert apa;
 
@@ -255,6 +259,7 @@ global without sharing class ProposalDetailsAPI {
         public String yearlySchemeId;
         public String contactId;
         public String applicantProposalAssociationId;
+        public Boolean proposalInBasicBiomedicalResearch;
         public List<HostInput> hosts;
         public List<ParticipantInput> participants;
     }

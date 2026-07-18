@@ -21,7 +21,7 @@ global without sharing class GetProfileAndCVDetails {
         try {
             List<Contact> contacts = [
                 SELECT Id, Title, Title__c, FirstName, LastName, Phone, Email, BirthDate, Position__c, Department, MailingCity, 
-                MailingState, MailingCountry, MailingPostalCode, AccountId, Account.Name, Qualifying_Degree__c, Qualifying_Degree_Viva_Date__c, Research_Experience_After_Viva_Date_Yrs__c, Research_Experience_After_Viva_Date_Mont__c, Non_Research_Career_Break_From__c, Non_Research_Career_Break_To__c, Non_Research_Career_Break_Explanation__c, ORCID_ID__c,
+                MailingState, MailingCountry, MailingPostalCode, AccountId, Account.Name, Qualifying_Degree__c, Qualifying_Degree_Viva_Date__c, Research_Experience_After_Viva_Date_Yrs__c, Research_Experience_After_Viva_Date_Mont__c, Non_Research_Career_Break_From__c, Non_Research_Career_Break_To__c, Non_Research_Career_Break_Explanation__c, ORCID_ID__c, Google_Scholar_Profile__c,
 
                     (SELECT Id, Applicant_Proposal_Association__c, Contact__c, Country__c, CreatedById, CreatedDate, CurrencyIsoCode, Department_School_Division__c, End_Date__c, Institution__c, IsDeleted, Likely_date_of_completion__c, Name, OwnerId, Pursuing_Higher_Degree__c, Qualification__c, Research_Summary_During_Highest_Degree__c, Specify_Other_Degree__c, Specify_the_pursuing_degree__c, Specify_the_University__c, Start_Date__c, Subject__c, Supervisor__c, Title_of_thesis_Dissertation__c, University__c 
                     FROM Education_Details__r ORDER BY End_Date__c DESC),
@@ -83,6 +83,7 @@ global without sharing class GetProfileAndCVDetails {
             profileDetails.nonResearchCareerBreak_To = con.Non_Research_Career_Break_To__c;
             profileDetails.nonReserchCareerBreak_Explaination = con.Non_Research_Career_Break_Explanation__c;
             profileDetails.orcidID = con.ORCID_ID__c;
+            profileDetails.googleScholarProfileLink = con.Google_Scholar_Profile__c;
 
             for(Education_Details__c edu : con.Education_Details__r){
                 WrapperClassData.EducationDetailsWrapper educationDetailsWrapper = new WrapperClassData.EducationDetailsWrapper();
@@ -123,6 +124,7 @@ global without sharing class GetProfileAndCVDetails {
                 achievementsDetailsWrapper.applicantProposalAssociation = ach.Applicant_Proposal_Association__c;
                 achievementsDetailsWrapper.achievementTitle = ach.Achievement_Title__c;
                 achievementsDetailsWrapper.organization = ach.Organization__c;
+                achievementsDetailsWrapper.description = ach.Description__c;
                 achievementsDetailsWrapper.year = ach.Year__c;
                 achievementsDetailsWrapperList.add(achievementsDetailsWrapper);
             }

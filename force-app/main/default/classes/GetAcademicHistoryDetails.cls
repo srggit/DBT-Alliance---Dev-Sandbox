@@ -20,7 +20,7 @@ global without sharing class GetAcademicHistoryDetails {
 
             List<Education_Details__c> educationDetails = [
                 SELECT Id, Qualification__c, Subject__c, Country__c, Institution__c, Department_School_Division__c, 
-                Supervisor__c, Title_of_thesis_Dissertation__c, End_Date__c
+                Supervisor__c, Title_of_thesis_Dissertation__c, End_Date__c, University__c
                 FROM Education_Details__c
                 WHERE Contact__c = :contactId
                 ORDER BY End_Date__c DESC
@@ -42,7 +42,7 @@ global without sharing class GetAcademicHistoryDetails {
                 eduWrapper.supervisor = edu.Supervisor__c;
                 eduWrapper.thesisDissertationTitle = edu.Title_of_thesis_Dissertation__c;
                 eduWrapper.yearOfAward = edu.End_Date__c;
-
+                eduWrapper.university = edu.University__c;
                 educationDetailsWrapperList.add(eduWrapper);
             }
 
@@ -72,5 +72,6 @@ global without sharing class GetAcademicHistoryDetails {
         public String supervisor;
         public String thesisDissertationTitle;
         public Date yearOfAward;
+        public String university;
     }
 }

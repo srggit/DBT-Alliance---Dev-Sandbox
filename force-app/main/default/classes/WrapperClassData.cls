@@ -21,6 +21,7 @@ global with sharing class WrapperClassData {
         public Date nonResearchCareerBreak_To;
         public String nonReserchCareerBreak_Explaination;
         public String orcidID;
+        public String googleScholarProfileLink;
     }
     
     global class EducationDetailsWrapper {
@@ -62,6 +63,7 @@ global with sharing class WrapperClassData {
         public String achievementTitle;
         public String organization;
         public String year;
+        public String description;
     }
 
     global class PublicationsDetailsWrapper {

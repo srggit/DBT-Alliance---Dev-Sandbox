@@ -2,6 +2,7 @@ public with sharing class NotificationHandler {
 
     private static final String STATUS_REJECTED          = 'Rejected';
     private static final String NOTIFICATION_STATUS_SENT = 'Sent'; // assumption - adjust if needed
+    private static final String NOTIFICATION_STATUS_UNREAD = 'Unread'; // assumption - adjust if needed
 
     /**
      * Single method - call from both Proposal__c and Yearly_Schemes__c after-insert triggers:
@@ -12,7 +13,7 @@ public with sharing class NotificationHandler {
 
         System.debug('========== NotificationHandler START ==========');
         System.debug('Object API Name: ' + objectApiName);
-
+        List<Contact> contacts = [SELECT Id FROM Contact];
         // NULL CHECK: inputs must be valid
         if (String.isBlank(objectApiName)) {
             System.debug('Object API Name is blank. Exiting.');
@@ -25,7 +26,6 @@ public with sharing class NotificationHandler {
         }
 
         List<Notification__c> notificationsToInsert = new List<Notification__c>();
-
         // ------------------------------------------------------------------
         // Yearly_Schemes__c -> one "For All" notification per newly active scheme
         // ------------------------------------------------------------------
@@ -52,14 +52,20 @@ public with sharing class NotificationHandler {
                     continue;
                 }
 
-                Notification__c notif = new Notification__c();
-                notif.For_all__c = true;
-                notif.Message__c = 'New Yearly Scheme (' + scheme.Scheme__c + ') is introduced.';
-                notif.Status__c  = NOTIFICATION_STATUS_SENT;
-                // Contact__c intentionally left blank - this is a broadcast notification
+                // notificationsToInsert.add(notif);
+                for (Contact con : contacts) {
+                    Notification__c notif = new Notification__c();
+                    notif.Contact__c = con.Id;
+                    notif.For_all__c = True;
+                    notif.Title__c = 'New Yearly Scheme';
+                    notif.Description__c = 'New Yearly Scheme (' + scheme.Scheme__c + ') is introduced.';
+                    notif.Yearly_Schemes__c = scheme.Id;
+                    notif.Expiry_Date__c = Date.today().addDays(50);
 
-                notificationsToInsert.add(notif);
+                    notificationsToInsert.add(notif);
+                }
             }
+            
 
         // ------------------------------------------------------------------
         // Proposal__c -> one notification per Contact linked via
@@ -132,9 +138,9 @@ public with sharing class NotificationHandler {
                     Notification__c notif = new Notification__c();
                     notif.For_all__c = false;
                     notif.Contact__c = apa.Contact__c;
-                    notif.Message__c = 'Your Proposal ' + projectTitle + ' is Rejected.';
-                    notif.Status__c  = NOTIFICATION_STATUS_SENT;
-
+                    notif.Title__c = 'Proposal Rejected';
+                    notif.Description__c = 'Your Proposal ' + projectTitle + ' is Rejected.';
+                    notif.Expiry_Date__c = Date.today().addDays(10); 
                     notificationsToInsert.add(notif);
                 }
             }
@@ -149,7 +155,8 @@ public with sharing class NotificationHandler {
         if (!notificationsToInsert.isEmpty()) {
             insert notificationsToInsert;
             System.debug('Notifications Inserted Successfully.');
-        } else {
+        } 
+        else {
             System.debug('No Notifications to insert.');
         }
 

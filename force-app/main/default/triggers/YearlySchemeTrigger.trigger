@@ -1,4 +1,4 @@
-trigger YearlySchemeTrigger on Yearly_Schemes__c(before insert, before update,after update) {
+trigger YearlySchemeTrigger on Yearly_Schemes__c(before insert, before update,after update, after insert) {
 	YearlySchemeTriggerHandler.validateDuplicateYearScheme(Trigger.new);
 
 	 if (Trigger.isBefore) {

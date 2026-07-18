@@ -1,6 +1,6 @@
 public with sharing class AssignGrantsMembersForYearlyScheme {
 
-    private static final String GRANTS_MANAGER_ROLE = 'Grants Manager';
+    private static final String GRANTS_MANAGER_ROLE = 'Grant';
 
     @AuraEnabled(cacheable=true)
     public static List<GrantsManagerUser> getGrantsManagerUsers(Id yearlySchemeId) {
@@ -10,7 +10,7 @@ public with sharing class AssignGrantsMembersForYearlyScheme {
         for (User grantsManager : [
             SELECT Id, Name, Email, Username, UserRole.Name, IsActive
             FROM User
-            WHERE UserRole.Name = :GRANTS_MANAGER_ROLE
+            WHERE UserRole.Name LIKE '%Grant%'
             AND IsActive = TRUE
             ORDER BY Name
         ]) {
@@ -40,7 +40,7 @@ public with sharing class AssignGrantsMembersForYearlyScheme {
             FROM User
             WHERE Id IN :selectedUserIds
             AND IsActive = TRUE
-            AND UserRole.Name = :GRANTS_MANAGER_ROLE
+            AND UserRole.Name LIKE '%Grant%'
         ]);
 
         List<Grants_Team_Members__c> membersToInsert = new List<Grants_Team_Members__c>();

@@ -95,7 +95,9 @@ global without sharing class SchemeAndSchemeItemsAPI {
                            Scheme_Start_Date__c, Scheme_End_Date__c,
                            Second_Stage_Start_Date__c, Second_Stage_End_Date__c,
                            Application_Stages__c, Budget_Cap__c, Experience_Required__c,
-                           Required_Degree__c, Team_Size_Limits__c
+                           Required_Degree__c, Team_Size_Limits__c, Days_Remaining_To_Close_Prelims__c, Days_Remaining_To_Close_Full__c,
+                            (SELECT Id, Name, Yearly_Scheme__c, Yearly_Scheme__r.Name, External_Participants__c,    External_Participants_Count__c, External_Participants_Status__c
+                            FROM External_Participants__r)
                     FROM Yearly_Schemes__c
                     WHERE Year__c = :year.Id 
                     AND Scheme_Items__c IN :schemeItemIds 
@@ -202,6 +204,7 @@ global without sharing class SchemeAndSchemeItemsAPI {
         Map<Id, Id> apaIdByYearlySchemeId
     ) {
         SchemeLineItemWrapper lineItem = new SchemeLineItemWrapper();
+
         lineItem.schemeItemId = item.Id;
         lineItem.schemeItemName = item.Name;
         lineItem.duration = item.Duration__c;
@@ -218,6 +221,26 @@ global without sharing class SchemeAndSchemeItemsAPI {
         lineItem.actions = buildActions(item.Id, yearlyScheme, eligibility);
 
         return lineItem;
+    }
+
+    private static List<ExternalParticipantWrapper> buildExternalParticipantsWrapper(List<External_Participants__c> externalParticipants) {
+        List<ExternalParticipantWrapper> wrappers = new List<ExternalParticipantWrapper>();
+
+        if (externalParticipants == null || externalParticipants.isEmpty()) {
+            return wrappers;
+        }
+
+        for (External_Participants__c externalParticipant : externalParticipants) {
+            ExternalParticipantWrapper wrapper = new ExternalParticipantWrapper();
+            wrapper.externalParticipantId = externalParticipant.Id;
+            wrapper.externalParticipantName = externalParticipant.Name;
+            wrapper.externalParticipantType = externalParticipant.External_Participants__c;
+            wrapper.externalParticipantStatus = externalParticipant.External_Participants_Status__c;
+            wrapper.externalParticipantsCount = externalParticipant.External_Participants_Count__c;
+
+            wrappers.add(wrapper);
+        }
+        return wrappers;
     }
 
     private static YearlySchemeWrapper buildYearlySchemeWrapper(
@@ -246,12 +269,19 @@ global without sharing class SchemeAndSchemeItemsAPI {
         wrapper.experienceRequired = yearlyScheme.Experience_Required__c;
         wrapper.requiredDegree = yearlyScheme.Required_Degree__c;
         wrapper.teamSizeLimits = yearlyScheme.Team_Size_Limits__c;
-
+        wrapper.daysRemainingToClosePrelims = yearlyScheme.Days_Remaining_To_Close_Prelims__c != null
+            ? yearlyScheme.Days_Remaining_To_Close_Prelims__c.intValue()
+            : null;
+        wrapper.daysRemainingToCloseFull = yearlyScheme.Days_Remaining_To_Close_Full__c != null
+            ? yearlyScheme.Days_Remaining_To_Close_Full__c.intValue()
+            : null;
         Boolean hasApplied = proposalStatusByYearlySchemeId != null && proposalStatusByYearlySchemeId.containsKey(yearlyScheme.Id);
         wrapper.appliedStatus = hasApplied;
         wrapper.proposalStatus = hasApplied ? proposalStatusByYearlySchemeId.get(yearlyScheme.Id) : null;
         wrapper.proposalId = proposalIdByYearlySchemeId.get(yearlyScheme.Id);
         wrapper.apaId = apaIdByYearlySchemeId.get(yearlyScheme.Id);
+
+        wrapper.externalParticipants = buildExternalParticipantsWrapper(yearlyScheme.External_Participants__r);
         return wrapper;
     }
 
@@ -408,6 +438,9 @@ global without sharing class SchemeAndSchemeItemsAPI {
         public String proposalStatus;
         public String proposalId;
         public String apaId;
+        public Integer daysRemainingToClosePrelims;
+        public Integer daysRemainingToCloseFull;
+        public List<ExternalParticipantWrapper> externalParticipants;
     }
 
     global class EligibilityWrapper {
@@ -435,5 +468,14 @@ global without sharing class SchemeAndSchemeItemsAPI {
         public String eligibilityUrl;
         public String applyUrl;
         public String knowMoreUrl;
+    }
+
+    global class ExternalParticipantWrapper {
+        public String externalParticipantId;
+        public String externalParticipantName;
+        public String externalParticipantType;
+        public Boolean isActive;
+        public String externalParticipantStatus;
+        public Decimal externalParticipantsCount;
     }
 }
