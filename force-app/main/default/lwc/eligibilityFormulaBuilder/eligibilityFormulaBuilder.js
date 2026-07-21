@@ -7,26 +7,22 @@ import ELIGIBILITY_TYPE_FIELD from '@salesforce/schema/Eligibility_Criteria__c.E
 
 import saveEligibilityCriteriaApex from '@salesforce/apex/EligibilityController.saveEligibilityCriteria';
 import getFieldMasterData from '@salesforce/apex/EligibilityController.getFieldMasterData';
+import checkFormulaSyntaxApex from '@salesforce/apex/EligibilityController.checkFormulaSyntax';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 
 const TOKEN_TYPES = {
-
     FIELD: 'FIELD',
-
     VALUE: 'VALUE',
-
     COMPARISON: 'COMPARISON',
-
     LOGICAL: 'LOGICAL',
-
     LPAREN: 'LPAREN',
-
     RPAREN: 'RPAREN'
-
 };
 
-export default class EligibilityFormulaBuilder extends LightningElement {
+const DEFAULT_GUIDANCE =
+    'Build each condition as Field → Operator → Value (or another Field). Use AND / OR to combine conditions.';
 
+export default class EligibilityFormulaBuilder extends LightningElement {
     formulaText = '';
     cursorPosition = 0;
     cursorEnd = 0;
@@ -44,12 +40,10 @@ export default class EligibilityFormulaBuilder extends LightningElement {
     validationTypeOptions = [];
     eligibilityTypeOptions = [];
 
+    guidanceKind = 'info';
+    guidanceMessage = DEFAULT_GUIDANCE;
+
     @api recordId;
-
-    editorState = 'ready';
-    valueStartPosition = null;
-
-    comparisonOperatorTokens = [' = ', ' != ', ' > ', ' < ', ' >= ', ' <= ', ' + ', ' - '];
 
     operatorTokens = [
         { label: '=', token: ' = ' },
@@ -65,8 +59,6 @@ export default class EligibilityFormulaBuilder extends LightningElement {
         { label: '(', token: '(' },
         { label: ')', token: ')' }
     ];
-
-
 
     @wire(CurrentPageReference)
     resolveRecordId(currentPageReference) {
@@ -152,71 +144,31 @@ export default class EligibilityFormulaBuilder extends LightningElement {
         return !this.objectName;
     }
 
-    get canInsertField() {
-        return this.editorState === 'ready';
-    }
-
     get isInsertFieldDisabled() {
-        return !this.canInsertField;
+        return !this.objectName || !this.fieldName;
     }
 
     get editorStateClass() {
-        if (this.isAwaitingOperator || this.isAwaitingValue) {
+        if (this.guidanceKind === 'warning') {
             return 'editor-state-hint editor-state-hint_warning slds-var-m-bottom_x-small';
         }
 
         return 'editor-state-hint slds-text-color_weak slds-var-m-bottom_x-small';
     }
 
-    get isAwaitingOperator() {
-        return this.editorState === 'awaiting_operator';
-    }
-
-    get isAwaitingValue() {
-        return this.editorState === 'awaiting_value';
+    get editorStateMessage() {
+        return this.guidanceMessage || DEFAULT_GUIDANCE;
     }
 
     get operatorTokensWithState() {
-        return this.operatorTokens.map((operator) => {
-            const isComparison = this.comparisonOperatorTokens.includes(operator.token);
-
-            return {
-                ...operator,
-                isComparison,
-                disabled: isComparison
-                    ? this.editorState !== 'awaiting_operator'
-                    : this.editorState === 'awaiting_operator' || this.editorState === 'awaiting_value'
-            };
-        });
+        return this.operatorTokens.map((operator) => ({
+            ...operator,
+            disabled: false
+        }));
     }
 
-    get editorStateMessage() {
-        if (this.isAwaitingOperator) {
-            return 'Field inserted. Select an operator to continue.';
-        }
-
-        if (this.isAwaitingValue) {
-            return 'Operator inserted. Type a value in the formula editor to continue.';
-        }
-
-        return 'Each field must be followed by an operator and a value.';
-    }
-
-    isComparisonToken(token) {
-        return this.comparisonOperatorTokens.includes(token);
-    }
-
-    syncEditorStateFromFormula() {
-        const validation = this.validateFormulaStructure(this.formulaText);
-        if (validation.valid) {
-            this.editorState = 'ready';
-            this.valueStartPosition = null;
-            return;
-        }
-
-        if (validation.pendingState) {
-            this.editorState = validation.pendingState;
-        }
+    connectedCallback() {
+        this.refreshGuidance();
     }
 
     loadFieldOptionsForObject(objectApiName) {
@@ -261,26 +213,14 @@ export default class EligibilityFormulaBuilder extends LightningElement {
         textarea.setSelectionRange(newPosition, newPosition);
         this.cursorPosition = newPosition;
         this.cursorEnd = newPosition;
+        this.refreshGuidance();
     }
 
     handleFormulaInput(event) {
         this.formulaText = event.target.value;
         this.cursorPosition = event.target.selectionStart;
         this.cursorEnd = event.target.selectionEnd;
-
-        if (this.editorState === 'awaiting_value' && this.valueStartPosition !== null) {
-            const valuePart = this.formulaText.substring(this.valueStartPosition).trim();
-
-            if (valuePart) {
-                this.editorState = 'ready';
-                this.valueStartPosition = null;
-            }
-        } else if (!this.formulaText.trim()) {
-            this.editorState = 'ready';
-            this.valueStartPosition = null;
-        } else {
-            this.syncEditorStateFromFormula();
-        }
+        this.refreshGuidance();
     }
 
     handleFormulaSelectionChange() {
@@ -309,39 +249,14 @@ export default class EligibilityFormulaBuilder extends LightningElement {
         this.selectedEligibilityType = event.detail.value;
     }
 
-    handleInsertObject() {
-        if (!this.objectName) {
-            this.showToast('Error', 'Select an Object to insert.', 'error');
-            return;
-        }
-
-        this.insertAtCursor(this.objectName);
-    }
-
     handleInsertField() {
-        if (!this.canInsertField) {
-            this.showToast(
-                'Error',
-                this.isAwaitingOperator
-                    ? 'Select an operator after the field before inserting another field.'
-                    : 'Enter a value after the operator before inserting another field.',
-                'error'
-            );
+        if (!this.objectName || !this.fieldName) {
+            this.showToast('Error', 'Select an Object and Field to insert.', 'error');
             return;
         }
 
-        if (!this.fieldName) {
-            this.showToast('Error', 'Select a Field to insert.', 'error');
-            return;
-        }
-
-        const fieldReference = this.objectName
-            ? `${this.objectName}.${this.fieldName}`
-            : this.fieldName;
-
+        const fieldReference = `${this.objectName}.${this.fieldName}`;
         this.insertAtCursor(fieldReference);
-        this.editorState = 'awaiting_operator';
-        this.valueStartPosition = null;
     }
 
     handleInsertOperator(event) {
@@ -350,78 +265,215 @@ export default class EligibilityFormulaBuilder extends LightningElement {
             return;
         }
 
-        const isComparison = this.isComparisonToken(token);
-
-        if (isComparison) {
-            if (this.editorState !== 'awaiting_operator') {
-                this.showToast('Error', 'Insert a field before adding an operator.', 'error');
-                return;
-            }
-
-            this.insertAtCursor(token);
-            this.editorState = 'awaiting_value';
-            this.valueStartPosition = this.cursorPosition;
-            return;
-        }
-
-        if (this.editorState === 'awaiting_operator') {
-            this.showToast('Error', 'Select an operator after the field.', 'error');
-            return;
-        }
-
-        if (this.editorState === 'awaiting_value') {
-            this.showToast('Error', 'Complete the value before adding AND, OR, or parentheses.', 'error');
-            return;
-        }
-
         this.insertAtCursor(token);
     }
 
-    validateFormulaStructure(formula) {
+    /**
+     * Soft guidance from the current formula text. Never locks the UI.
+     */
+    refreshGuidance() {
+        const text = (this.formulaText || '').trim();
+
+        if (!text) {
+            this.guidanceMessage = DEFAULT_GUIDANCE;
+            this.guidanceKind = 'info';
+            return;
+        }
+
+        const analysis = this.analyzeFormula(text);
+
+        if (analysis.expect === 'COMPARISON') {
+            this.guidanceMessage =
+                'Field inserted. Select an operator (=, !=, >, <, >=, <=) to continue.';
+            this.guidanceKind = 'warning';
+            return;
+        }
+
+        if (analysis.expect === 'OPERAND') {
+            this.guidanceMessage =
+                'Operator inserted. Type a value, or insert another field to compare.';
+            this.guidanceKind = 'warning';
+            return;
+        }
+
+        if (analysis.expect === 'TERM') {
+            this.guidanceMessage =
+                'Insert a field (or open parenthesis) to start the next condition.';
+            this.guidanceKind = 'warning';
+            return;
+        }
+
+        if (!analysis.valid && analysis.message) {
+            this.guidanceMessage = analysis.message;
+            this.guidanceKind = 'warning';
+            return;
+        }
+
+        this.guidanceMessage =
+            'Condition looks complete. Add AND / OR to combine more conditions, or click Check Syntax.';
+        this.guidanceKind = 'info';
+    }
+
+    /**
+     * Structure analysis used for guidance and local pre-checks.
+     * Grammar: TERM (FIELD | '(' TERM ')') COMPARISON OPERAND (VALUE|FIELD)
+     *          then optional LOGICAL TERM... with balanced parentheses.
+     */
+    analyzeFormula(formula) {
         const text = (formula || '').trim();
 
         if (!text) {
-            return { valid: false, message: 'Enter a formula before saving.' };
-        }
-
-        const fieldPattern = /[A-Za-z0-9_]+\.[A-Za-z0-9_]+/g;
-        const fieldMatches = [...text.matchAll(fieldPattern)];
-
-        if (!fieldMatches.length) {
             return {
                 valid: false,
-                message: 'Formula must include at least one Object.Field reference.'
+                message: 'Enter a formula before checking syntax.',
+                expect: 'TERM'
             };
         }
 
-        let pendingState = 'ready';
+        const tokens = this.tokenize(text);
 
-        for (const fieldMatch of fieldMatches) {
-            const fieldReference = fieldMatch[0];
-            const afterField = text.substring(fieldMatch.index + fieldReference.length);
-            const operatorMatch = afterField.match(/^\s*(>=|<=|!=|\+|-|=|>|<)\s+/);
+        if (!tokens.length) {
+            return {
+                valid: false,
+                message: 'Formula must include at least one Object.Field reference.',
+                expect: 'TERM'
+            };
+        }
 
-            if (!operatorMatch) {
+        let expect = 'TERM';
+        let parenDepth = 0;
+
+        for (let index = 0; index < tokens.length; index++) {
+            const token = tokens[index];
+
+            if (expect === 'TERM') {
+                if (token.type === TOKEN_TYPES.LPAREN) {
+                    parenDepth += 1;
+                    continue;
+                }
+
+                if (token.type === TOKEN_TYPES.FIELD) {
+                    expect = 'COMPARISON';
+                    continue;
+                }
+
                 return {
                     valid: false,
-                    message: `Operator is required after ${fieldReference}.`,
-                    pendingState: 'awaiting_operator'
+                    message: `Unexpected "${token.value}". Expected a field or "(".`,
+                    expect: 'TERM'
                 };
             }
 
-            const afterOperator = afterField.substring(operatorMatch[0].length);
-            const valueMatch = afterOperator.match(/^('[^']*'|[^\s)]+)/);
+            if (expect === 'COMPARISON') {
+                if (token.type === TOKEN_TYPES.COMPARISON) {
+                    expect = 'OPERAND';
+                    continue;
+                }
 
-            if (!valueMatch || !valueMatch[1].trim()) {
                 return {
                     valid: false,
-                    message: `Value is required after the operator for ${fieldReference}.`,
-                    pendingState: 'awaiting_value'
+                    message: `Operator is required after field. Unexpected "${token.value}".`,
+                    expect: 'COMPARISON'
+                };
+            }
+
+            if (expect === 'OPERAND') {
+                if (token.type === TOKEN_TYPES.VALUE || token.type === TOKEN_TYPES.FIELD) {
+                    expect = 'AFTER';
+                    continue;
+                }
+
+                return {
+                    valid: false,
+                    message: `Value or field is required after the operator. Unexpected "${token.value}".`,
+                    expect: 'OPERAND'
+                };
+            }
+
+            if (expect === 'AFTER') {
+                if (token.type === TOKEN_TYPES.RPAREN) {
+                    parenDepth -= 1;
+                    if (parenDepth < 0) {
+                        return {
+                            valid: false,
+                            message: 'Unexpected ")". Check parentheses.',
+                            expect: 'AFTER'
+                        };
+                    }
+                    continue;
+                }
+
+                if (token.type === TOKEN_TYPES.LOGICAL) {
+                    expect = 'TERM';
+                    continue;
+                }
+
+                return {
+                    valid: false,
+                    message: `Unexpected "${token.value}". Use AND / OR to combine conditions, or ")".`,
+                    expect: 'AFTER'
                 };
             }
         }
 
-        return { valid: true };
+        if (parenDepth !== 0) {
+            return {
+                valid: false,
+                message: 'Parentheses are unbalanced. Add the missing ")" or "(".',
+                expect: expect === 'AFTER' ? 'AFTER' : expect
+            };
+        }
+
+        if (expect !== 'AFTER') {
+            return {
+                valid: false,
+                message: this.messageForExpect(expect),
+                expect
+            };
+        }
+
+        return { valid: true, expect: 'AFTER' };
+    }
+
+    messageForExpect(expect) {
+        if (expect === 'COMPARISON') {
+            return 'Operator is required after the field.';
+        }
+        if (expect === 'OPERAND') {
+            return 'Value or field is required after the operator.';
+        }
+        if (expect === 'TERM') {
+            return 'Formula is incomplete. Insert a field after AND / OR or "(".';
+        }
+        return 'Formula structure is incomplete.';
+    }
+
+    async handleCheckSyntax() {
+        try {
+            const result = await checkFormulaSyntaxApex({ formula: this.formulaText });
+
+            if (result?.isValid) {
+                this.showToast('Success', result.message || 'No syntax errors in formula.', 'success');
+                this.guidanceMessage =
+                    'Syntax is valid. You can save, or continue adding AND / OR conditions.';
+                this.guidanceKind = 'info';
+            } else {
+                this.showToast(
+                    'Syntax Error',
+                    result?.message || 'Formula has syntax errors.',
+                    'error'
+                );
+                this.guidanceMessage = result?.message || 'Formula has syntax errors.';
+                this.guidanceKind = 'warning';
+            }
+        } catch (error) {
+            console.error('Check syntax error:', error);
+            this.showToast(
+                'Error',
+                error.body?.message || error.message || 'Failed to check formula syntax.',
+                'error'
+            );
+        }
     }
 
     parseFormulaMetadata(formula) {
@@ -451,28 +503,30 @@ export default class EligibilityFormulaBuilder extends LightningElement {
         return comparisonMatch ? comparisonMatch[1].replace(/'/g, '') : '';
     }
 
-    validateSaveFields() {
+    async validateSaveFields() {
         if (!this.selectedValidationType || !this.selectedEligibilityType) {
             this.showToast('Error', 'Select Validation Type and Eligibility Type.', 'error');
             return false;
         }
 
-        if (this.editorState === 'awaiting_operator') {
-            this.showToast('Error', 'Select an operator after the inserted field.', 'error');
-            return false;
-        }
-
-        if (this.editorState === 'awaiting_value') {
-            this.showToast('Error', 'Enter a value after the operator.', 'error');
-            return false;
-        }
-
-        const structureValidation = this.validateFormulaStructure(this.formulaText);
-        if (!structureValidation.valid) {
-            this.showToast('Error', structureValidation.message, 'error');
-            if (structureValidation.pendingState) {
-                this.editorState = structureValidation.pendingState;
+        try {
+            const result = await checkFormulaSyntaxApex({ formula: this.formulaText });
+            if (!result?.isValid) {
+                this.showToast(
+                    'Syntax Error',
+                    result?.message || 'Fix formula syntax before saving.',
+                    'error'
+                );
+                this.guidanceMessage = result?.message || 'Fix formula syntax before saving.';
+                this.guidanceKind = 'warning';
+                return false;
             }
+        } catch (error) {
+            this.showToast(
+                'Error',
+                error.body?.message || error.message || 'Failed to validate formula syntax.',
+                'error'
+            );
             return false;
         }
 
@@ -486,18 +540,18 @@ export default class EligibilityFormulaBuilder extends LightningElement {
         this.fieldOptions = [];
         this.cursorPosition = 0;
         this.cursorEnd = 0;
-        this.editorState = 'ready';
-        this.valueStartPosition = null;
 
         const textarea = this.getFormulaTextarea();
         if (textarea) {
             textarea.value = '';
         }
+
+        this.refreshGuidance();
     }
 
     async saveEligibilityCriteria() {
         try {
-            if (!this.validateSaveFields()) {
+            if (!(await this.validateSaveFields())) {
                 return;
             }
 
@@ -508,17 +562,19 @@ export default class EligibilityFormulaBuilder extends LightningElement {
 
             const parsedFormula = this.parseFormulaMetadata(this.formulaText);
 
-            const wrapperData = [{
-                sequence: 1,
-                objectName: parsedFormula.objectName,
-                fieldName: parsedFormula.fieldName,
-                operator: parsedFormula.operator,
-                value: parsedFormula.value,
-                logicalOperator: '',
-                validationType: this.selectedValidationType,
-                eligibilityType: this.selectedEligibilityType,
-                formula: this.formulaText.trim()
-            }];
+            const wrapperData = [
+                {
+                    sequence: 1,
+                    objectName: parsedFormula.objectName,
+                    fieldName: parsedFormula.fieldName,
+                    operator: parsedFormula.operator,
+                    value: parsedFormula.value,
+                    logicalOperator: '',
+                    validationType: this.selectedValidationType,
+                    eligibilityType: this.selectedEligibilityType,
+                    formula: this.formulaText.trim()
+                }
+            ];
 
             const response = await saveEligibilityCriteriaApex({
                 wrapperDataJson: JSON.stringify(wrapperData),
@@ -533,13 +589,8 @@ export default class EligibilityFormulaBuilder extends LightningElement {
                     'success'
                 );
             } else {
-                this.showToast(
-                    'Error',
-                    'Failed to save eligibility criteria.',
-                    'error'
-                );
+                this.showToast('Error', 'Failed to save eligibility criteria.', 'error');
             }
-
         } catch (error) {
             console.error('Error:', error);
             this.showToast(
@@ -561,112 +612,46 @@ export default class EligibilityFormulaBuilder extends LightningElement {
     }
 
     tokenize(formula) {
-
         const tokens = [];
-
         const regex =
-            /\(|\)|>=|<=|!=|=|>|<|\bAND\b|\bOR\b|'[^']*'|\d+(\.\d+)?|true|false|[A-Za-z_][A-Za-z0-9_]*\.[A-Za-z_][A-Za-z0-9_]*/gi;
+            /\(|\)|>=|<=|!=|=|>|<|\+|-|\bAND\b|\bOR\b|'[^']*'|\d+(\.\d+)?|true|false|[A-Za-z_][A-Za-z0-9_]*\.[A-Za-z_][A-Za-z0-9_]*/gi;
 
         let match;
-
         while ((match = regex.exec(formula)) !== null) {
-
             const token = match[0];
+            const upper = token.toUpperCase();
 
             if (token === '(') {
-
-                tokens.push({
-                    type: TOKEN_TYPES.LPAREN,
-                    value: token
-                });
-
+                tokens.push({ type: TOKEN_TYPES.LPAREN, value: token });
                 continue;
             }
 
             if (token === ')') {
-
-                tokens.push({
-                    type: TOKEN_TYPES.RPAREN,
-                    value: token
-                });
-
+                tokens.push({ type: TOKEN_TYPES.RPAREN, value: token });
                 continue;
             }
 
-            if (token === 'AND' || token === 'OR') {
-
-                tokens.push({
-                    type: TOKEN_TYPES.LOGICAL,
-                    value: token
-                });
-
+            if (upper === 'AND' || upper === 'OR') {
+                tokens.push({ type: TOKEN_TYPES.LOGICAL, value: upper });
                 continue;
             }
 
-            if (['=', '!=', '>', '<', '>=', '<='].includes(token)) {
-
-                tokens.push({
-                    type: TOKEN_TYPES.COMPARISON,
-                    value: token
-                });
-
+            if (['=', '!=', '>', '<', '>=', '<=', '+', '-'].includes(token)) {
+                tokens.push({ type: TOKEN_TYPES.COMPARISON, value: token });
                 continue;
             }
 
             if (token.includes('.')) {
-
-                tokens.push({
-                    type: TOKEN_TYPES.FIELD,
-                    value: token
-                });
-
+                tokens.push({ type: TOKEN_TYPES.FIELD, value: token });
                 continue;
             }
 
             tokens.push({
-
                 type: TOKEN_TYPES.VALUE,
-
                 value: token.replace(/'/g, '')
-
             });
-
         }
 
         return tokens;
-
     }
-
-    createConditionNode(field, operator, value) {
-
-        return {
-
-            type: 'CONDITION',
-
-            objectName: field.split('.')[0],
-
-            fieldName: field.split('.')[1],
-
-            operator: operator,
-
-            value: value
-
-        };
-
-    }
-
-    createGroupNode(operator) {
-
-        return {
-
-            type: 'GROUP',
-
-            operator: operator,
-
-            children: []
-
-        };
-
-    }
-
 }

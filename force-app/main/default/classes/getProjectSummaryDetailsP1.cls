@@ -107,8 +107,24 @@ global with sharing class getProjectSummaryDetailsP1 {
                 publicationWrappers.add(pw);
             }
 
+            List<Scheme_Section__c> schemeSectionList = [
+                SELECT Id, Name, Applicant_Proposal_Association__c, Data_Filled_Successfully__c, Section_Name__c
+                FROM Scheme_Section__c
+                WHERE Applicant_Proposal_Association__c = :apaId
+            ];
+
+            List<SectionWrapper> sectionWrappers = new List<SectionWrapper>();
+            for(Scheme_Section__c section : schemeSectionList){
+                SectionWrapper sw = new SectionWrapper();
+                sw.sectionId = section.Id;
+                sw.sectionName = section.Section_Name__c;
+                sw.sectionStatus = section.Data_Filled_Successfully__c;
+                sectionWrappers.add(sw);
+            }
+
             response.publications = publicationWrappers;
             response.publicationsSourcedFromContact = publicationsSourcedFromContact;
+            response.sections = sectionWrappers;
 
             response.success = true;
             response.message = 'Proposal fetched successfully';
@@ -127,6 +143,7 @@ global with sharing class getProjectSummaryDetailsP1 {
         public ProposalWrapper proposalWrapper;
         public List<PublicationWrapper> publications;
         public Boolean publicationsSourcedFromContact;
+        public List<SectionWrapper> sections;
     }
 
     global class ProposalWrapper {
@@ -167,6 +184,12 @@ global with sharing class getProjectSummaryDetailsP1 {
         public String pmidDoiUrl;
         public Decimal srNo;
         public String title;
+    }
+
+    global class SectionWrapper {
+        public String sectionId;
+        public String sectionName;
+        public Boolean sectionStatus;
     }
 }
 

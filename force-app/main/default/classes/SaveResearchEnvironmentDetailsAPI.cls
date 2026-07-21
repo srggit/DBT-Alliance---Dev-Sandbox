@@ -130,6 +130,29 @@ global without sharing class SaveResearchEnvironmentDetailsAPI {
                 If_identified_External_Sponsor_s_for_Wo__c = req.identifiedExternalSponserForWohiBreifDetails    
             );
             update proposalHostInformation;
+            String apaId = req.apaId;
+            
+            System.debug('apaId: ' + apaId);
+            String sectionName = req.sectionName;
+            if (String.isNotBlank(req.sectionName) && String.isNotBlank(req.apaId)) { 
+                List<Scheme_Section__c> schemeSectionList = [
+                    SELECT Id, Name, Applicant_Proposal_Association__c, Data_Filled_Successfully__c, Section_Name__c
+                    FROM Scheme_Section__c
+                    WHERE Applicant_Proposal_Association__c = :req.apaId
+                    AND Section_Name__c = :req.sectionName
+                ];
+                 System.debug('Line 144 schemeSectionList: ' + schemeSectionList);
+
+                if (!schemeSectionList.isEmpty()) {
+                    schemeSectionList[0].Data_Filled_Successfully__c = true;
+                    update schemeSectionList;
+                    response.sectionUpdateResult = true;
+                } 
+                else {
+                    response.sectionUpdateResult = false;
+                }
+            }
+
 
             // ---- Proposal Participant Association creation from selected host contacts ----
             List<Id> ppaIds = new List<Id>();
@@ -176,6 +199,8 @@ global without sharing class SaveResearchEnvironmentDetailsAPI {
 
     global class RequestWrapper {
         public String proposalId;
+        public String apaId;
+        public String sectionName;
         public String whyHostLaboratoryIsSuitableForWork;
         public String infrastructureFacilitiesOfHostInst;
         public String alternativeFacilityArrangements;
@@ -210,5 +235,6 @@ global without sharing class SaveResearchEnvironmentDetailsAPI {
         public Boolean success;
         public String message;
         public List<Id> ppaIds;
+        public Boolean sectionUpdateResult;
     }
 }

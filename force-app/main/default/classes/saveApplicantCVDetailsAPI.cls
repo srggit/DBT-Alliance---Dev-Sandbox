@@ -306,7 +306,7 @@ global without sharing class saveApplicantCVDetailsAPI {
     }
 }*/
 
-
+/*
 @RestResource(urlMapping='/saveApplicantCVDetails')
 global without sharing class saveApplicantCVDetailsAPI {
 
@@ -699,5 +699,403 @@ global without sharing class saveApplicantCVDetailsAPI {
         public Boolean success;
         public String message;
         public Id proposalId;
+    }
+}
+*/
+
+@RestResource(urlMapping='/saveApplicantCVDetails')
+global without sharing class saveApplicantCVDetailsAPI {
+
+    @HttpPost
+    global static ResponseWrapper saveApplicantCVDetails() {
+        ResponseWrapper response = new ResponseWrapper();
+        try {
+            String requestBody = RestContext.request.requestBody.toString();
+            RequestWrapper req = (RequestWrapper) JSON.deserialize(requestBody, RequestWrapper.class);
+
+            if(String.isBlank(req.proposalId) || String.isBlank(req.apaId) || String.isBlank(req.contactId)) {
+                response.success = false;
+                response.message = 'Missing required fields: proposalId, apaId and contactId are mandatory';
+                return response;
+            }
+
+            Proposal__c updatedProposal = new Proposal__c(
+                Id = req.proposalId,
+                Title_of_Thesis_Dissertation__c = req.titleThesisDissertation,
+                Research_Summary_During_Highest_Degree__c = req.researchSummaryDuringHigherDegree,
+                Scientific_Meetings__c = req.scientificMeetings,
+                Scientific_career_to_date__c = req.scientificCareerToDate
+            );
+            update updatedProposal;
+
+            Integer educationInsertedCount = 0;
+            Integer educationUpdatedCount = 0;
+            Integer patentInsertedCount = 0;
+            Integer patentUpdatedCount = 0;
+            Integer employmentInsertedCount = 0;
+            Integer employmentUpdatedCount = 0;
+
+            if(req.educationDetails != null && !req.educationDetails.isEmpty()) {
+                List<Education_Details__c> educationToInsertApa = new List<Education_Details__c>();
+                List<Education_Details__c> educationToInsertContact = new List<Education_Details__c>();
+                List<Education_Details__c> educationToUpdate = new List<Education_Details__c>();
+
+                for(EducationDetailsWrapper education : req.educationDetails) {
+
+                    if(String.isNotBlank(education.educationId)) {
+
+                        // Existing APA record -> UPDATE
+                        if(String.isNotBlank(education.apaId)) {
+
+                            Education_Details__c existingEducation = buildEducationRecord(education);
+                            existingEducation.Id = education.educationId;
+                            existingEducation.Applicant_Proposal_Association__c = education.apaId;
+                            educationToUpdate.add(existingEducation);
+
+                        }
+                        // Existing Contact record -> DON'T UPDATE, CREATE APA RECORD
+                        else if(String.isNotBlank(education.contactId)) {
+
+                            Education_Details__c apaEducation = buildEducationRecord(education);
+                            apaEducation.Applicant_Proposal_Association__c = req.apaId;
+                            educationToInsertApa.add(apaEducation);
+
+                        }
+                        // DEFENSIVE FALLBACK: an Id was sent but neither apaId nor contactId
+                        // came with it (e.g. GET response not fully populated, or a client
+                        // built the payload by hand). Rather than silently no-op, scope the
+                        // update to the current APA so it can't land on the wrong record type.
+                        else {
+                            Education_Details__c existingEducation = buildEducationRecord(education);
+                            existingEducation.Id = education.educationId;
+                            existingEducation.Applicant_Proposal_Association__c = req.apaId;
+                            educationToUpdate.add(existingEducation);
+                        }
+
+                    } else {
+
+                        // New record
+                        Education_Details__c apaEducation = buildEducationRecord(education);
+                        apaEducation.Applicant_Proposal_Association__c = req.apaId;
+                        educationToInsertApa.add(apaEducation);
+
+                        Education_Details__c contactEducation = buildEducationRecord(education);
+                        contactEducation.Contact__c = req.contactId;
+                        educationToInsertContact.add(contactEducation);
+                    }
+                }
+
+                // Bypass trigger sync so Contact insert does not clone a second APA record
+                if(!educationToInsertApa.isEmpty() || !educationToInsertContact.isEmpty()) {
+                    GenericApplicantAssociationHandler.bypassAssociationSync = true;
+                    try {
+                        if(!educationToInsertApa.isEmpty()) {
+                            insert educationToInsertApa;
+                            educationInsertedCount += educationToInsertApa.size();
+                        }
+                        if(!educationToInsertContact.isEmpty()) {
+                            insert educationToInsertContact;
+                            educationInsertedCount += educationToInsertContact.size();
+                        }
+                    } finally {
+                        GenericApplicantAssociationHandler.bypassAssociationSync = false;
+                    }
+                }
+                if(!educationToUpdate.isEmpty()) {
+                    update educationToUpdate;
+                    educationUpdatedCount = educationToUpdate.size();
+                }
+            }
+
+            if(req.patentsDetails != null && !req.patentsDetails.isEmpty()) {
+                List<Patents__c> patentsToInsertApa = new List<Patents__c>();
+                List<Patents__c> patentsToInsertContact = new List<Patents__c>();
+                List<Patents__c> patentsToUpdate = new List<Patents__c>();
+
+                for(PatentsDetailsWrapper patent : req.patentsDetails) {
+
+                    if(String.isNotBlank(patent.patentId)) {
+
+                        // Existing APA record -> UPDATE
+                        if(String.isNotBlank(patent.apaId)) {
+
+                            Patents__c existingPatent = buildPatentRecord(patent);
+                            existingPatent.Id = patent.patentId;
+                            existingPatent.Applicant_Proposal_Association__c = patent.apaId;
+                            patentsToUpdate.add(existingPatent);
+
+                        }
+                        // Existing Contact record -> DON'T UPDATE, CREATE APA RECORD
+                        else if(String.isNotBlank(patent.contactId)) {
+
+                            Patents__c apaPatent = buildPatentRecord(patent);
+                            apaPatent.Applicant_Proposal_Association__c = req.apaId;
+                            patentsToInsertApa.add(apaPatent);
+
+                        }
+                        // DEFENSIVE FALLBACK
+                        else {
+                            Patents__c existingPatent = buildPatentRecord(patent);
+                            existingPatent.Id = patent.patentId;
+                            existingPatent.Applicant_Proposal_Association__c = req.apaId;
+                            patentsToUpdate.add(existingPatent);
+                        }
+
+                    } else {
+
+                        Patents__c apaPatent = buildPatentRecord(patent);
+                        apaPatent.Applicant_Proposal_Association__c = req.apaId;
+                        patentsToInsertApa.add(apaPatent);
+
+                        Patents__c contactPatent = buildPatentRecord(patent);
+                        contactPatent.Contact__c = req.contactId;
+                        patentsToInsertContact.add(contactPatent);
+                    }
+                }
+
+                if(!patentsToInsertApa.isEmpty() || !patentsToInsertContact.isEmpty()) {
+                    GenericApplicantAssociationHandler.bypassAssociationSync = true;
+                    try {
+                        if(!patentsToInsertApa.isEmpty()) {
+                            insert patentsToInsertApa;
+                            patentInsertedCount += patentsToInsertApa.size();
+                        }
+                        if(!patentsToInsertContact.isEmpty()) {
+                            insert patentsToInsertContact;
+                            patentInsertedCount += patentsToInsertContact.size();
+                        }
+                    } finally {
+                        GenericApplicantAssociationHandler.bypassAssociationSync = false;
+                    }
+                }
+                if(!patentsToUpdate.isEmpty()) {
+                    update patentsToUpdate;
+                    patentUpdatedCount = patentsToUpdate.size();
+                }
+            }
+
+            if(req.employmentDetails != null && !req.employmentDetails.isEmpty()) {
+                List<Employment_Details__c> employmentToInsertApa = new List<Employment_Details__c>();
+                List<Employment_Details__c> employmentToInsertContact = new List<Employment_Details__c>();
+                List<Employment_Details__c> employmentToUpdate = new List<Employment_Details__c>();
+
+                for(EmploymentDetailsWrapper employment : req.employmentDetails) {
+
+                    if(String.isNotBlank(employment.employmentId)) {
+
+                        // Existing APA record -> UPDATE
+                        if(String.isNotBlank(employment.apaId)) {
+
+                            Employment_Details__c existingEmployment = buildEmploymentRecord(employment);
+                            existingEmployment.Id = employment.employmentId;
+                            existingEmployment.Applicant_Proposal_Association__c = employment.apaId;
+                            employmentToUpdate.add(existingEmployment);
+
+                        }
+                        // Existing Contact record -> DON'T UPDATE, CREATE APA RECORD
+                        else if(String.isNotBlank(employment.contactId)) {
+
+                            Employment_Details__c apaEmployment = buildEmploymentRecord(employment);
+                            apaEmployment.Applicant_Proposal_Association__c = req.apaId;
+                            employmentToInsertApa.add(apaEmployment);
+
+                        }
+                        // DEFENSIVE FALLBACK
+                        else {
+                            Employment_Details__c existingEmployment = buildEmploymentRecord(employment);
+                            existingEmployment.Id = employment.employmentId;
+                            existingEmployment.Applicant_Proposal_Association__c = req.apaId;
+                            employmentToUpdate.add(existingEmployment);
+                        }
+
+                    } else {
+
+                        Employment_Details__c apaEmployment = buildEmploymentRecord(employment);
+                        apaEmployment.Applicant_Proposal_Association__c = req.apaId;
+                        employmentToInsertApa.add(apaEmployment);
+
+                        Employment_Details__c contactEmployment = buildEmploymentRecord(employment);
+                        contactEmployment.Contact__c = req.contactId;
+                        employmentToInsertContact.add(contactEmployment);
+                    }
+                }
+
+                if(!employmentToInsertApa.isEmpty() || !employmentToInsertContact.isEmpty()) {
+                    GenericApplicantAssociationHandler.bypassAssociationSync = true;
+                    try {
+                        if(!employmentToInsertApa.isEmpty()) {
+                            insert employmentToInsertApa;
+                            employmentInsertedCount += employmentToInsertApa.size();
+                        }
+                        if(!employmentToInsertContact.isEmpty()) {
+                            insert employmentToInsertContact;
+                            employmentInsertedCount += employmentToInsertContact.size();
+                        }
+                    } finally {
+                        GenericApplicantAssociationHandler.bypassAssociationSync = false;
+                    }
+                }
+                if(!employmentToUpdate.isEmpty()) {
+                    update employmentToUpdate;
+                    employmentUpdatedCount = employmentToUpdate.size();
+                }
+            }
+
+            response.success = true;
+            List<String> messages = new List<String>{ 'Proposal updated successfully' };
+            if(educationInsertedCount > 0) {
+                messages.add(educationInsertedCount + ' education record(s) inserted');
+            }
+            if(educationUpdatedCount > 0) {
+                messages.add(educationUpdatedCount + ' education record(s) updated');
+            }
+            if(patentInsertedCount > 0) {
+                messages.add(patentInsertedCount + ' patent record(s) inserted');
+            }
+            if(patentUpdatedCount > 0) {
+                messages.add(patentUpdatedCount + ' patent record(s) updated');
+            }
+            if(employmentInsertedCount > 0) {
+                messages.add(employmentInsertedCount + ' employment record(s) inserted');
+            }
+            if(employmentUpdatedCount > 0) {
+                messages.add(employmentUpdatedCount + ' employment record(s) updated');
+            }
+            response.message = String.join(messages, '. ');
+            response.proposalId = req.proposalId;
+
+            // --------------- BLOCK TO UPDATE THE SECTION UPDATE --------------- //
+            if (String.isNotBlank(req.sectionName) && String.isNotBlank(req.apaId)) { 
+                List<Scheme_Section__c> schemeSectionList = [
+                    SELECT Id, Name, Applicant_Proposal_Association__c, Data_Filled_Successfully__c, Section_Name__c
+                    FROM Scheme_Section__c
+                    WHERE Applicant_Proposal_Association__c = :req.apaId
+                    AND Section_Name__c = :req.sectionName
+                ];
+
+                if (!schemeSectionList.isEmpty()) {
+                    schemeSectionList[0].Data_Filled_Successfully__c = true;
+                    update schemeSectionList;
+
+                    response.sectionId = schemeSectionList[0].Id;
+                    response.sectionUpdateResult = true;
+                } 
+                else {
+                    response.sectionUpdateResult = false;
+                }
+            }
+            else {
+                response.success = true;
+                response.message = 'Section not updated';
+                response.sectionId = null;
+                response.sectionUpdateResult = false;
+            }
+        }
+        catch (Exception e) {
+            response.success = false;
+            response.message = e.getMessage();
+        }
+        return response;
+    }
+
+    private static Education_Details__c buildEducationRecord(EducationDetailsWrapper education) {
+        return new Education_Details__c(
+            Start_Date__c = education.startDate,
+            End_Date__c = education.endDate,
+            Qualification__c = education.qualification,
+            Subject__c = education.subject,
+            Country__c = education.country,
+            Institution__c = education.institution,
+            Department_School_Division__c = education.department,
+            Supervisor__c = education.supervisor,
+            Title_of_thesis_Dissertation__c = education.thesisDissertationTitle,
+            Pursuing_Higher_Degree__c = education.pursuingHigherDegree
+        );
+    }
+
+    private static Patents__c buildPatentRecord(PatentsDetailsWrapper patent) {
+        return new Patents__c(
+            Title__c = patent.title,
+            Inventors__c = patent.inventors,
+            Patent_Number__c = patent.patentNumber,
+            Status__c = patent.status,
+            Granting_Agency_Country__c = patent.grantingAgencyCountry,
+            Filing_Granted_Date__c = patent.filingGrantedDate
+        );
+    }
+
+    private static Employment_Details__c buildEmploymentRecord(EmploymentDetailsWrapper employment) {
+        return new Employment_Details__c(
+            Organisation__c = employment.organisation,
+            Position__c = employment.position,
+            Roles_Responsibilities__c = employment.description,
+            I_am_currently_working_here__c = employment.isCurrentlyWorking == null ? false : employment.isCurrentlyWorking,
+            Start_Date__c = employment.startDate,
+            End_Date__c = employment.endDate,
+            Reporting_To__c = employment.reportingTo
+        );
+    }
+
+    global class RequestWrapper {
+        public String proposalId;
+        public String apaId;
+        public String contactId;
+        public String titleThesisDissertation;
+        public String researchSummaryDuringHigherDegree;
+        public String scientificMeetings;
+        public String scientificCareerToDate;
+        public List<EducationDetailsWrapper> educationDetails;
+        public List<PatentsDetailsWrapper> patentsDetails;
+        public List<EmploymentDetailsWrapper> employmentDetails;
+        public String sectionName;
+    }
+
+    global class EducationDetailsWrapper {
+        public String educationId;
+        public String contactId;
+        public String apaId;
+        public Date startDate;
+        public Date endDate;
+        public String qualification;
+        public String subject;
+        public String country;
+        public String institution;
+        public String department;
+        public String supervisor;
+        public String thesisDissertationTitle;
+        public String pursuingHigherDegree;
+    }
+
+    global class PatentsDetailsWrapper {
+        public String patentId;
+        public String contactId;
+        public String apaId;
+        public String title;
+        public String inventors;
+        public String patentNumber;
+        public String status;
+        public String grantingAgencyCountry;
+        public Date filingGrantedDate;
+    }
+
+    global class EmploymentDetailsWrapper {
+        public String employmentId;
+        public String contactId;
+        public String apaId;
+        public String organisation;
+        public String position;
+        public String description;
+        public Boolean isCurrentlyWorking;
+        public Date startDate;
+        public Date endDate;
+        public String reportingTo;
+    }
+
+    global class ResponseWrapper {
+        public Boolean success;
+        public String message;
+        public Id proposalId;
+        public String sectionId;
+        public Boolean sectionUpdateResult;
     }
 }

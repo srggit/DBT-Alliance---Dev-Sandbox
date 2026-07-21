@@ -33,7 +33,7 @@ global without sharing class ProfileInfoAPI {
             con.Phone = req.mobileNuber;
             con.BirthDate = req.dob;
 
-            con.AccountId = req.organisation_institution; // Account Id
+            con.AccountId = req.currentOrg; // Account Id
             con.Department = req.department;
             con.Position__c = req.designationRole;
 
@@ -75,7 +75,7 @@ global without sharing class ProfileInfoAPI {
         public String qualifyingDegree;
         public Date qualifyingDegreeVivaDate;
 
-        public String organisation_institution;
+        public String currentOrg;
         public String department;
         public String designationRole;
         public Integer durationOfResearchExperienceAfterQualifyingVivaDate_Years;

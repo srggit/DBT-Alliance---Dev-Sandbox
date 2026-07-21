@@ -148,6 +148,7 @@ global without sharing class ApplicantHostInfoService {
         // Fetch the Proposal's checkbox value
         List<Proposal__c> proposals = [SELECT Id, Proposal_In_Basic_Biomedical_Research__c FROM Proposal__c WHERE Id = :proposalId LIMIT 1];
         Boolean proposalInBasicBiomedicalResearch = proposals.isEmpty() ? false : proposals[0].Proposal_In_Basic_Biomedical_Research__c;
+        response.proposalInBasicBiomedicalResearch = proposalInBasicBiomedicalResearch;
 
         // Fetch the Applicant Proposal Association for this Proposal
         List<Applicant_Proposal_Association__c> apas = [
@@ -190,7 +191,7 @@ global without sharing class ApplicantHostInfoService {
             aw.associationId = assoc.Id;
             aw.associationName = assoc.Name;
             aw.proposalId = assoc.Proposal__c;
-            aw.proposalInBasicBiomedicalResearch = proposalInBasicBiomedicalResearch;
+            // aw.proposalInBasicBiomedicalResearch = proposalInBasicBiomedicalResearch;
             aw.isNonProfit = assoc.Is_the_Host_Instituition_not_for_profit__c;
             aw.ownerId = assoc.OwnerId;
 
@@ -319,6 +320,7 @@ global without sharing class ApplicantHostInfoService {
         global Boolean success;
         global String message;
         global Id proposalId;
+        global Boolean proposalInBasicBiomedicalResearch;
         global Id applicantId;
         global Id applicantProposalAssociationId;
         global List<AssociationWrapper> associations;
@@ -329,7 +331,7 @@ global without sharing class ApplicantHostInfoService {
         global Id associationId;
         global String associationName;
         global Id proposalId;
-        global Boolean proposalInBasicBiomedicalResearch;
+        // global Boolean proposalInBasicBiomedicalResearch;
         global String isNonProfit;
         global Id ownerId;
         global HostWithParticipantsWrapper host;

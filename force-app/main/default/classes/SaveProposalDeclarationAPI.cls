@@ -18,7 +18,7 @@ global without sharing class SaveProposalDeclarationAPI {
 
             if (String.isNotBlank(reqBody.apaId)) {
                 List<Applicant_Proposal_Association__c> apaList = [
-                    SELECT Id, Declaration_1__c, Declaration_2__c, Proposal__c
+                    SELECT Id, Declaration_1__c, Declaration_2__c, Proposal__c,Applicant_Status__c
                     FROM Applicant_Proposal_Association__c
                     WHERE Id = :reqBody.apaId
                     LIMIT 1
@@ -32,7 +32,7 @@ global without sharing class SaveProposalDeclarationAPI {
 
             } else if (String.isNotBlank(reqBody.proposalId) && String.isNotBlank(reqBody.contactId)) {
                 List<Applicant_Proposal_Association__c> apaList = [
-                    SELECT Id, Declaration_1__c, Declaration_2__c, Proposal__c
+                    SELECT Id, Declaration_1__c, Declaration_2__c, Proposal__c,Applicant_Status__c
                     FROM Applicant_Proposal_Association__c
                     WHERE Proposal__c = :reqBody.proposalId
                     AND Contact__c = :reqBody.contactId
@@ -51,9 +51,18 @@ global without sharing class SaveProposalDeclarationAPI {
                 return response;
             }
 
+            if (apaRecord.Applicant_Status__c == 'Submitted') {
+                response.success = false;
+                response.message = 'Applicant already submitted the Proposal and cannot be re-submitted.';
+                response.apaId = apaRecord.Id;
+                response.proposalId = apaRecord.Proposal__c ;
+                Database.rollback(sp);
+                return response;
+            }
             // ---- Update APA declarations ----
             apaRecord.Declaration_1__c = reqBody.declaration1;
             apaRecord.Declaration_2__c = reqBody.declaration2;
+            apaRecord.Applicant_Status__c = 'Submitted';
             update apaRecord;
 
             // ---- Update related Proposal__c ----

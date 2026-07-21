@@ -306,6 +306,9 @@ global without sharing class getResearchEnvironmentDetailsP2 {
 
         try{
             String proposalId = RestContext.request.params.get('proposalId');
+            String apaId = RestContext.request.params.get('apaId');
+            System.debug('proposalId: ' + proposalId);
+            System.debug('apaId: ' + apaId);
             if(String.isBlank(proposalId)){
                 response.success = false;
                 response.message = 'Proposal ID is required';
@@ -319,6 +322,22 @@ global without sharing class getResearchEnvironmentDetailsP2 {
                 FROM Proposal__c
                 WHERE Id = :proposalId
             ];
+            List<Scheme_Section__c> schemeSectionList = [
+                SELECT Id, Name, Applicant_Proposal_Association__c, Data_Filled_Successfully__c, Section_Name__c
+                FROM Scheme_Section__c
+                WHERE Applicant_Proposal_Association__c = :apaId
+            ];
+            System.debug('schemeSectionList: ' + schemeSectionList);
+             List<SectionWrapper> sectionWrappers = new List<SectionWrapper>();
+            for(Scheme_Section__c section : schemeSectionList){
+                SectionWrapper sw = new SectionWrapper();
+                sw.sectionId = section.Id;
+                sw.sectionName = section.Section_Name__c;
+                sw.sectionStatus = section.Data_Filled_Successfully__c;
+                sectionWrappers.add(sw);
+            }
+            response.sections = sectionWrappers;
+
 
             if(proposalList.isEmpty()){
                 response.success = false;
@@ -461,6 +480,7 @@ global without sharing class getResearchEnvironmentDetailsP2 {
         public List<ResearchDetailsWrapper> researchEnvironmentDetails;
         public List<HostContactWrapper> hostContactDetails;
         public Boolean hostContactsSourcedFromParticipants;
+        public List<SectionWrapper> sections;
     }
 
     global class ResearchDetailsWrapper {
@@ -510,5 +530,10 @@ global without sharing class getResearchEnvironmentDetailsP2 {
         public String mailingCountry;
         public String currencyPicklist;
         public String role;
+    }
+    global class SectionWrapper {
+        public String sectionId;
+        public String sectionName;
+        public Boolean sectionStatus;
     }
 }

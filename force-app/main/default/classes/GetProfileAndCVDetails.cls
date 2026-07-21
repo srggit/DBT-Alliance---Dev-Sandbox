@@ -90,7 +90,8 @@ global without sharing class GetProfileAndCVDetails {
                 educationDetailsWrapper.educationId = edu.Id;
                 educationDetailsWrapper.qualification = edu.Qualification__c;
                 educationDetailsWrapper.institution = edu.Institution__c;
-                educationDetailsWrapper.yearOfAward = edu.End_Date__c;
+                educationDetailsWrapper.endDate = edu.End_Date__c;
+                educationDetailsWrapper.startDate = edu.Start_Date__c;
                 educationDetailsWrapper.thesisDissertationTitle = edu.Title_of_thesis_Dissertation__c;
                 educationDetailsWrapper.likelyDateOfCompletion = edu.Likely_date_of_completion__c;
                 educationDetailsWrapper.pursuingHigherDegree = edu.Pursuing_Higher_Degree__c;

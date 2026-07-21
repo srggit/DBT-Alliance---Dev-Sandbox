@@ -129,9 +129,162 @@ public with sharing class EligibilityController {
         @AuraEnabled public String formula;
     }
 
+    // --------------------------------------- Formula syntax check (structure only) --------------------------------------- //
 
+    public class FormulaSyntaxResult {
+        @AuraEnabled public Boolean isValid;
+        @AuraEnabled public String message;
+    }
 
-    
+    private class FormulaToken {
+        public String type;
+        public String value;
+
+        public FormulaToken(String type, String value) {
+            this.type = type;
+            this.value = value;
+        }
+    }
+
+    @AuraEnabled
+    public static FormulaSyntaxResult checkFormulaSyntax(String formula) {
+        FormulaSyntaxResult result = new FormulaSyntaxResult();
+
+        if (String.isBlank(formula)) {
+            result.isValid = false;
+            result.message = 'Enter a formula before checking syntax.';
+            return result;
+        }
+
+        List<FormulaToken> tokens = tokenizeFormula(formula.trim());
+
+        if (tokens.isEmpty()) {
+            result.isValid = false;
+            result.message = 'Formula must include at least one Object.Field reference.';
+            return result;
+        }
+
+        String expect = 'TERM';
+        Integer parenDepth = 0;
+
+        for (FormulaToken token : tokens) {
+            if (expect == 'TERM') {
+                if (token.type == 'LPAREN') {
+                    parenDepth++;
+                    continue;
+                }
+                if (token.type == 'FIELD') {
+                    expect = 'COMPARISON';
+                    continue;
+                }
+                result.isValid = false;
+                result.message = 'Unexpected "' + token.value + '". Expected a field or "(".';
+                return result;
+            }
+
+            if (expect == 'COMPARISON') {
+                if (token.type == 'COMPARISON') {
+                    expect = 'OPERAND';
+                    continue;
+                }
+                result.isValid = false;
+                result.message = 'Operator is required after field. Unexpected "' + token.value + '".';
+                return result;
+            }
+
+            if (expect == 'OPERAND') {
+                if (token.type == 'VALUE' || token.type == 'FIELD') {
+                    expect = 'AFTER';
+                    continue;
+                }
+                result.isValid = false;
+                result.message = 'Value or field is required after the operator. Unexpected "' + token.value + '".';
+                return result;
+            }
+
+            if (expect == 'AFTER') {
+                if (token.type == 'RPAREN') {
+                    parenDepth--;
+                    if (parenDepth < 0) {
+                        result.isValid = false;
+                        result.message = 'Unexpected ")". Check parentheses.';
+                        return result;
+                    }
+                    continue;
+                }
+                if (token.type == 'LOGICAL') {
+                    expect = 'TERM';
+                    continue;
+                }
+                result.isValid = false;
+                result.message = 'Unexpected "' + token.value + '". Use AND / OR to combine conditions, or ")".';
+                return result;
+            }
+        }
+
+        if (parenDepth != 0) {
+            result.isValid = false;
+            result.message = 'Parentheses are unbalanced. Add the missing ")" or "(".';
+            return result;
+        }
+
+        if (expect != 'AFTER') {
+            result.isValid = false;
+            if (expect == 'COMPARISON') {
+                result.message = 'Operator is required after the field.';
+            } else if (expect == 'OPERAND') {
+                result.message = 'Value or field is required after the operator.';
+            } else if (expect == 'TERM') {
+                result.message = 'Formula is incomplete. Insert a field after AND / OR or "(".';
+            } else {
+                result.message = 'Formula structure is incomplete.';
+            }
+            return result;
+        }
+
+        result.isValid = true;
+        result.message = 'No syntax errors in formula.';
+        return result;
+    }
+
+    private static List<FormulaToken> tokenizeFormula(String formula) {
+        List<FormulaToken> tokens = new List<FormulaToken>();
+        Pattern tokenPattern = Pattern.compile(
+            '(?i)\\(|\\)|>=|<=|!=|=|>|<|\\+|-|\\bAND\\b|\\bOR\\b|\'[^\']*\'|\\d+(\\.\\d+)?|true|false|[A-Za-z_][A-Za-z0-9_]*\\.[A-Za-z_][A-Za-z0-9_]*'
+        );
+        Matcher matcher = tokenPattern.matcher(formula);
+
+        while (matcher.find()) {
+            String token = matcher.group();
+            String upper = token.toUpperCase();
+
+            if (token == '(') {
+                tokens.add(new FormulaToken('LPAREN', token));
+            } else if (token == ')') {
+                tokens.add(new FormulaToken('RPAREN', token));
+            } else if (upper == 'AND' || upper == 'OR') {
+                tokens.add(new FormulaToken('LOGICAL', upper));
+            } else if (
+                token == '=' ||
+                token == '!=' ||
+                token == '>' ||
+                token == '<' ||
+                token == '>=' ||
+                token == '<=' ||
+                token == '+' ||
+                token == '-'
+            ) {
+                tokens.add(new FormulaToken('COMPARISON', token));
+            } else if (token.contains('.')) {
+                tokens.add(new FormulaToken('FIELD', token));
+            } else {
+                tokens.add(new FormulaToken('VALUE', token.replace('\'', '')));
+            }
+        }
+
+        return tokens;
+    }
+
     // --------------------------------------- Fetching data from Field_Master_MDT__mdt --------------------------------------- //
     // @AuraEnabled(cacheable=true)
     // public static List<ObjectFieldMaster> getFieldMasterData() {

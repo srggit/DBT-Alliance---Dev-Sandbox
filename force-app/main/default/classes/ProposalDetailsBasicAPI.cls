@@ -114,6 +114,27 @@ global without sharing class ProposalDetailsBasicAPI {
             apa.Proposal__c = proposal.Id;
             apa.Yearly_Scheme__c = req.yearlySchemeId;
             upsert apa;
+            System.debug('apaId: ' + req.applicantProposalAssociationId);
+            String sectionName = req.sectionName;
+            if (String.isNotBlank(req.sectionName) && String.isNotBlank(req.applicantProposalAssociationId)) { 
+                List<Scheme_Section__c> schemeSectionList = [
+                    SELECT Id, Name, Applicant_Proposal_Association__c, Data_Filled_Successfully__c, Section_Name__c
+                    FROM Scheme_Section__c
+                    WHERE Applicant_Proposal_Association__c = :req.applicantProposalAssociationId
+                    AND Section_Name__c = :req.sectionName
+                ];
+                 System.debug('Line 144 schemeSectionList: ' + schemeSectionList);
+
+                if (!schemeSectionList.isEmpty()) {
+                    schemeSectionList[0].Data_Filled_Successfully__c = true;
+                    update schemeSectionList;
+                    response.sectionUpdateResult = true;
+                } 
+                else {
+                    response.sectionUpdateResult = false;
+                }
+            }
+
 
             // 3. Create/Update Applicant_Host_Association__c records
             List<Id> hostAssociationIds = new List<Id>();
@@ -224,6 +245,7 @@ global without sharing class ProposalDetailsBasicAPI {
         public String applicantProposalAssociationId;
         public Boolean proposalInBasicBiomedicalResearch;
         public List<HostInput> hosts;
+        public String sectionName;
     }
 
     global class HostInput {
@@ -241,5 +263,6 @@ global without sharing class ProposalDetailsBasicAPI {
         public String proposalId;
         public String applicantProposalAssociationId;
         public List<Id> hostAssociationIds;
+        public Boolean sectionUpdateResult;
     }
 }

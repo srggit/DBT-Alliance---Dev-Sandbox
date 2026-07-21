@@ -186,6 +186,27 @@ global without sharing class ProposalDetailsAPI {
             response.applicantProposalAssociationId = apa.Id;
             response.hostAssociationIds = hostAssociationIds;
             response.participantAssociationIds = participantAssociationIds;
+            
+            // --------------- BLOCK TO UPDATE THE SECTION UPDATE --------------- //
+            if (String.isNotBlank(req.sectionName) && String.isNotBlank(req.applicantProposalAssociationId)) { 
+                List<Scheme_Section__c> schemeSectionList = [
+                    SELECT Id, Name, Applicant_Proposal_Association__c, Data_Filled_Successfully__c, Section_Name__c
+                    FROM Scheme_Section__c
+                    WHERE Applicant_Proposal_Association__c = :req.applicantProposalAssociationId
+                    AND Section_Name__c = :req.sectionName
+                ];
+
+                if (!schemeSectionList.isEmpty()) {
+                    schemeSectionList[0].Data_Filled_Successfully__c = true;
+                    update schemeSectionList;
+
+                    response.sectionId = schemeSectionList[0].Id;
+                    response.sectionUpdateResult = true;
+                } 
+                else {
+                    response.sectionUpdateResult = false;
+                }
+            }
 
         } catch (Exception ex) {
             Database.rollback(sp);
@@ -262,6 +283,7 @@ global without sharing class ProposalDetailsAPI {
         public Boolean proposalInBasicBiomedicalResearch;
         public List<HostInput> hosts;
         public List<ParticipantInput> participants;
+        public String sectionName;
     }
 
     global class HostInput {
@@ -286,5 +308,7 @@ global without sharing class ProposalDetailsAPI {
         public String applicantProposalAssociationId;
         public List<Id> hostAssociationIds;
         public List<Id> participantAssociationIds;
+        public Boolean sectionUpdateResult;
+        public String sectionId;
     }
 }

@@ -33,7 +33,8 @@ global with sharing class WrapperClassData {
         public String department;
         public String supervisor;
         public String thesisDissertationTitle;
-        public Date yearOfAward;
+        public Date endDate;
+        public Date startDate;
         public Date likelyDateOfCompletion;
         public String pursuingHigherDegree;
         public String researchSummaryDuringHighestDegree;

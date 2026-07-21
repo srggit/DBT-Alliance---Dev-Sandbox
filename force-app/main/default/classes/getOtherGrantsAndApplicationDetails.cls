@@ -45,10 +45,12 @@ global without sharing class getOtherGrantsAndApplicationDetails {
                 SELECT Id, Contact__c,
                        Have_you_applied_to_Alliance_before__c,
                        Previous_Application_Reference_Number__c,
+                       Previous_Scheme__c,
                        Previous_Application_Project_Title__c,
                        Decision_on_previous_application__c,
                        Key_difference_from_previous_application__c,
                        Other_Ongoing_Applications__c,
+                       Other_Ongoing_Scheme__c,
                        Name_of_the_Ongoing_funding_agency__c,
                        Ongoing_Project_Title__c,
                        Abstract_Ongoing__c,
@@ -80,11 +82,13 @@ global without sharing class getOtherGrantsAndApplicationDetails {
 
             response.firstApplicationWithAlliance = apa.Have_you_applied_to_Alliance_before__c;
             response.previousApplReferenceNumber = apa.Previous_Application_Reference_Number__c;
+            response.previousScheme =apa.Previous_Scheme__c;
             response.previousApplProjectTitle_Alliance = apa.Previous_Application_Project_Title__c;
             response.prevoiusApplDecision = apa.Decision_on_previous_application__c;
             response.keyDifferencesFromPreviousApplication = apa.Key_difference_from_previous_application__c;
 
             response.otherOngoingApplications = apa.Other_Ongoing_Applications__c;
+         //   response.otherOngoingSchemaName = apa.Other_Ongoing_Scheme__c;
             response.nameOfFundingAgencyAndScheme = apa.Name_of_the_Ongoing_funding_agency__c;
             response.projectTitle_Ongoing = apa.Ongoing_Project_Title__c;
             response.abstract_Ongoing = apa.Abstract_Ongoing__c;
@@ -144,6 +148,21 @@ global without sharing class getOtherGrantsAndApplicationDetails {
 
                 response.existingGrants.add(w);
             }
+             List<Scheme_Section__c> schemeSectionList = [
+                SELECT Id, Name, Applicant_Proposal_Association__c, Data_Filled_Successfully__c, Section_Name__c
+                FROM Scheme_Section__c
+                WHERE Applicant_Proposal_Association__c = :apaRecordId
+            ];
+            System.debug('schemeSectionList: ' + schemeSectionList);
+             List<SectionWrapper> sectionWrappers = new List<SectionWrapper>();
+            for(Scheme_Section__c section : schemeSectionList){
+                SectionWrapper sw = new SectionWrapper();
+                sw.sectionId = section.Id;
+                sw.sectionName = section.Section_Name__c;
+                sw.sectionStatus = section.Data_Filled_Successfully__c;
+                sectionWrappers.add(sw);
+            }
+            response.sections = sectionWrappers;
         }
         catch (Exception e) {
             response.success = false;
@@ -156,14 +175,16 @@ global without sharing class getOtherGrantsAndApplicationDetails {
         public Boolean success;
         public String message;
         public Id apaId;
-
+        public List<SectionWrapper> sections;
         public String firstApplicationWithAlliance;
         public String previousApplReferenceNumber;
+        public String previousScheme;
         public String previousApplProjectTitle_Alliance;
         public String prevoiusApplDecision;
         public String keyDifferencesFromPreviousApplication;
 
         public String otherOngoingApplications;
+     //   public String otherOngoingSchemaName;
         public String nameOfFundingAgencyAndScheme;
         public String projectTitle_Ongoing;
         public String abstract_Ongoing;
@@ -192,5 +213,10 @@ global without sharing class getOtherGrantsAndApplicationDetails {
         public String abstractOfOngoingGrant;
         public Id applicantProposalAssociationId;
         public Id contactId;
+    }
+    global class SectionWrapper {
+        public String sectionId;
+        public String sectionName;
+        public Boolean sectionStatus;
     }
 }

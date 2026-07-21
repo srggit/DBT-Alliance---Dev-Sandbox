@@ -123,6 +123,21 @@ global without sharing class ApplicantHostInfoBasicService {
             }
 
             associationWrappers.add(aw);
+            List<Scheme_Section__c> schemeSectionList = [
+                SELECT Id, Name, Applicant_Proposal_Association__c, Data_Filled_Successfully__c, Section_Name__c
+                FROM Scheme_Section__c
+                WHERE Applicant_Proposal_Association__c = :applicantProposalAssociationId
+            ];
+            System.debug('schemeSectionList: ' + schemeSectionList);
+             List<SectionWrapper> sectionWrappers = new List<SectionWrapper>();
+            for(Scheme_Section__c section : schemeSectionList){
+                SectionWrapper sw = new SectionWrapper();
+                sw.sectionId = section.Id;
+                sw.sectionName = section.Section_Name__c;
+                sw.sectionStatus = section.Data_Filled_Successfully__c;
+                sectionWrappers.add(sw);
+            }
+            response.sections = sectionWrappers;
         }
 
         response.success = true;
@@ -162,6 +177,7 @@ global without sharing class ApplicantHostInfoBasicService {
         global Id applicantProposalAssociationId;
         global List<AssociationWrapper> associations;
         global List<HostWrapper> hosts;
+        public List<SectionWrapper> sections;
     }
 
     global class AssociationWrapper {
@@ -199,5 +215,10 @@ global without sharing class ApplicantHostInfoBasicService {
             this.billingPostalCode = acc.BillingPostalCode;
             this.billingCountry = acc.BillingCountry;
         }
+    }
+    global class SectionWrapper {
+        public String sectionId;
+        public String sectionName;
+        public Boolean sectionStatus;
     }
 }

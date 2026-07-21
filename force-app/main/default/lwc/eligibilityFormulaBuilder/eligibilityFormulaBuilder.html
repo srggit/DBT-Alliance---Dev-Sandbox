@@ -24,8 +24,8 @@
             <div class="formula-editor-section slds-var-m-top_medium">
                 <label class="slds-form-element__label" for="formula-editor">Formula Editor</label>
                 <p class="slds-text-body_small slds-text-color_weak slds-var-m-bottom_x-small">
-                    Click in the editor, place your cursor, then insert fields and operators in order:
-                    Field → Operator → Value.
+                    Click in the editor, place your cursor, then insert fields and operators.
+                    Recommended order: Field → Operator → Value (or another Field). Use AND / OR to combine conditions.
                 </p>
                 <p class={editorStateClass}>{editorStateMessage}</p>
                 <textarea id="formula-editor" data-id="formula-editor" class="slds-textarea formula-editor"
@@ -45,11 +45,6 @@
                             placeholder="Select Object" onchange={handleObjectChange}>
                         </lightning-combobox>
                     </lightning-layout-item>
-                    <!-- 
-                    <lightning-layout-item size="2" padding="around-small">
-                        <lightning-button label="Insert Object" onclick={handleInsertObject}>
-                        </lightning-button>
-                    </lightning-layout-item> -->
 
                     <lightning-layout-item size="3" padding="around-small">
                         <lightning-combobox label="Field" value={fieldName} options={fieldOptions}
@@ -78,6 +73,8 @@
             <hr class="slds-m-vertical_medium">
 
             <div class="button-group">
+                <lightning-button variant="neutral" label="Check Syntax" onclick={handleCheckSyntax}>
+                </lightning-button>
                 <lightning-button variant="brand" label="Save" onclick={saveEligibilityCriteria}>
                 </lightning-button>
             </div>
