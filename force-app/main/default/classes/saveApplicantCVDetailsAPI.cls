@@ -998,20 +998,44 @@ global without sharing class saveApplicantCVDetailsAPI {
         return response;
     }
 
-    private static Education_Details__c buildEducationRecord(EducationDetailsWrapper education) {
-        return new Education_Details__c(
-            Start_Date__c = education.startDate,
-            End_Date__c = education.endDate,
-            Qualification__c = education.qualification,
-            Subject__c = education.subject,
-            Country__c = education.country,
-            Institution__c = education.institution,
-            Department_School_Division__c = education.department,
-            Supervisor__c = education.supervisor,
-            Title_of_thesis_Dissertation__c = education.thesisDissertationTitle,
-            Pursuing_Higher_Degree__c = education.pursuingHigherDegree
-        );
-    }
+    // private static Education_Details__c buildEducationRecord(EducationDetailsWrapper education) {
+    //     return new Education_Details__c(
+    //         Start_Date__c = education.startDate,
+    //         End_Date__c = education.endDate,
+    //         Qualification__c = education.qualification,
+    //         Subject__c = education.subject,
+    //         Country__c = education.country,
+    //         Institution__c = education.institution,
+    //         Department_School_Division__c = education.department,
+    //         Supervisor__c = education.supervisor,
+    //         Title_of_thesis_Dissertation__c = education.thesisDissertationTitle,
+    //         Pursuing_Higher_Degree__c = education.pursuingHigherDegree
+    //     );
+    // }
+    private static Date parseDate(String dateStr) {
+            if (String.isBlank(dateStr)) {
+                return null;
+            }
+            return Date.valueOf(dateStr);
+        }
+
+        private static Education_Details__c buildEducationRecord(EducationDetailsWrapper education) {
+
+            Education_Details__c edu = new Education_Details__c();
+
+            edu.Start_Date__c = parseDate(education.startDate);
+            edu.End_Date__c = parseDate(education.endDate);
+            edu.Qualification__c = education.qualification;
+            edu.Subject__c = education.subject;
+            edu.Country__c = education.country;
+            edu.Institution__c = education.institution;
+            edu.Department_School_Division__c = education.department;
+            edu.Supervisor__c = education.supervisor;
+            edu.Title_of_thesis_Dissertation__c = education.thesisDissertationTitle;
+            edu.Pursuing_Higher_Degree__c = education.pursuingHigherDegree;
+
+            return edu;
+        }
 
     private static Patents__c buildPatentRecord(PatentsDetailsWrapper patent) {
         return new Patents__c(
@@ -1030,8 +1054,8 @@ global without sharing class saveApplicantCVDetailsAPI {
             Position__c = employment.position,
             Roles_Responsibilities__c = employment.description,
             I_am_currently_working_here__c = employment.isCurrentlyWorking == null ? false : employment.isCurrentlyWorking,
-            Start_Date__c = employment.startDate,
-            End_Date__c = employment.endDate,
+            Start_Date__c =  parseDate(employment.startDate),
+            End_Date__c =  parseDate(employment.endDate),
             Reporting_To__c = employment.reportingTo
         );
     }
@@ -1050,12 +1074,27 @@ global without sharing class saveApplicantCVDetailsAPI {
         public String sectionName;
     }
 
+    // global class EducationDetailsWrapper {
+    //     public String educationId;
+    //     public String contactId;
+    //     public String apaId;
+    //     public Date startDate;
+    //     public Date endDate;
+    //     public String qualification;
+    //     public String subject;
+    //     public String country;
+    //     public String institution;
+    //     public String department;
+    //     public String supervisor;
+    //     public String thesisDissertationTitle;
+    //     public String pursuingHigherDegree;
+    // }
     global class EducationDetailsWrapper {
         public String educationId;
         public String contactId;
         public String apaId;
-        public Date startDate;
-        public Date endDate;
+        public String startDate;
+        public String endDate;
         public String qualification;
         public String subject;
         public String country;
@@ -1086,8 +1125,8 @@ global without sharing class saveApplicantCVDetailsAPI {
         public String position;
         public String description;
         public Boolean isCurrentlyWorking;
-        public Date startDate;
-        public Date endDate;
+        public String startDate;
+        public String endDate;
         public String reportingTo;
     }
 

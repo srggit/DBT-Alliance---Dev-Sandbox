@@ -8,19 +8,18 @@ global with sharing class getProfileDetails {
 
         try {
             RestRequest req = RestContext.request;
-            String contactId = req.params.get('contactId');
+            String reviewerId = req.params.get('Reviewer__c');
 
-            if (String.isBlank(contactId)) {
+            if (String.isBlank(reviewerId)) {
                 response.success = false;
-                response.message = 'Contact Id is required';
+                response.message = 'Reviewer Id is required';
                 return response;
             }
 
             // ---- Query Contact fields + related Education, Employment & Keywords ----
-            List<Contact> contacts = [
-                SELECT Id, Title__c, FirstName, LastName, Email, Phone, ReviewerType__c,Title,
-                       Position__c, Department, Organisation__r.Name,
-                       MailingCountry, MailingState, MailingCity,
+            List<Reviewer__c> reviewers = [
+                SELECT Id, Title__c, First_Name__c, Last_Name__c, Department__c, Alternate_Phone_Number__c,Mobile_Number__c,Designation__c,Email_Address__c,
+                       Organisation__r.Name,State_Province__c,Reviewer_Type__c,Country__c, City__c,
                        (SELECT Id, Qualification__c, Institution__c, University__c, Start_Date__c,
                                End_Date__c, Specify_the_University__c, Specify_Other_Degree__c,
                                Specify_the_pursuing_degree__c, Pursuing_Higher_Degree__c,
@@ -35,26 +34,26 @@ global with sharing class getProfileDetails {
                        (SELECT Id, Keyword_Name__c
                         FROM keywords__r
                         ORDER BY Keyword_Name__c DESC)
-                FROM Contact
-                WHERE Id = :contactId
+                FROM Reviewer__c
+                WHERE Id = :reviewerId
                 LIMIT 1
             ];
 
-            if (contacts.isEmpty()) {
+            if (reviewers.isEmpty()) {
                 response.success = false;
-                response.message = 'Contact not found';
+                response.message = 'Reviewer not found';
                 return response;
             }
 
-            Contact con = contacts[0];
+            Reviewer__c rev = reviewers[0];
 
             // ---- Build wrapper ----
             response.success = true;
             response.message = 'Success';
-            response.contactDetails = wrapContact(con);
-            response.educationDetails = wrapEducationDetails(con.Education_Details__r);
-            response.employmentDetails = wrapEmploymentDetails(con.Employment_Details__r);
-            response.keywordDetails = wrapKeywordDetails(con.keywords__r);
+            response.reviewDetails = wrapReviewer(rev);
+            response.educationDetails = wrapEducationDetails(rev.Education_Details__r);
+            response.employmentDetails = wrapEmploymentDetails(rev.Employment_Details__r);
+            response.keywordDetails = wrapKeywordDetails(rev.keywords__r);
 
         } catch (Exception e) {
             response.success = false;
@@ -65,22 +64,22 @@ global with sharing class getProfileDetails {
     }
 
     // ---- Helper: map Contact sObject to typed wrapper ----
-    private static ContactWrapper wrapContact(Contact con) {
-        ContactWrapper cw = new ContactWrapper();
-        cw.id = con.Id;
-        cw.title = con.Title__c;
-        cw.firstName = con.FirstName;
-        cw.lastName = con.LastName;
-        cw.email = con.Email;
-        cw.phone = con.Phone;
-        cw.reviewerType = con.ReviewerType__c;
-        cw.position = con.Position__c;
-        cw.department = con.Department;
-        cw.organisationName = con.Organisation__r?.Name;
-        cw.city = con.MailingCity;
-        cw.state = con.MailingState;
-        cw.country = con.MailingCountry;
-        return cw;
+    private static ReviewerWrapper wrapReviewer(Reviewer__c rev) {
+        ReviewerWrapper rw = new ReviewerWrapper();
+        rw.id = rev.Id;
+        rw.title = rev.Title__c;
+        rw.firstName = rev.First_Name__c;
+        rw.lastName = rev.Last_Name__c;
+        rw.email = rev.Email_Address__c;
+        rw.phone = rev.Mobile_Number__c;
+        rw.reviewerType = rev.Reviewer_Type__c;
+        rw.position = rev.Designation__c;
+        rw.department = rev.Designation__c;
+        rw.organisationName = rev.Organisation__r?.Name;
+        rw.city = rev.City__c;
+        rw.state = rev.State_Province__c;
+        rw.country = rev.Country__c;
+        return rw;
     }
 
     // ---- Helper: map Education_Details__c list to typed wrapper list ----
@@ -142,13 +141,13 @@ global with sharing class getProfileDetails {
     global class ResponseWrapper {
         global Boolean success;
         global String message;
-        global ContactWrapper contactDetails;
+        global ReviewerWrapper reviewDetails;
         global List<EducationDetailsWrapper> educationDetails;
         global List<EmploymentDetailsWrapper> employmentDetails;
         global List<KeywordDetailsWrapper> keywordDetails;
     }
 
-    global class ContactWrapper {
+    global class ReviewerWrapper {
         global String id;
         global String title;
         global String firstName;

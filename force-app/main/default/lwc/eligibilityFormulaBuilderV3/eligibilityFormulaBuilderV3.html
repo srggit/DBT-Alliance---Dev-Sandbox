@@ -1,0 +1,171 @@
+<template>
+    <lightning-card title="Eligibility Formula Builder" icon-name="utility:formula">
+
+        <hr class="slds-m-vertical_medium">
+
+        <div class="slds-p-around_medium">
+
+            <lightning-layout multiple-rows>
+
+                <lightning-layout-item size="3" padding="around-small">
+                    <lightning-input label="Criteria Label" value={criteriaLabel}
+                        placeholder="e.g. Age Verification, Required Degree" onchange={handleCriteriaLabelChange}
+                        required>
+                    </lightning-input>
+                </lightning-layout-item>
+
+                <lightning-layout-item size="3" padding="around-small">
+                    <lightning-combobox label="Validation Type" value={selectedValidationType}
+                        options={validationTypeOptions} onchange={handleValidationTypeChange}>
+                    </lightning-combobox>
+                </lightning-layout-item>
+
+                <lightning-layout-item size="3" padding="around-small">
+                    <lightning-combobox label="Eligibility Type" value={selectedEligibilityType}
+                        options={eligibilityTypeOptions} onchange={handleEligibilityTypeChange}>
+                    </lightning-combobox>
+                </lightning-layout-item>
+                <lightning-layout-item size="3" padding="around-small">
+                    <lightning-combobox label="Application Stages" value={selectedStage} options={stageOptions}
+                        onchange={handleStageChange}>
+                    </lightning-combobox>
+                </lightning-layout-item>
+
+
+                <lightning-layout-item size="6" padding="around-small">
+                    <lightning-input label="Pass Message" value={passMessage}
+                        placeholder="Optional. Example: Age Verification - Passed" onchange={handlePassMessageChange}>
+                    </lightning-input>
+                </lightning-layout-item>
+
+                <lightning-layout-item size="6" padding="around-small">
+                    <lightning-input label="Fail Message" value={failMessage}
+                        placeholder="Optional. Tokens: {label}, {field}, {operator}, {expected}, {actual}"
+                        onchange={handleFailMessageChange}>
+                    </lightning-input>
+                </lightning-layout-item>
+
+            </lightning-layout>
+
+            <div class="formula-editor-section slds-var-m-top_medium">
+                <label class="slds-form-element__label" for="formula-editor">Formula Editor</label>
+                <p class="slds-text-body_small slds-text-color_weak slds-var-m-bottom_x-small">
+                    Click in the editor, place your cursor, then insert fields and operators.
+                    Recommended order: Field → Operator → Value (or another Field).
+                    Text values must be in quotes (e.g. 'India'). Numbers do not need quotes (e.g. 25).
+                </p>
+                <p class={editorStateClass}>{editorStateMessage}</p>
+                <textarea id="formula-editor" data-id="formula-editor" class="slds-textarea formula-editor"
+                    placeholder="Example: Yearly_Schemes__c.Experience_Required__c = 4 AND (Yearly_Schemes__c.Is_Active__c = true)"
+                    oninput={handleFormulaInput} onclick={handleFormulaSelectionChange}
+                    onkeyup={handleFormulaSelectionChange} onselect={handleFormulaSelectionChange}>
+                </textarea>
+            </div>
+
+            <div class="insert-toolbar slds-var-m-top_medium">
+                <h3 class="slds-text-heading_small slds-var-m-bottom_x-small">Insert at Cursor</h3>
+
+                <lightning-layout multiple-rows vertical-align="end">
+
+                    <lightning-layout-item size="3" padding="around-small">
+                        <lightning-combobox label="Object" value={objectName} options={objectOptions}
+                            placeholder="Select Object" onchange={handleObjectChange}>
+                        </lightning-combobox>
+                    </lightning-layout-item>
+                    <!-- 
+                    <lightning-layout-item size="2" padding="around-small">
+                        <lightning-button label="Insert Object" onclick={handleInsertObject}>
+                        </lightning-button>
+                    </lightning-layout-item> -->
+
+                    <lightning-layout-item size="3" padding="around-small">
+                        <lightning-combobox label="Field" value={fieldName} options={fieldOptions}
+                            placeholder="Select Field" disabled={isFieldPicklistDisabled} onchange={handleFieldChange}>
+                        </lightning-combobox>
+                    </lightning-layout-item>
+
+                    <lightning-layout-item size="2" padding="around-small">
+                        <lightning-button label="Insert Field" onclick={handleInsertField}
+                            disabled={isInsertFieldDisabled}>
+                        </lightning-button>
+                    </lightning-layout-item>
+
+                </lightning-layout>
+
+                <div class="operator-toolbar slds-var-m-top_small">
+                    <span class="slds-text-title_caps slds-var-m-right_small">Operators</span>
+                    <template for:each={operatorTokensWithState} for:item="operator">
+                        <lightning-button key={operator.label} label={operator.label} data-token={operator.token}
+                            disabled={operator.disabled} onclick={handleInsertOperator} class="operator-button">
+                        </lightning-button>
+                    </template>
+                </div>
+            </div>
+
+            <hr class="slds-m-vertical_medium">
+
+            <div class="button-group">
+                <lightning-button variant="neutral" label="Check Syntax" onclick={handleCheckSyntax}>
+                </lightning-button>
+                <lightning-button variant="neutral" label="Check Eligibility" onclick={handleCheckEligibility}
+                    disabled={isCheckingEligibility}>
+                </lightning-button>
+                <lightning-button variant="brand" label="Save" onclick={saveEligibilityCriteria}>
+                </lightning-button>
+            </div>
+
+        </div>
+
+    </lightning-card>
+
+    <template if:true={showResultsModal}>
+        <section role="dialog" tabindex="-1" aria-modal="true" aria-labelledby="eligibility-results-heading"
+            class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container eligibility-modal">
+                <header class="slds-modal__header">
+                    <h2 id="eligibility-results-heading" class="slds-text-heading_medium">Eligibility Check Results</h2>
+                </header>
+
+                <div class="slds-modal__content slds-p-around_medium">
+                    <template if:true={eligibilitySummary}>
+                        <div class={overallStatusClass}>
+                            <p class="slds-text-heading_small">{eligibilitySummary.overallMessage}</p>
+                        </div>
+                    </template>
+
+                    <template if:true={hasCriteriaResults}>
+                        <ul class="criteria-results-list slds-var-m-top_medium">
+                            <template for:each={criteriaResults} for:item="result">
+                                <li key={result.criteriaId} class={result.rowClass}>
+                                    <div class="criteria-row-content">
+                                        <lightning-icon icon-name={result.iconName} size="small"
+                                            class={result.iconClass} alternative-text={result.statusLabel}>
+                                        </lightning-icon>
+                                        <div class="criteria-row-text">
+                                            <p class="criteria-label">{result.criteriaLabel}</p>
+                                            <p class="criteria-message">{result.message}</p>
+                                        </div>
+                                        <span class="criteria-status">{result.statusLabel}</span>
+                                    </div>
+                                </li>
+                            </template>
+                        </ul>
+                    </template>
+
+                    <template if:false={hasCriteriaResults}>
+                        <p class="slds-text-body_regular slds-var-m-top_medium">
+                            No saved eligibility criteria found for this yearly scheme.
+                        </p>
+                    </template>
+                </div>
+
+                <footer class="slds-modal__footer">
+                    <lightning-button variant="brand" label="Close" onclick={handleCloseResultsModal}>
+                    </lightning-button>
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </template>
+
+</template>

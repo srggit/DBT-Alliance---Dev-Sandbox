@@ -1,6 +1,6 @@
 public with sharing class ReviewerController {
     /**
-     * Lightweight data object used to return a reviewer contact together with
+     * Lightweight data object used to return a reviewer together with
      * keyword-match metadata for display and sorting in the Lightning web component.
      */
     public class ReviewerResult implements Comparable {
@@ -33,7 +33,7 @@ public with sharing class ReviewerController {
     }
 
     /**
-     * Returns all reviewer contacts together with keyword-match metadata based on
+     * Returns all reviewers together with keyword-match metadata based on
      * the proposal's comma-separated keywords (case-insensitive). Results are ranked
      * by how many proposal keywords they match; unmatched reviewers still appear
      * with a match count of 0 and an empty matched-keywords value.
@@ -46,40 +46,35 @@ public with sharing class ReviewerController {
         List<String> proposalKeywords = getProposalKeywords(proposalId);
         Boolean hasProposalKeywords = !proposalKeywords.isEmpty();
 
-        // Identify reviewer contacts already mapped to this proposal.
-        Set<Id> mappedContactIds = new Set<Id>();
+        // Identify reviewers already mapped to this proposal.
+        Set<Id> mappedReviewerIds = new Set<Id>();
         if (proposalId != null) {
             for (Reviewer_Mapping__c existing : [
-                SELECT Contact__c
+                SELECT Reviewer__c
                 FROM Reviewer_Mapping__c
                 WHERE Proposal__c = :proposalId
             ]) {
-                mappedContactIds.add(existing.Contact__c);
+                mappedReviewerIds.add(existing.Reviewer__c);
             }
         }
 
-        // Query all reviewer contacts and their related keyword records.
-        List<Contact> reviewerContacts = [
+        // Query all reviewers and their related keyword records.
+        List<Reviewer__c> reviewerRecords = [
             SELECT
-                Id,
-                Name,
-                Email,
-                Phone,
-                ReviewerType__c,
-                Qualifying_Degree__c,
+                Id, Title__c, First_Name__c, Last_Name__c, Mobile_Number__c, Alternate_Phone_Number__c,
+                Designation__c, Department__c, Country__c, State_Province__c, City__c, Organisation__c,
+                Email_Address__c, Reviewer_Type__c,
                 (SELECT Keyword_Name__c FROM Keywords__r)
-            FROM Contact
-            WHERE RecordType.Name = 'Reviewer'
-            ORDER BY Name
+            FROM Reviewer__c
             LIMIT 1000
         ];
 
-        // Score each contact and build a result for every reviewer.
+        // Score each reviewer and build a result for every reviewer.
         List<ReviewerResult> results = new List<ReviewerResult>();
-        for (Contact reviewer : reviewerContacts) {
+        for (Reviewer__c reviewer : reviewerRecords) {
             Set<String> matchedKeywordNames = new Set<String>();
 
-            // A proposal keyword matches when it is a substring of a contact keyword.
+            // A proposal keyword matches when it is a substring of a reviewer keyword.
             // Comparison is case-insensitive.
             List<SObject> keywordRecords = reviewer.getSObjects('Keywords__r');
             if (keywordRecords != null) {
@@ -88,10 +83,10 @@ public with sharing class ReviewerController {
                     if (String.isBlank(keywordName)) {
                         continue;
                     }
-                    String contactKeyword = keywordName.toLowerCase();
+                    String reviewerKeyword = keywordName.toLowerCase();
 
                     for (String proposalKeyword : proposalKeywords) {
-                        if (contactKeyword.contains(proposalKeyword)) {
+                        if (reviewerKeyword.contains(proposalKeyword)) {
                             matchedKeywordNames.add(keywordName);
                         }
                     }
@@ -100,12 +95,12 @@ public with sharing class ReviewerController {
 
             ReviewerResult result = new ReviewerResult();
             result.Id = reviewer.Id;
-            result.Name = reviewer.Name;
-            result.Email = reviewer.Email;
-            result.Phone = reviewer.Phone;
-            result.reviewerType = reviewer.ReviewerType__c;
-            result.qualifyingDegree = reviewer.Qualifying_Degree__c;
-            result.isAlreadyMapped = mappedContactIds.contains(reviewer.Id);
+            result.Name = buildReviewerName(reviewer.First_Name__c, reviewer.Last_Name__c);
+            result.Email = reviewer.Email_Address__c;
+            result.Phone = reviewer.Mobile_Number__c;
+            result.reviewerType = reviewer.Reviewer_Type__c;
+            result.qualifyingDegree = '';
+            result.isAlreadyMapped = mappedReviewerIds.contains(reviewer.Id);
             result.matchCount = matchedKeywordNames.size();
             // Produce a deterministic, comma-separated list of matched keywords for display.
             List<String> matchedList = new List<String>(matchedKeywordNames);
@@ -158,27 +153,27 @@ public with sharing class ReviewerController {
     }
 
     @AuraEnabled
-    public static void createReviewerMappings(Id proposalId, List<Id> contactIds) {
-        if (proposalId == null || contactIds == null || contactIds.isEmpty()) {
-            throw new AuraHandledException('Proposal and at least one reviewer contact are required.');
+    public static void createReviewerMappings(Id proposalId, List<Id> reviewerIds) {
+        if (proposalId == null || reviewerIds == null || reviewerIds.isEmpty()) {
+            throw new AuraHandledException('Proposal and at least one reviewer are required.');
         }
 
-        Set<Id> uniqueContactIds = new Set<Id>(contactIds);
+        Set<Id> uniqueReviewerIds = new Set<Id>(reviewerIds);
 
-        Set<Id> existingContactIds = new Set<Id>();
+        Set<Id> existingReviewerIds = new Set<Id>();
         for (Reviewer_Mapping__c existing : [
-            SELECT Contact__c
+            SELECT Reviewer__c
             FROM Reviewer_Mapping__c
-            WHERE Proposal__c = :proposalId AND Contact__c IN :uniqueContactIds
+            WHERE Proposal__c = :proposalId AND Reviewer__c IN :uniqueReviewerIds
         ]) {
-            existingContactIds.add(existing.Contact__c);
+            existingReviewerIds.add(existing.Reviewer__c);
         }
 
         List<Reviewer_Mapping__c> mappingsToInsert = new List<Reviewer_Mapping__c>();
-        for (Id contactId : uniqueContactIds) {
-            if (!existingContactIds.contains(contactId)) {
+        for (Id reviewerId : uniqueReviewerIds) {
+            if (!existingReviewerIds.contains(reviewerId)) {
                 mappingsToInsert.add(
-                    new Reviewer_Mapping__c(Proposal__c = proposalId, Contact__c = contactId)
+                    new Reviewer_Mapping__c(Proposal__c = proposalId, Reviewer__c = reviewerId)
                 );
             }
         }
@@ -190,5 +185,19 @@ public with sharing class ReviewerController {
                 throw new AuraHandledException('Unable to create reviewer mappings: ' + e.getDmlMessage(0));
             }
         }
+    }
+
+    /**
+     * Builds a full name from first and last name parts, trimming blank values.
+     */
+    private static String buildReviewerName(String firstName, String lastName) {
+        List<String> parts = new List<String>();
+        if (String.isNotBlank(firstName)) {
+            parts.add(firstName.trim());
+        }
+        if (String.isNotBlank(lastName)) {
+            parts.add(lastName.trim());
+        }
+        return String.join(parts, ' ');
     }
 }

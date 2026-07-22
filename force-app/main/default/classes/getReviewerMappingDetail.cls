@@ -8,22 +8,22 @@ global without sharing class getReviewerMappingDetail {
 
         try {
             RestRequest req = RestContext.request;
-            String contactId = req.params.get('contactId'); // Reviewer's Contact Id
+            String reviewerId = req.params.get('Reviewer__c'); // Reviewer's Contact Id
 
-            if (String.isBlank(contactId)) {
+            if (String.isBlank(reviewerId)) {
                 response.success = false;
-                response.message = 'Contact Id is required';
+                response.message = 'Reviewer Id is required';
                 return response;
             }
 
             // ---- Step 1: Get Reviewer Mapping records for this reviewer ----
             // Traverse directly: Proposal__r.Proposal_Id__c and Proposal__r.Yearly_Scheme__r.Scheme__c
             List<Reviewer_Mapping__c> mappings = [
-                SELECT Id, Status__c, Proposal__c,
+                SELECT Id, Status__c, Proposal__c,Reviewer__c,
                        Proposal__r.Proposal_Id__c,
                        Proposal__r.Yearly_Scheme__r.Scheme__c
                 FROM Reviewer_Mapping__c
-                WHERE Contact__c = :contactId
+                WHERE Reviewer__c = :reviewerId
             ];
 
             if (mappings.isEmpty()) {

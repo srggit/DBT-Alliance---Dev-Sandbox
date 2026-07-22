@@ -75,7 +75,7 @@ export default class AssignReviewers extends LightningElement {
         try {
             await createReviewerMappings({
                 proposalId: this.recordId,
-                contactIds: this.selectedReviewerIds
+                reviewerIds: this.selectedReviewerIds
             });
             this.showToast('Success', 'Reviewer mappings created successfully.', 'success');
             getRecordNotifyChange([{ recordId: this.recordId }]);

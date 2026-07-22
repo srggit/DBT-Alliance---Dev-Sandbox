@@ -13,32 +13,32 @@ global with sharing class getContactWithEmail {
             if (String.isBlank(email)) {
                 response.exists = false;
                 response.message = 'Email is required';
-                response.contactId = null;
+                response.reviwerId = null;
                 return response;
             }
 
             // ---- Case-insensitive email match ----
-            List<Contact> contacts = [
+            List<Reviewer__c> reviwers = [
                 SELECT Id
-                FROM Contact
-                WHERE Email = :email
+                FROM Reviewer__c
+                WHERE Email_Address__c = :email
                 LIMIT 1
             ];
 
-            if (!contacts.isEmpty()) {
+            if (!reviwers.isEmpty()) {
                 response.exists = true;
-                response.message = 'Contact exist';
-                response.contactId = contacts[0].Id;
+                response.message = 'Reviewer exist';
+                response.reviwerId = reviwers[0].Id;
             } else {
                 response.exists = false;
-                response.message = 'Contact do not Exist';
-                response.contactId = null;
+                response.message = 'Reviewer do not Exist';
+                response.reviwerId = null;
             }
 
         } catch (Exception e) {
             response.exists = false;
             response.message = 'Error: ' + e.getMessage();
-            response.contactId = null;
+            response.reviwerId = null;
         }
 
         return response;
@@ -48,6 +48,6 @@ global with sharing class getContactWithEmail {
     global class ResponseWrapper {
         global Boolean exists;
         global String message;
-        global String contactId;
+        global String reviwerId;
     }
 }
