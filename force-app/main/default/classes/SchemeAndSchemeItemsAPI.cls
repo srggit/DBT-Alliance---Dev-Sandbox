@@ -94,7 +94,7 @@ global without sharing class SchemeAndSchemeItemsAPI {
                     SELECT Id, Name, Scheme_Items__c, Is_Active__c, Scheme_Visibility__c, Approval_Status__c,
                            Scheme_Start_Date__c, Scheme_End_Date__c,
                            Second_Stage_Start_Date__c, Second_Stage_End_Date__c,
-                           Budget_Cap__c, Experience_Required__c,
+                           Application_Stages__c, Budget_Cap__c, Experience_Required__c,
                            Required_Degree__c, Team_Size_Limits__c, Days_Remaining_To_Close_Prelims__c, Days_Remaining_To_Close_Full__c,
                             (SELECT Id, Name, Yearly_Scheme__c, Yearly_Scheme__r.Name, External_Participants__c,    External_Participants_Count__c, External_Participants_Status__c
                             FROM External_Participants__r)
@@ -264,7 +264,7 @@ global without sharing class SchemeAndSchemeItemsAPI {
         wrapper.deadlineLabel = formatDeadlineLabel(yearlyScheme.Scheme_End_Date__c);
         wrapper.secondStageStartDate = toDateString(yearlyScheme.Second_Stage_Start_Date__c);
         wrapper.secondStageEndDate = toDateString(yearlyScheme.Second_Stage_End_Date__c);
-        // wrapper.applicationStages = yearlyScheme.Application_Stages__c;
+        wrapper.applicationStages = yearlyScheme.Application_Stages__c;
         wrapper.budgetCap = yearlyScheme.Budget_Cap__c;
         wrapper.experienceRequired = yearlyScheme.Experience_Required__c;
         wrapper.requiredDegree = yearlyScheme.Required_Degree__c;
