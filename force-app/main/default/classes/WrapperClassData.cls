@@ -30,7 +30,7 @@ global with sharing class WrapperClassData {
         public String subject;
         public String country;
         public String institution;
-        public String department;
+        public String grade;
         public String supervisor;
         public String thesisDissertationTitle;
         public Date endDate;
@@ -43,6 +43,7 @@ global with sharing class WrapperClassData {
         public String specifyTheUniversity;
         public String titleOfThesisDissertation;
         public String university;
+       
     }
 
     global class EmploymentDetailsWrapper {
@@ -53,6 +54,7 @@ global with sharing class WrapperClassData {
         public Date endDate;
         public String description;
         public Boolean isCurrentlyWorking;
+        public String reportingTo;
     }
 
     global class AchievementsDetailsWrapper {

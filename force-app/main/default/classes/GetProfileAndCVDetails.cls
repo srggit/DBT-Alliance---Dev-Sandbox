@@ -101,6 +101,9 @@ global without sharing class GetProfileAndCVDetails {
                 educationDetailsWrapper.specifyTheUniversity = edu.Specify_the_University__c;
                 educationDetailsWrapper.titleOfThesisDissertation = edu.Title_of_thesis_Dissertation__c;
                 educationDetailsWrapper.university = edu.University__c;
+                educationDetailsWrapper.country = edu.Country__c;
+                educationDetailsWrapper.grade = edu.Department_School_Division__c;
+                educationDetailsWrapper.subject = edu.Subject__c;
                 educationDetailsWrapperList.add(educationDetailsWrapper);
             }
 
@@ -113,6 +116,7 @@ global without sharing class GetProfileAndCVDetails {
                 employmentDetailsWrapper.isCurrentlyWorking = emp.I_am_currently_working_here__c;
                 employmentDetailsWrapper.endDate = emp.End_Date__c;
                 employmentDetailsWrapper.startDate = emp.Start_Date__c;
+                employmentDetailsWrapper.reportingTo = emp.Reporting_To__c;
 
                 employmentDetailsWrapperList.add(employmentDetailsWrapper);
             }

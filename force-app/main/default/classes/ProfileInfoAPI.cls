@@ -30,7 +30,7 @@ global without sharing class ProfileInfoAPI {
             con.FirstName = req.firstName;
             con.LastName = req.lastName;
             con.Email = req.email;
-            con.Phone = req.mobileNuber;
+            con.Phone = req.mobileNumber;
             con.BirthDate = req.dob;
 
             con.AccountId = req.currentOrg; // Account Id
@@ -69,7 +69,7 @@ global without sharing class ProfileInfoAPI {
         public String firstName;
         public String lastName;
         public String email;
-        public String mobileNuber;
+        public String mobileNumber;
         public Date dob;
 
         public String qualifyingDegree;

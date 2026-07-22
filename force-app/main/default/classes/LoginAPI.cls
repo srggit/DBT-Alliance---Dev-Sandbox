@@ -18,7 +18,7 @@ global without sharing class LoginAPI {
             System.debug('User Type => ' + UserInfo.getUserType());
 			            
             List<Contact> contacts = [
-                SELECT Id, FirstName, LastName, Email, Password__c, Password_Hash__c
+                SELECT Id, FirstName, LastName, Email, Password__c, Password_Hash__c, RecordTypeId, RecordType.Name, ReviewerType__c
                 FROM Contact
                 WHERE Email = :req.email
               	LIMIT 1
@@ -56,7 +56,10 @@ global without sharing class LoginAPI {
             response.message = 'Login Successful';
             response.contactId = con.Id;
             response.name = con.FirstName + ' ' + con.LastName;
-
+            response.applicantRecordTypeId = con.RecordTypeId;
+            response.applicantRecordTypeName = con.RecordType.Name;
+            response.reviewerType = con.ReviewerType__c;
+    
         } catch(Exception e) {
 
             response.success = false;
@@ -76,5 +79,8 @@ global without sharing class LoginAPI {
         public String message;
         public String contactId;
         public String name;
+        public String applicantRecordTypeId;
+        public String applicantRecordTypeName;
+        public String reviewerType;
     }
 }

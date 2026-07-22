@@ -20,6 +20,9 @@ global without sharing class GlobalPicklistValues {
         Schema.DescribeFieldResult rolesFieldResult = Proposal_Participant_Association__c.Roles__c.getDescribe();
         response.rolesValues = getSafePicklistValues(rolesFieldResult);
 
+        Schema.DescribeFieldResult decisionOnPreviousApplicationFieldResult = Applicant_Proposal_Association__c.Decision_on_previous_application__c.getDescribe();
+        response.decisionOnPreviousApplicationValues = getSafePicklistValues(decisionOnPreviousApplicationFieldResult);
+
 
         Map<String, String> accountMap = new Map<String, String>();
         for (Account acc : [ SELECT Id, Name FROM Account Where Organization_Status__c='Listed'
@@ -62,6 +65,7 @@ global without sharing class GlobalPicklistValues {
         public FieldResult institutionalCategoriesValues;
         public FieldResult titleFieldResultValues;
         public FieldResult rolesValues;
+        public FieldResult decisionOnPreviousApplicationValues;
         public Map<String, String> accounts;
     }
     

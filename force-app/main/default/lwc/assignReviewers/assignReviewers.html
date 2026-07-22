@@ -1,0 +1,90 @@
+<template>
+    <lightning-card title="Assign Reviewers" icon-name="standard:contact">
+        <template lwc:if={hasReviewers}>
+            <lightning-button slot="actions" variant="brand" label="Create Mappings" onclick={handleCreateMappings}
+                disabled={isSubmitDisabled}>
+            </lightning-button>
+        </template>
+
+        <div class="slds-p-horizontal_small">
+            <template lwc:if={isLoading}>
+                <div class="slds-is-relative slds-p-around_medium">
+                    <lightning-spinner alternative-text="Loading reviewers" size="small"></lightning-spinner>
+                </div>
+            </template>
+
+            <template lwc:if={hasReviewers}>
+                <table class="slds-table slds-table_cell-buffer slds-table_bordered slds-table_fixed-layout">
+                    <thead>
+                        <tr class="slds-line-height_reset">
+                            <th scope="col" style="width: 3rem;"></th>
+                            <th scope="col">
+                                <div class="slds-truncate" title="Name">Name</div>
+                            </th>
+                            <th scope="col">
+                                <div class="slds-truncate" title="Email">Email</div>
+                            </th>
+                            <th scope="col">
+                                <div class="slds-truncate" title="Phone">Phone</div>
+                            </th>
+                            <th scope="col">
+                                <div class="slds-truncate" title="Reviewer Type">Reviewer Type</div>
+                            </th>
+                            <th scope="col">
+                                <div class="slds-truncate" title="Qualifying Degree">Qualifying Degree</div>
+                            </th>
+                            <th scope="col">
+                                <div class="slds-truncate" title="Matched Keywords">Matched Keywords</div>
+                            </th>
+                            <th scope="col">
+                                <div class="slds-truncate" title="Matches">Matches</div>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template for:each={reviewers} for:item="reviewer">
+                            <tr key={reviewer.Id} class={reviewer.rowClass}>
+                                <td>
+                                    <lightning-input type="checkbox" label="Select reviewer" variant="label-hidden"
+                                        data-id={reviewer.Id} checked={reviewer.selected}
+                                        disabled={reviewer.isAlreadyMapped} onchange={handleReviewerSelect}>
+                                    </lightning-input>
+                                </td>
+                                <td>
+                                    <div class="slds-truncate" title={reviewer.Name}>{reviewer.Name}</div>
+                                </td>
+                                <td>
+                                    <div class="slds-truncate" title={reviewer.Email}>{reviewer.Email}</div>
+                                </td>
+                                <td>
+                                    <div class="slds-truncate" title={reviewer.Phone}>{reviewer.Phone}</div>
+                                </td>
+                                <td>
+                                    <div class="slds-truncate" title={reviewer.reviewerType}>{reviewer.reviewerType}
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="slds-truncate" title={reviewer.qualifyingDegree}>
+                                        {reviewer.qualifyingDegree}</div>
+                                </td>
+                                <td>
+                                    <div class="slds-truncate" title={reviewer.matchedKeywords}>
+                                        {reviewer.matchedKeywords}</div>
+                                </td>
+                                <td>
+                                    <div class="slds-truncate" title={reviewer.matchCount}>{reviewer.matchCount}</div>
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </template>
+
+            <template lwc:else>
+                <div class="slds-p-around_medium slds-text-align_center slds-text-color_weak">
+                    No reviewer contacts found.
+                </div>
+            </template>
+        </div>
+    </lightning-card>
+</template>

@@ -154,7 +154,7 @@ global without sharing class ApplicantHostInfoBasicService {
         List<Account> allHosts = [
             SELECT Id, Name, Phone, Email__c, District__c,
                    BillingStreet, BillingCity, BillingState, BillingPostalCode, BillingCountry
-            FROM Account
+            FROM Account where Organization_Status__c = :'Listed'
         ];
 
         List<HostWrapper> hostWrappers = new List<HostWrapper>();
